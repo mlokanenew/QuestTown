@@ -1,0 +1,14 @@
+{
+  "name": "Hero spawns after tavern placed",
+  "goal": "Place a tavern on the map, then wait for a hero to arrive and enter it.",
+  "seed": 42,
+  "max_ticks": 3600,
+  "commands": [
+    {"cmd": "place_building", "type": "tavern", "x": 0, "z": 0}
+  ],
+  "assertions": [
+    {"assert": "hero_count_gte",  "value": 1},
+    {"assert": "any_hero_state",  "value": "idling"},
+    {"assert": "building_count_gte", "value": 1}
+  ]
+}

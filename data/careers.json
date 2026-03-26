@@ -1,0 +1,8 @@
+[
+  {"id": "rat_catcher",    "name": "Rat Catcher",    "tier": 1, "description": "Scrapes a living in the sewers and alleyways."},
+  {"id": "soldier",        "name": "Soldier",         "tier": 1, "description": "Trained for war, looking for work."},
+  {"id": "camp_follower",  "name": "Camp Follower",   "tier": 1, "description": "Survived armies, knows how to get by."},
+  {"id": "mercenary",      "name": "Mercenary",       "tier": 1, "description": "Fights for coin, no questions asked."},
+  {"id": "riverfolk",      "name": "Riverfolk",       "tier": 1, "description": "Travelled the rivers of the Empire."},
+  {"id": "peasant",        "name": "Peasant",         "tier": 1, "description": "Driven from the fields by misfortune."}
+]

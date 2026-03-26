@@ -1,0 +1,69 @@
+[gd_scene load_steps=6 format=3 uid="uid://world"]
+
+[ext_resource type="Script" path="res://scripts/world.gd" id="1_world"]
+[ext_resource type="Script" path="res://scripts/simulation/SimulationRoot.gd" id="2_simroot"]
+[ext_resource type="Script" path="res://scripts/control/CommandServer.gd" id="3_cmdsrv"]
+[ext_resource type="Script" path="res://scripts/presentation/BuildManager.gd" id="4_buildmgr"]
+[ext_resource type="Script" path="res://scripts/presentation/HeroPresenter.gd" id="5_heropres"]
+
+[sub_resource type="PlaneMesh" id="ground_mesh"]
+size = Vector2(60, 60)
+
+[node name="World" type="Node3D"]
+script = ExtResource("1_world")
+
+[node name="SimulationRoot" type="Node" parent="."]
+script = ExtResource("2_simroot")
+
+[node name="CommandServer" type="Node" parent="."]
+script = ExtResource("3_cmdsrv")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.707107, -0.5, 0.5, 0, 0.707107, 0.707107, -0.707107, -0.5, 0.5, 0, 10, 0)
+light_energy = 1.2
+shadow_enabled = true
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.707107, -0.707107, 0, 0.707107, 0.707107, 0, 20, 20)
+projection = 1
+size = 24.0
+
+[node name="Ground" type="MeshInstance3D" parent="."]
+mesh = SubResource("ground_mesh")
+
+[node name="NavigationRegion3D" type="NavigationRegion3D" parent="."]
+
+[node name="BuildManager" type="Node" parent="."]
+script = ExtResource("4_buildmgr")
+
+[node name="HeroPresenter" type="Node3D" parent="."]
+script = ExtResource("5_heropres")
+
+[node name="UILayer" type="CanvasLayer" parent="."]
+
+[node name="UI" type="VBoxContainer" parent="UILayer"]
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = 200.0
+offset_bottom = 200.0
+
+[node name="GoldLabel" type="Label" parent="UILayer/UI"]
+text = "Gold: 100"
+
+[node name="BuildButton" type="Button" parent="UILayer/UI"]
+text = "Build Tavern (50g)"
+
+[node name="EventLogPanel" type="PanelContainer" parent="UILayer"]
+anchor_left = 0.0
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_top = -160.0
+offset_right = 400.0
+
+[node name="EventLog" type="RichTextLabel" parent="UILayer/EventLogPanel"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+scroll_following = true

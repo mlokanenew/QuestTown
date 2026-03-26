@@ -1,0 +1,11 @@
+[
+  {
+    "id": "tavern",
+    "name": "Tavern",
+    "description": "A warm hearth and cheap ale. Heroes find their way here.",
+    "cost": 50,
+    "hero_spawn_weight": 1,
+    "footprint": [2, 2],
+    "scene": "res://scenes/buildings/Tavern.tscn"
+  }
+]

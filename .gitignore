@@ -1,0 +1,27 @@
+# Godot
+.godot/
+*.tmp
+*.remap
+export_presets.cfg
+
+# Import cache
+.import/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+*.swp
+*.swo
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+tools/.env
+
+# Build
+builds/

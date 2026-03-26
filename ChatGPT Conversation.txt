@@ -1,0 +1,738 @@
+
+
+
+Okay - this is a big one.  I want to build a game I've been wanting to build for a long time and can now do with a coding assistant.  First I need you to help me think through the best way to get this set up and what languages etc. to use in the coding assistant to ensure it is easy for the coding assistant and most of ther work can be completed by the assistant.
+
+The game is losely based on Warhammer Fantasy Roleplay careers.  The game has you building a town that attracts PCs to the town to live there, complete quests, and advance through hero careers like WFRP. Int he end you should have a city like Altdorf that has guilds, intrigue happening in the city, quests to far off lands and a lovely game loop.  You should care about the PCs - if a very advanced hero dies on a quest it should feel bad.  I want the town building to be fairly easy as the main loop is working out how to balance quests for the PCs and getting them to spend the money from the quests in your town.  It should be a 3D game but I'm not concerned about it being fully 3D like a manor lords time game.
+
+My preference would be to build this in python as I know that language. I'm also concerned about Unity etc. as there is so much in those tools that you can't control from the coding assistant. But if there is a better language which is powerful enough to build in the assistant but isn't python then I'm fine with that.  First think through what platform we should be using. I've already worked out I can build 3D assets using LLM models.
+
+I’m comparing the realistic engine choices for an assistant-heavy workflow, with a bias toward text-first tools and Python-like scripting rather than editor-heavy workflows.
+
+The main trade-off is becoming clear: pure Python gives you maximum assistant control, but you give up a lot of ready-made 3D game-engine support. Godot looks like the strongest middle ground so far because it stays very text-friendly while giving you proper 3D, navigation and asset import.
+
+Thought for 2m 43s
+For this game, I would build it in Godot 4 with GDScript, and use Python alongside it for tooling, not for the runtime game itself.
+
+Why that’s the best fit for your brief:
+
+You want something a coding assistant can drive heavily, with as much of the project as possible living in normal text files rather than being trapped in opaque editor state. Godot is unusually strong here: GDScript is indentation-based and deliberately Python-like, but tightly integrated with the engine; Godot’s .tscn scene files are human-readable text; .tres resource files are version-control-friendly text; and Godot supports command-line running, debugging and headless export, which is excellent for assistant-driven workflows and CI. 
+
+It also matches your game shape better than pure Python. Your design needs a real 3D engine, pathfinding/navigation for lots of town residents and adventurers, and a sane asset pipeline from generated/edited 3D assets into the game. Godot has built-in 3D navigation and pathfinding APIs, and it can import Blender scenes directly or work through glTF, which fits well with an LLM-assisted 3D asset pipeline. 
+
+I would not start this in Unreal for your use case, and I would be cautious about Unity. Unreal’s workflow leans heavily on Blueprint visual scripting, which is powerful but pushes more game logic into node graphs that are less pleasant for a coding assistant to author and maintain. Unity has a strong C# stack, but its own docs and training material still assume substantial editor customisation, inspectors and editor windows, which tends to pull work back into the editor rather than keeping it in plain code and data. 
+
+On the Python question specifically: I do not think “runtime game in Python” is the best choice here, even though you know Python well. Godot’s docs are quite explicit that they chose not to use Python directly because earlier Python/Lua integrations had serious limitations, including threading issues. That lines up with the practical reality: for a living 3D town sim with lots of agents, you want an engine whose main gameplay language is built for that engine. 
+
+So my recommendation is:
+
+Engine: Godot 4.x
+Main gameplay language: GDScript
+Secondary language: Python 3.12+ for offline tools
+3D pipeline: Blender + glTF/.blend import into Godot
+Data model: Godot Resources (.tres) for careers, buildings, quests, guilds, enemies, regions
+Source control: Git from day one
+
+That gives you the best split:
+
+GDScript for the actual game.
+
+Python for assistant-friendly generators and utilities:
+
+career tree generators
+
+quest content generators
+
+economy/balance simulators
+
+save-file analysers
+
+batch asset-processing scripts
+
+content import/export tools
+
+The big design decision I’d make early is this:
+
+Keep the game simulation mostly data-driven and code-driven, not editor-driven.
+
+In practice that means:
+
+careers are data files
+
+buildings are data files
+
+quest templates are data files
+
+factions/guilds are data files
+
+map chunks and prefabs are scenes
+
+game rules live in scripts
+
+UI pulls from data, not hardcoded branches everywhere
+
+That is the sort of structure a coding assistant can keep extending safely.
+
+For your particular game, I’d also avoid trying to make it “full Manor Lords 3D”. I would aim for:
+
+a stylised 3D isometric / high-angle camera
+
+fairly simple placement/building rules
+
+visually rich but mechanically clear streets, districts, guild halls, inns, temples and markets
+
+heroes as named simulated units with inventory, wounds, loyalties, career progress and relationships
+
+the depth living in the sim and narrative systems, not in cutting-edge rendering
+
+That choice matters because it keeps the project in the zone where an assistant can do a huge amount of the work.
+
+There is one credible “all Python” fallback: Panda3D, with Ursina as a friendlier wrapper for fast prototyping. Panda3D is a real open-source 3D engine with Python bindings, and Ursina uses Python throughout. That said, I would only choose that route if your absolute top priority is “everything in Python no matter what”, because you will end up building more of the game-framework layer yourself. 
+
+So the decision in plain English is:
+
+Best overall choice: Godot + GDScript + Python tools
+
+Best if you insist on stronger typing from day one: Godot + C#
+
+Best if you insist on pure Python runtime: Panda3D/Ursina
+
+Not my recommendation for assistant-first development: Unreal
+
+Viable but more editor-heavy than you want: Unity
+
+I would start with Godot + typed GDScript, not C#. Godot itself recommends GDScript as the easiest starting point with the tightest integration, while C# support is there when you need it. 
+
+The next useful step is to define the exact project structure, coding rules for the assistant, and the first playable milestone so the assistant starts building on rails rather than improvising.
+
+
+Okay - yes I've tried godot before.  Okay - let's think through the MVP in Godot.  We need to have the town blank and we can add a tavern, then when the tavern is placed, every so often a hero arrives and walks around.  Feels like a good first step to test it out?
+
+Thought for 7s
+Yes — that is a very good first playable slice.
+
+In fact, I’d tighten it slightly into this MVP:
+
+MVP 0: “A tavern attracts heroes”
+
+Start with an empty town plot
+
+Enter build mode
+
+Place one tavern
+
+Once a tavern exists, heroes begin arriving at intervals
+
+Each hero walks in from a town edge/spawn point
+
+They navigate to the tavern
+
+They loiter for a bit, maybe wander nearby
+
+They leave, or stay as a resident later
+
+That is the right first test because it proves the core things your whole game depends on:
+
+building placement
+
+world state changing because of buildings
+
+autonomous named characters
+
+pathfinding/navigation
+
+the feeling that the town is “alive”
+
+the basic loop of “I built something, and it attracted people”
+
+I would not put quests into the very first slice. Get the town-to-hero attraction loop feeling good first.
+
+What to include in the first version
+For the first version, I’d keep it to:
+
+World
+
+Flat terrain or a simple square map
+
+A few pre-marked buildable tiles or a simple free-placement plane
+
+One road or just navmesh everywhere
+
+Building
+
+One placeable building: tavern
+
+Ghost preview before placement
+
+Cannot overlap another building
+
+Hero
+
+A single hero prefab for now
+
+Random generated name from a short list
+
+Simple stats shown in a panel: name, level 1, career “Rat Catcher” or “Mercenary”
+
+State machine:
+
+arriving
+
+walking_to_tavern
+
+idling
+
+leaving
+
+Simulation
+
+If tavern count > 0, spawn one hero every X seconds up to a cap
+
+Heroes pathfind to the tavern
+
+Tavern has a limited attractiveness value, even if it is just a number like hero_spawn_weight = 1
+
+UI
+
+Gold counter
+
+Build button for tavern
+
+Selected hero info panel
+
+Small event log:
+
+“Hans Gruber arrived in town”
+
+“Elsa Falk visits the tavern”
+
+What to leave out for now
+Do not add these yet:
+
+combat
+
+quests
+
+inventories
+
+career progression trees
+
+complex town needs
+
+multiple building types
+
+procedural dialogue
+
+housing
+
+families
+
+guild politics
+
+death/permanent injury
+
+Those are all important later, but they will slow down the first proof.
+
+The real hidden goal of this MVP
+The real goal is to answer these questions:
+
+Does placing a building and seeing heroes appear feel satisfying?
+
+Does the 3D scale/camera feel right?
+
+Can Godot handle the agent movement in the style you want?
+
+Does the game already hint at emotional attachment to named heroes?
+
+If the answer is yes, the project is alive.
+
+I would actually split it into 3 tiny milestones
+Milestone 1 — building placement only
+empty map
+
+place tavern
+
+tavern appears correctly
+
+save tavern in world state
+
+Milestone 2 — one hero arrives
+once tavern exists, spawn a hero
+
+hero walks to tavern using navmesh
+
+hero idles
+
+Milestone 3 — repeated arrivals
+more heroes spawn over time
+
+cap active heroes at 5–10
+
+give each a name and a basic career
+
+click hero to inspect them
+
+That sequence is better than trying to build the whole slice at once.
+
+Suggested Godot architecture for this MVP
+Keep it simple:
+
+Scenes
+
+World.tscn
+
+BuildManager.tscn or script on world
+
+Tavern.tscn
+
+Hero.tscn
+
+UI.tscn
+
+Scripts
+
+world.gd
+
+build_manager.gd
+
+building.gd
+
+tavern.gd
+
+hero.gd
+
+hero_ai.gd or keep in hero.gd initially
+
+game_state.gd
+
+event_log.gd
+
+Data
+
+hero_names.tres or JSON
+
+careers.tres or JSON
+
+building_defs.tres
+
+For this first slice, one script per thing is fine. Do not over-engineer.
+
+The one design choice I’d lock in now
+Make heroes persistent named entities, even in the MVP.
+
+So instead of spawning a generic “visitor”, spawn:
+
+Otto Voss, Rat Catcher
+
+Marta Klein, Soldier
+
+Liese Bauer, Camp Follower
+
+Even if they do almost nothing yet, this matters. It starts building the emotional core of the game.
+
+Success criteria for the MVP
+I would say the MVP is successful when:
+
+you can place a tavern in under 2 clicks
+
+within 30 seconds, a named hero appears
+
+that hero reliably walks to the tavern
+
+selecting them shows their identity
+
+the scene already gives a faint “tiny living town” feeling
+
+If you achieve that, you’ve proven the project’s core.
+
+My recommendation
+Yes, this is the right first step — with one tweak:
+
+Don’t think of it as “blank town + tavern + hero walks around”.
+
+Think of it as:
+
+“Place a tavern, and the world starts producing heroes.”
+
+That is the first magical moment of the whole game.
+
+Next I’d turn this into a very concrete implementation plan for the coding assistant: folders, scenes, scripts, node setup, and exact order to build it.
+
+
+It might be easier to start with some free 3d assets of the heroes.  Can you find some online that are free
+
+I’m pulling together sources that are genuinely free, practical for a Godot MVP, and unlikely to cause licence headaches later.
+
+Thought for 57s
+
+https://img.itch.zone/aW1nLzI0MzM2NTM1LnBuZw%3D%3D/original/6EuhP2.png
+
+https://quaternius.com/assets/images/fullres/rpgcharacter.jpg
+
+https://kenney.nl/media/pages/assets/animated-characters-2/34cf697c10-1674931821/preview.png
+
+https://kenney.nl/media/pages/assets/mini-characters-1/fc690734c1-1721210569/preview.png
+Yes — and for your Godot MVP I’d start with Quaternius first, then use Kenney as a backup for very fast placeholder work.
+
+Best fits for your game:
+
+1. Quaternius RPG Character Pack
+This is probably the cleanest starting point for your “heroes arriving at a tavern” prototype: it has 6 different rigged, animated, textured fantasy characters, and it’s free for personal and commercial use. That is very close to the WFRP-ish tone you want. 
+
+2. Quaternius Animated Knight Pack
+Good if you want an immediately readable “proper adventurer” or guard-type character in the scene. It includes a knight character with animations and accessories such as swords and helmets, and it is also free for personal and commercial use. 
+
+3. Quaternius Modular Character Outfits – Fantasy
+This is the most interesting one longer-term. It includes 12 game-ready fantasy outfits made from 62 modular parts, with 3 texture variations per outfit, a humanoid rig for retargeting, and CC0 licensing. For your game, this could become the basis for different careers later on: mercenary, initiate, scout, rogue, peasant-turned-adventurer, and so on. 
+
+4. Kenney Animated Characters 2
+These are free under CC0 and are very easy to prototype with, but the style is more cartoony and less “Old World grim fantasy”. I’d use these only if you want to prove the loop extremely quickly and swap art later. 
+
+5. Kenney Mini Characters 1
+Also CC0, with animation, and could work if you decide to lean into a more toy-like or stylised town-builder look. Again, very fast for prototyping, but less naturally WFRP-like than Quaternius.
+
+6. OpenGameArt: LowPoly RPG Characters
+This pack contains 6 rigged, animated and textured fantasy characters in FBX, OBJ and Blend formats and is free for personal and commercial projects. This is a solid fallback if you want another fantasy pack in reserve. 
+
+For the actual town prototype, I’d pair the heroes with these environment packs:
+
+7. Quaternius Medieval Village Pack
+A straightforward medieval building/props pack, free for personal and commercial use. This looks ideal for your first tavern and early town buildings. 
+
+8. Quaternius Modular Streets Pack
+Useful if you want heroes to feel like they are arriving into a believable town layout rather than crossing an empty plane. It contains modular street assets and is also free for personal and commercial use. 
+
+9. Kenney Fantasy Town Kit
+Kenney’s asset catalogue currently includes a Fantasy Town Kit, so that is worth checking as another quick placeholder environment option. 
+
+For Godot specifically, the nice bit is that glTF 2.0 is the recommended 3D import format, and Godot can also import .blend files through Blender’s glTF pipeline. That makes Quaternius especially convenient because many of its packs are available in formats like FBX/OBJ/Blend, and some current packs also expose glTF directly. 
+
+My honest recommendation:
+
+Use Quaternius RPG Character Pack for your first heroes.
+
+Use Quaternius Medieval Village Pack for the tavern and early buildings.
+
+Add Modular Character Outfits – Fantasy once you want career variety and visual progression.
+
+Keep Kenney in reserve for ultra-fast placeholders.
+
+That combination gives you:
+
+fantasy tone close enough to your target
+
+free/commercial-friendly licensing
+
+a style that is good enough to keep for a while, not just throwaway greybox art 
+
+The next useful thing is for me to turn this into a very specific starter asset list for your MVP: one tavern, one road set, three hero models, and the exact folder structure to drop into Godot.
+
+
+Excellent - now - even from MVP I want to have an ability for a local LLM to control and test the game out in a headless mode.  Give me some ideas on how to instruct the coding assistant to set this up in GODOT
+
+I’m checking the current Godot options for headless execution and testability so the setup advice lines up with how the engine actually works now.
+
+I’ve got the main engine-side pieces. The pattern that looks best is: make the sim callable as a server, keep rendering optional, and let the LLM drive it through a narrow JSON command API rather than trying to “play” via fake clicks.
+
+Thought for 1m 21s
+Yes — and I’d set this up from day one. The right pattern is not “let the LLM pretend to click buttons in the UI”. It is: make the game simulation callable as a headless service, and keep rendering as an optional layer on top. Godot supports headless execution with --headless, supports custom command-line args via -- plus OS.get_cmdline_user_args(), and supports dedicated-server style exports with a dedicated_server feature tag that can force headless mode and strip visual resources from the export. 
+
+For your MVP, I’d ask the coding assistant to build the project around three modes:
+
+Playable mode: normal camera, UI, mouse placement.
+
+Headless sim mode: no rendering, no UI, accepts structured commands.
+
+Scenario test mode: runs scripted scenarios, emits JSON results, exits with pass/fail. Godot can run headless from the command line, and --quit / --quit-after are useful for automation and CI-style runs. 
+
+The most important architectural instruction for the assistant is this:
+
+Split the project into simulation, presentation, and control.
+
+simulation owns world state, taverns, heroes, spawning, path targets, economy stubs
+
+presentation owns camera, meshes, animations, UI, selection outlines
+
+control owns command parsing, scenario runner, and optional socket server
+
+That split is mostly design advice rather than a Godot feature, but it matches Godot’s strengths because scenes and nodes are flexible, while headless mode disables rendering/window functions, so anything core to the game should not depend on visuals being present. 
+
+The second instruction is:
+
+Keep game logic out of _process() wherever possible. Put simulation in fixed-step logic.
+
+Godot’s _process() runs as fast as rendering allows, while _physics_process() runs on a fixed tick rate, 60 Hz by default. For a local LLM to test the game repeatably, you want the sim to advance in fixed ticks, with a seeded RNG, rather than depending on framerate. 
+
+So I would tell the assistant to implement a structure like this:
+
+SimulationRoot.gd
+
+TownState.gd
+
+HeroSystem.gd
+
+BuildingSystem.gd
+
+SpawnSystem.gd
+
+CommandServer.gd
+
+ScenarioRunner.gd
+
+And define one authoritative method such as:
+
+step_simulation(ticks: int = 1)
+
+or advance_seconds(seconds: float)
+
+Then make both the visual game and the headless runner call the same simulation functions.
+
+The command surface for the LLM should be small and explicit. Do not expose raw scene-tree poking. Give it a JSON command API such as:
+
+reset_world(seed)
+
+place_building(type, x, z)
+
+step_ticks(n)
+
+get_world_state()
+
+get_heroes()
+
+get_buildings()
+
+run_until(event, max_ticks)
+
+select_entity(id)
+
+set_timescale(value) for visual debugging only
+
+Godot already has built-in networking primitives for this. For a local harness, I’d use either a tiny WebSocket server or a plain TCP server inside Godot. Godot documents both. WebSocket is usually nicer because your Python LLM harness can talk JSON to it very easily. 
+
+My preferred setup would be:
+
+Godot headless process
+
+starts CommandServer.gd
+
+listens on localhost only
+
+Python harness launches Godot
+
+Python sends JSON commands
+
+Godot returns compact JSON snapshots
+
+That keeps the LLM outside the game process, which is cleaner and safer.
+
+For example, the coding assistant should aim for a protocol like:
+
+{"cmd":"reset_world","seed":123}
+{"cmd":"place_building","type":"tavern","position":[10,0,12]}
+{"cmd":"step_ticks","ticks":600}
+{"cmd":"get_world_state"}
+and responses like:
+
+{
+  "ok": true,
+  "tick": 600,
+  "gold": 80,
+  "buildings": [{"id":"b1","type":"tavern","pos":[10,0,12]}],
+  "heroes": [
+    {"id":"h1","name":"Otto Voss","career":"Rat Catcher","state":"walking_to_tavern","pos":[4.2,0,8.1]}
+  ],
+  "events": [
+    {"tick":120,"type":"hero_arrived","hero_id":"h1"}
+  ]
+}
+The LLM will work far better against that than against screenshots or fake inputs.
+
+I’d also instruct the assistant to support custom launch args so you can do things like:
+
+godot --headless --path . -- --mode=headless --port=8765 --seed=123 --scenario=res://tests/scenarios/tavern_spawn.json
+Godot’s command-line docs explicitly support a separator for user args, and those args can be read through OS.get_cmdline_user_args(). 
+
+Inside Godot, I’d have an autoload like RuntimeConfig.gd parse those args and set flags such as:
+
+is_headless
+
+is_test_mode
+
+seed
+
+scenario_path
+
+port
+
+Also make the code branch on feature tags where useful. Godot’s dedicated server export automatically adds the dedicated_server feature tag, and you can also add that tag manually in export settings. 
+
+The next important instruction for the assistant is:
+
+Build an observation layer, not just commands.
+
+The LLM will need concise state summaries. So create a WorldSnapshot.gd or utility that can serialise the important parts of state to JSON:
+
+current tick
+
+seed
+
+town gold
+
+placed buildings
+
+active heroes
+
+hero intentions/state
+
+recent events
+
+assertions/warnings
+
+That means tests can be reasoned about textually:
+
+“Did a hero spawn within 30 seconds after tavern placement?”
+
+“Did the hero reach the tavern?”
+
+“Was pathfinding stuck?”
+
+“Did gold go negative?”
+
+For testing, I’d use two layers:
+
+First, pure simulation scenario tests:
+
+reset world
+
+place tavern
+
+step 1800 ticks
+
+assert at least one hero spawned
+
+assert at least one hero entered tavern radius
+
+Second, playability smoke tests:
+
+launch visual scene
+
+place tavern through game controller methods
+
+confirm UI event log updated
+
+confirm selection panel works
+
+For assistant-first development, the first layer matters much more.
+
+I would also tell the assistant to create a scenario file format early. Something like:
+
+{
+  "name": "tavern_spawns_heroes",
+  "seed": 42,
+  "commands": [
+    {"at_tick": 0, "cmd": "place_building", "type": "tavern", "position": [8,0,8]},
+    {"at_tick": 1800, "cmd": "assert", "path": "heroes.length", "op": ">=", "value": 1}
+  ]
+}
+Then the ScenarioRunner can execute it headlessly and print a machine-readable result. That gives you regression tests before the game gets complicated.
+
+A couple of specific Godot pitfalls I’d warn the assistant about:
+
+Avoid putting important sim logic in Tweens or animation callbacks if you need determinism; Tweens are processed by the SceneTree and are great for visuals, but I would keep core sim state in explicit systems. 
+
+Avoid making the simulation depend on actual mouse input, camera state, or visible nodes. In headless mode, rendering/window management is disabled. 
+
+Keep one source of truth for the world model. The 3D nodes should reflect sim state, not be the sim state.
+
+For optional automated test frameworks, GUT and GdUnit4 both exist for Godot 4. GUT’s current Godot 4 line is 9.x, while GdUnit4 is also widely used but has version-coupling to newer Godot versions, so whichever you pick, pin it to your engine version. 
+
+If you want something you can paste to the coding assistant, I’d use this:
+
+We are building a Godot 4 project that must support both normal play and headless LLM-driven testing.
+
+Architect the project around 3 layers:
+1) simulation
+2) presentation
+3) control
+
+Requirements:
+- The simulation must run without rendering or UI.
+- All core game state must live in simulation classes, not UI nodes.
+- Use fixed-step simulation logic. Prefer explicit simulation step methods and/or _physics_process for core state updates. Do not put important game rules in _process or Tweens.
+- Add a headless runtime mode activated by custom command-line args parsed from OS.get_cmdline_user_args().
+- Add an autoload RuntimeConfig that parses args such as:
+  --mode=headless
+  --mode=test
+  --port=8765
+  --seed=123
+  --scenario=res://tests/scenarios/tavern_spawn.json
+
+Implement:
+- SimulationRoot.gd
+- BuildingSystem.gd
+- HeroSystem.gd
+- SpawnSystem.gd
+- CommandServer.gd
+- ScenarioRunner.gd
+- WorldSnapshot.gd
+
+Headless control API:
+- reset_world(seed)
+- place_building(type, position)
+- step_ticks(ticks)
+- get_world_state()
+- get_heroes()
+- run_until(event_name, max_ticks)
+
+Networking:
+- Run a localhost-only WebSocket server that accepts and returns JSON.
+- Keep the protocol narrow and stable.
+
+Testing:
+- Add scenario-driven headless tests for the MVP:
+  1. reset world
+  2. place tavern
+  3. advance simulation
+  4. assert a hero spawned
+  5. assert a hero reached tavern vicinity
+
+Output:
+- Print machine-readable JSON summaries to stdout and return non-zero exit on scenario failure.
+- Keep visual/gameplay scene separate from the simulation so the same simulation can run in headless and visual modes.
+
+MVP scope:
+- empty map
+- one tavern building
+- heroes spawn only when tavern exists
+- heroes path to tavern
+- world snapshot includes tick, buildings, heroes, events
+My strongest recommendation is this: make the LLM control the simulation semantically, not through the UI. That one decision will save you an enormous amount of pain later.
+
+The next best step is for me to turn this into a concrete folder layout plus first-pass Godot scripts for RuntimeConfig, CommandServer, and ScenarioRunner.
+
+
+what godot do I need - godot engine or the .net engine download for windows
+
+I’m checking the current Godot download split and the practical implications for your setup, because this choice does matter for the project structure.
+
+Thought for 10s
+Download the normal Windows Godot Engine, not the .NET one, for your project. The standard editor is the right choice if you’re following the plan we discussed: Godot 4 + GDScript for the game, with Python only for external tooling and harnesses. The current Windows download page offers both Godot Engine 4.6.1 and Godot Engine – .NET 4.6.1. 
+
+Use the .NET download only if you want to write the game itself in C#. Godot’s docs are explicit that the standard executable does not include C# support, and that you need the .NET version of the editor for C# projects. 
+
+So for you, I’d install:
+
+Godot Engine 4.6.1 for Windows
+
+Export templates as well, once you’re setting up builds/tests
+
+I would not start on preview/dev builds like 4.7-dev for this project unless you hit a specific bug and need a newer fix, because the 4.6.x line is the current stable line. 
+
+One practical note: even if you later decide to switch to C#, Godot supports .NET projects on desktop platforms, so that path remains open. But for an assistant-heavy, text-first workflow, standard Godot + GDScript is the cleaner starting point. 
+
+So the short answer is: get “Godot Engine” for Windows, not “Godot Engine – .NET”.
+
+
+
+
+

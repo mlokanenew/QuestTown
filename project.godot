@@ -1,0 +1,28 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=5
+
+[application]
+
+config/name="QuestTown"
+config/description="WFRP-inspired town builder"
+run/main_scene="res://scenes/World.tscn"
+config/features=PackedStringArray("4.6", "Forward Plus")
+config/icon="res://icon.svg"
+
+[autoload]
+
+RuntimeConfig="*res://scripts/autoloads/RuntimeConfig.gd"
+GameState="*res://scripts/autoloads/GameState.gd"
+DataLoader="*res://scripts/data/DataLoader.gd"
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
