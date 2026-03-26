@@ -1,16 +1,41 @@
-[gd_scene load_steps=6 format=3 uid="uid://world"]
+[gd_scene load_steps=11 format=3 uid="uid://world"]
 
 [ext_resource type="Script" path="res://scripts/world.gd" id="1_world"]
 [ext_resource type="Script" path="res://scripts/simulation/SimulationRoot.gd" id="2_simroot"]
 [ext_resource type="Script" path="res://scripts/control/CommandServer.gd" id="3_cmdsrv"]
 [ext_resource type="Script" path="res://scripts/presentation/BuildManager.gd" id="4_buildmgr"]
 [ext_resource type="Script" path="res://scripts/presentation/HeroPresenter.gd" id="5_heropres"]
+[ext_resource type="Script" path="res://scripts/presentation/BuildingPresenter.gd" id="6_bldpres"]
 
 [sub_resource type="PlaneMesh" id="ground_mesh"]
-size = Vector2(60, 60)
+size = Vector2(80, 80)
+
+[sub_resource type="StandardMaterial3D" id="ground_mat"]
+albedo_color = Color(0.3, 0.42, 0.22, 1)
+roughness = 1.0
+
+[sub_resource type="ProceduralSkyMaterial" id="sky_mat"]
+sky_top_color = Color(0.35, 0.55, 0.8, 1)
+sky_horizon_color = Color(0.7, 0.75, 0.8, 1)
+ground_bottom_color = Color(0.15, 0.1, 0.05, 1)
+ground_horizon_color = Color(0.4, 0.35, 0.25, 1)
+
+[sub_resource type="Sky" id="sky"]
+sky_material = SubResource("sky_mat")
+
+[sub_resource type="Environment" id="env"]
+background_mode = 2
+sky = SubResource("sky")
+ambient_light_source = 3
+ambient_light_color = Color(0.6, 0.6, 0.65, 1)
+ambient_light_energy = 0.4
+tonemap_mode = 2
 
 [node name="World" type="Node3D"]
 script = ExtResource("1_world")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("env")
 
 [node name="SimulationRoot" type="Node" parent="."]
 script = ExtResource("2_simroot")
@@ -19,17 +44,20 @@ script = ExtResource("2_simroot")
 script = ExtResource("3_cmdsrv")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-transform = Transform3D(0.707107, -0.5, 0.5, 0, 0.707107, 0.707107, -0.707107, -0.5, 0.5, 0, 10, 0)
-light_energy = 1.2
+transform = Transform3D(0.866025, -0.35355, 0.35355, 0, 0.707107, 0.707107, -0.5, -0.612372, 0.612372, 12, 18, 8)
+light_color = Color(1.0, 0.95, 0.85, 1)
+light_energy = 1.8
 shadow_enabled = true
+shadow_blur = 2.0
 
 [node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.707107, -0.707107, 0, 0.707107, 0.707107, 0, 20, 20)
+transform = Transform3D(1, 0, 0, 0, 0.707107, -0.707107, 0, 0.707107, 0.707107, 0, 22, 22)
 projection = 1
-size = 24.0
+size = 28.0
 
 [node name="Ground" type="MeshInstance3D" parent="."]
 mesh = SubResource("ground_mesh")
+surface_material_override/0 = SubResource("ground_mat")
 
 [node name="NavigationRegion3D" type="NavigationRegion3D" parent="."]
 
@@ -39,21 +67,24 @@ script = ExtResource("4_buildmgr")
 [node name="HeroPresenter" type="Node3D" parent="."]
 script = ExtResource("5_heropres")
 
+[node name="BuildingPresenter" type="Node3D" parent="."]
+script = ExtResource("6_bldpres")
+
 [node name="UILayer" type="CanvasLayer" parent="."]
 
 [node name="UI" type="VBoxContainer" parent="UILayer"]
 anchor_right = 0.0
 anchor_bottom = 0.0
-offset_left = 10.0
-offset_top = 10.0
-offset_right = 200.0
+offset_left = 12.0
+offset_top = 12.0
+offset_right = 220.0
 offset_bottom = 200.0
 
 [node name="GoldLabel" type="Label" parent="UILayer/UI"]
 text = "Gold: 100"
 
 [node name="BuildButton" type="Button" parent="UILayer/UI"]
-text = "Build Tavern (50g)"
+text = "Build Tavern  (50g)"
 
 [node name="EventLogPanel" type="PanelContainer" parent="UILayer"]
 anchor_left = 0.0
@@ -61,7 +92,7 @@ anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
 offset_top = -160.0
-offset_right = 400.0
+offset_right = 420.0
 
 [node name="EventLog" type="RichTextLabel" parent="UILayer/EventLogPanel"]
 anchor_right = 1.0

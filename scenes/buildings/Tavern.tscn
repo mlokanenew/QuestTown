@@ -1,0 +1,86 @@
+[gd_scene load_steps=12 format=3 uid="uid://tavern"]
+
+[sub_resource type="BoxMesh" id="walls_mesh"]
+size = Vector3(4.0, 3.0, 4.0)
+
+[sub_resource type="StandardMaterial3D" id="walls_mat"]
+albedo_color = Color(0.55, 0.42, 0.28, 1)
+roughness = 0.9
+
+[sub_resource type="PrismMesh" id="roof_mesh"]
+left_to_right = 0.5
+size = Vector3(4.6, 2.0, 4.6)
+
+[sub_resource type="StandardMaterial3D" id="roof_mat"]
+albedo_color = Color(0.25, 0.12, 0.08, 1)
+roughness = 0.85
+
+[sub_resource type="BoxMesh" id="door_mesh"]
+size = Vector3(0.8, 1.6, 0.2)
+
+[sub_resource type="StandardMaterial3D" id="door_mat"]
+albedo_color = Color(0.3, 0.18, 0.08, 1)
+roughness = 1.0
+
+[sub_resource type="BoxMesh" id="window_mesh"]
+size = Vector3(0.7, 0.7, 0.15)
+
+[sub_resource type="StandardMaterial3D" id="window_mat"]
+albedo_color = Color(0.9, 0.8, 0.4, 0.7)
+transparency = 1
+roughness = 0.2
+
+[sub_resource type="CylinderMesh" id="sign_post_mesh"]
+top_radius = 0.05
+bottom_radius = 0.05
+height = 1.8
+
+[sub_resource type="StandardMaterial3D" id="sign_post_mat"]
+albedo_color = Color(0.3, 0.18, 0.08, 1)
+
+[sub_resource type="BoxMesh" id="sign_mesh"]
+size = Vector3(0.9, 0.4, 0.08)
+
+[node name="Tavern" type="Node3D"]
+
+[node name="Walls" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.5, 0)
+mesh = SubResource("walls_mesh")
+surface_material_override/0 = SubResource("walls_mat")
+
+[node name="Roof" type="MeshInstance3D" parent="."]
+position = Vector3(0, 4.0, 0)
+mesh = SubResource("roof_mesh")
+surface_material_override/0 = SubResource("roof_mat")
+
+[node name="Door" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.8, 2.1)
+mesh = SubResource("door_mesh")
+surface_material_override/0 = SubResource("door_mat")
+
+[node name="WindowLeft" type="MeshInstance3D" parent="."]
+position = Vector3(-1.2, 1.6, 2.05)
+mesh = SubResource("window_mesh")
+surface_material_override/0 = SubResource("window_mat")
+
+[node name="WindowRight" type="MeshInstance3D" parent="."]
+position = Vector3(1.2, 1.6, 2.05)
+mesh = SubResource("window_mesh")
+surface_material_override/0 = SubResource("window_mat")
+
+[node name="SignPost" type="MeshInstance3D" parent="."]
+position = Vector3(1.6, 0.9, 2.2)
+mesh = SubResource("sign_post_mesh")
+surface_material_override/0 = SubResource("sign_post_mat")
+
+[node name="Sign" type="MeshInstance3D" parent="."]
+position = Vector3(1.6, 1.9, 2.2)
+mesh = SubResource("sign_mesh")
+surface_material_override/0 = SubResource("sign_post_mat")
+
+[node name="SignLabel" type="Label3D" parent="."]
+position = Vector3(1.6, 1.9, 2.26)
+pixel_size = 0.006
+text = "TAVERN"
+font_size = 32
+modulate = Color(0.9, 0.75, 0.2, 1)
