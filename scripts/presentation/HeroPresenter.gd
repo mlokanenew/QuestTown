@@ -127,6 +127,20 @@ func _make_hero_node(hero: Dictionary) -> Node3D:
 	label.modulate = Color(1, 0.95, 0.7)
 	root.add_child(label)
 
+	# Clickable Area3D so the player can select this hero
+	var area := Area3D.new()
+	area.collision_layer = 2
+	area.collision_mask = 0
+	area.set_meta("hero_id", hero["id"])
+	var col := CollisionShape3D.new()
+	var cap := CapsuleShape3D.new()
+	cap.radius = 0.5
+	cap.height = 1.8
+	col.shape = cap
+	col.position = Vector3(0, 0.9, 0)
+	area.add_child(col)
+	root.add_child(area)
+
 	# Start position
 	var p: Dictionary = hero["position"]
 	root.global_position = Vector3(p["x"], p["y"], p["z"])

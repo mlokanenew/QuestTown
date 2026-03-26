@@ -3,7 +3,7 @@ extends Node
 ## Attach to the UI EventLog node in visual mode.
 
 @export var max_lines: int = 20
-@onready var label: RichTextLabel = $RichTextLabel
+@onready var label: RichTextLabel = $EventLog
 
 func _ready() -> void:
 	if RuntimeConfig.is_headless():

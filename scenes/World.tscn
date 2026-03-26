@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://world"]
+[gd_scene load_steps=13 format=3 uid="uid://world"]
 
 [ext_resource type="Script" path="res://scripts/world.gd" id="1_world"]
 [ext_resource type="Script" path="res://scripts/simulation/SimulationRoot.gd" id="2_simroot"]
@@ -7,6 +7,7 @@
 [ext_resource type="Script" path="res://scripts/presentation/HeroPresenter.gd" id="5_heropres"]
 [ext_resource type="Script" path="res://scripts/presentation/BuildingPresenter.gd" id="6_bldpres"]
 [ext_resource type="Script" path="res://scripts/presentation/WorldProps.gd" id="7_worldprops"]
+[ext_resource type="Script" path="res://scripts/presentation/EventLog.gd" id="8_eventlog"]
 
 [sub_resource type="PlaneMesh" id="ground_mesh"]
 size = Vector2(80, 80)
@@ -97,8 +98,34 @@ anchor_right = 0.5
 anchor_bottom = 1.0
 offset_top = -160.0
 offset_right = 420.0
+script = ExtResource("8_eventlog")
 
 [node name="EventLog" type="RichTextLabel" parent="UILayer/EventLogPanel"]
 anchor_right = 1.0
 anchor_bottom = 1.0
 scroll_following = true
+
+[node name="HeroPanel" type="PanelContainer" parent="UILayer"]
+anchor_left = 1.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 0.0
+offset_left = -220.0
+offset_top = 12.0
+offset_right = -12.0
+offset_bottom = 130.0
+visible = false
+
+[node name="VBox" type="VBoxContainer" parent="UILayer/HeroPanel"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="NameLabel" type="Label" parent="UILayer/HeroPanel/VBox"]
+text = "Hero Name"
+theme_override_font_sizes/font_size = 16
+
+[node name="CareerLabel" type="Label" parent="UILayer/HeroPanel/VBox"]
+text = "Career"
+
+[node name="StateLabel" type="Label" parent="UILayer/HeroPanel/VBox"]
+text = "State"
