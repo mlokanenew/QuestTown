@@ -26,8 +26,10 @@ func _ready() -> void:
 		GameState.gold_changed.connect(_on_gold_changed)
 
 func _on_build_tavern_pressed() -> void:
+	if GameState.get_building_count("tavern") > 0:
+		return  # only one tavern for now
 	if GameState.spend_gold(50):
-		build_manager.start_placement("tavern")
+		sim.place_building("tavern", Vector3(0, 0, 0))
 
 func _on_gold_changed(amount: int) -> void:
 	var lbl := get_node_or_null("UILayer/UI/GoldLabel")

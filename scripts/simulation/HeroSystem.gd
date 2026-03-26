@@ -65,8 +65,8 @@ func spawn_hero() -> Dictionary:
 	var career_data := DataLoader.random_career(_rng)
 	var h := GameState.add_hero(name, career_data["name"])
 	# Start position: random edge of map
-	var spawn_x := _rng.randf_range(-15.0, 15.0)
-	var spawn_pos := Vector3(spawn_x, 0.0, 20.0)
+	var spawn_x := _rng.randf_range(-8.0, 8.0)
+	var spawn_pos := Vector3(spawn_x, 0.0, 15.0)
 	_set_position(h["id"], spawn_pos)
 	return h
 

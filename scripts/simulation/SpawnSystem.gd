@@ -3,7 +3,7 @@ class_name SpawnSystem
 ## Decides when to spawn heroes based on world attractiveness.
 
 const MAX_HEROES      := 10
-const SPAWN_INTERVAL  := 900   # ticks between spawns (~15s at 60Hz)
+const SPAWN_INTERVAL  := 180   # ticks between spawns (~3s at 60Hz)
 
 var _ticks_since_spawn: int = 0
 
