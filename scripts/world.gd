@@ -95,8 +95,7 @@ func _on_hero_removed(hero_id: int) -> void:
 func _on_build_tavern_pressed() -> void:
 	if GameState.get_building_count("tavern") > 0:
 		return
-	if GameState.spend_gold(50):
-		sim.place_building("tavern", Vector3(0, 0, 0))
+	build_manager.start_placement("tavern")
 
 func _on_gold_changed(amount: int) -> void:
 	var lbl := get_node_or_null("UILayer/UI/GoldLabel")
