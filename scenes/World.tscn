@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://world"]
+[gd_scene load_steps=12 format=3 uid="uid://world"]
 
 [ext_resource type="Script" path="res://scripts/world.gd" id="1_world"]
 [ext_resource type="Script" path="res://scripts/simulation/SimulationRoot.gd" id="2_simroot"]
@@ -6,6 +6,7 @@
 [ext_resource type="Script" path="res://scripts/presentation/BuildManager.gd" id="4_buildmgr"]
 [ext_resource type="Script" path="res://scripts/presentation/HeroPresenter.gd" id="5_heropres"]
 [ext_resource type="Script" path="res://scripts/presentation/BuildingPresenter.gd" id="6_bldpres"]
+[ext_resource type="Script" path="res://scripts/presentation/WorldProps.gd" id="7_worldprops"]
 
 [sub_resource type="PlaneMesh" id="ground_mesh"]
 size = Vector2(80, 80)
@@ -69,6 +70,9 @@ script = ExtResource("5_heropres")
 
 [node name="BuildingPresenter" type="Node3D" parent="."]
 script = ExtResource("6_bldpres")
+
+[node name="WorldProps" type="Node3D" parent="."]
+script = ExtResource("7_worldprops")
 
 [node name="UILayer" type="CanvasLayer" parent="."]
 
