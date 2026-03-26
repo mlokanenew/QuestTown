@@ -17,7 +17,7 @@ func _input(event: InputEvent) -> void:
 			_drag_last_mouse = event.position
 
 	if event is InputEventMouseMotion and _dragging:
-		var px := event.position - _drag_last_mouse
+		var px: Vector2 = event.position - _drag_last_mouse
 		_drag_last_mouse = event.position
 		var vp_h := float(get_viewport().get_visible_rect().size.y)
 		var world_per_px := size / vp_h
