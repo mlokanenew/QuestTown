@@ -43,10 +43,11 @@ func _process(_delta: float) -> void:
 		var prev_pos := node.global_position
 		node.global_position = node.global_position.lerp(sim_pos, 0.15)
 
-		# Face direction of movement
+		# Face direction of movement.
+		# look_at points the node's -Z at the target; KayKit models face +Z, so negate.
 		var move := sim_pos - prev_pos
 		if move.length() > 0.01:
-			node.look_at(node.global_position + Vector3(move.x, 0, move.z), Vector3.UP)
+			node.look_at(node.global_position - Vector3(move.x, 0, move.z), Vector3.UP)
 
 func _on_hero_spawned(hero: Dictionary) -> void:
 	var node := _make_hero_node(hero)

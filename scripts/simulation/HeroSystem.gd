@@ -31,14 +31,14 @@ func _step_hero(id: int, delta: float, building_system: Object) -> void:
 			_set_target(id, target)
 			pos = _move_toward(pos, target, delta)
 			_set_position(id, pos)
-			if pos.distance_to(target) < 0.5:
+			if pos.distance_to(target) < 2.5:
 				h["idle_ticks_remaining"] = IDLE_TICKS
 				GameState.set_hero_state(id, "idling")
 
 		"walking_to_tavern":
 			pos = _move_toward(pos, target, delta)
 			_set_position(id, pos)
-			if pos.distance_to(target) < 0.5:
+			if pos.distance_to(target) < 2.5:
 				h["idle_ticks_remaining"] = IDLE_TICKS
 				GameState.set_hero_state(id, "idling")
 
