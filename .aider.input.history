@@ -1,0 +1,30 @@
+
+# 2026-03-27 12:03:45.027402
++Red-Green TDD: Add a Blacksmith building.
++
++PHASE 1 - RED: Write a FAILING test first.
++Create tests/scenarios/blacksmith_test.json:
++{"name":"Blacksmith can be placed","seed":42,"max_ticks":300,"commands":[{"cmd":"place_building","type":"blacksmith","x":5,"z":5}],"assertions":[{"assert":"building_count_gte","value":1}]}
++This will FAIL because 'blacksmith' is not in buildings.json yet.
++
++PHASE 2 - GREEN: Implement until the test passes.
++1. data/buildings.json - append blacksmith entry (id, name, description, cost:100, hero_spawn_weight:1, footprint:[2,2], scene:res://scenes/buildings/Blacksmith.tscn)
++2. scenes/buildings/Blacksmith.tscn - new Godot 4 scene (format=3, uid='uid://blacksmith') with dark stone walls BoxMesh(4,3,4), PrismMesh roof, CylinderMesh chimney, door BoxMesh, anvil prop, Label3D text='SMITHY'
++3. scripts/presentation/BuildingPresenter.gd - add 'blacksmith':'res://scenes/buildings/Blacksmith.tscn' to BUILDING_SCENES dict
++4. scenes/World.tscn - add BuildBlacksmithButton Button under UILayer/UI with text 'Build Blacksmith  (100g)'
++5. scripts/world.gd - wire button and add _on_build_blacksmith_pressed() handler calling build_manager.start_placement('blacksmith')
+
+# 2026-03-27 15:21:58.572996
++Red-Green TDD: Add a Blacksmith building.
++
++PHASE 1 - RED: Write a FAILING test first.
++Create tests/scenarios/blacksmith_test.json:
++{"name":"Blacksmith can be placed","seed":42,"max_ticks":300,"commands":[{"cmd":"place_building","type":"blacksmith","x":5,"z":5}],"assertions":[{"assert":"building_count_gte","value":1}]}
++This will FAIL because 'blacksmith' is not in buildings.json yet.
++
++PHASE 2 - GREEN: Implement until the test passes.
++1. data/buildings.json - append blacksmith entry (id, name, description, cost:100, hero_spawn_weight:1, footprint:[2,2], scene:res://scenes/buildings/Blacksmith.tscn)
++2. scenes/buildings/Blacksmith.tscn - new Godot 4 scene (format=3, uid='uid://blacksmith') with dark stone walls BoxMesh(4,3,4), PrismMesh roof, CylinderMesh chimney, door BoxMesh, anvil prop, Label3D text='SMITHY'
++3. scripts/presentation/BuildingPresenter.gd - add 'blacksmith':'res://scenes/buildings/Blacksmith.tscn' to BUILDING_SCENES dict
++4. scenes/World.tscn - add BuildBlacksmithButton Button under UILayer/UI with text 'Build Blacksmith  (100g)'
++5. scripts/world.gd - wire button and add _on_build_blacksmith_pressed() handler calling build_manager.start_placement('blacksmith')

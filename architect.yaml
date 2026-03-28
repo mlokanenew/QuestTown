@@ -1,0 +1,14 @@
+language: en
+
+llm:
+  model: ollama_chat/qwen3:30b
+  api_base: http://localhost:11434
+  timeout: 120
+  stream: true
+
+workspace:
+  root: .
+  allow_delete: false
+
+logging:
+  level: human

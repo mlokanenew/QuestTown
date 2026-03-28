@@ -1,0 +1,26 @@
+You are continuing story {story_id}: {story_title}
+
+== Description ==
+{description}
+
+== Acceptance Criteria ==
+{acceptance_criteria}
+
+== Files in scope ==
+{files_in_scope}
+
+== Current failing test output ==
+{test_output}
+
+== Rules — GREEN PHASE ==
+- Make the failing tests pass with the smallest correct production-code changes.
+- Do NOT remove or weaken any tests.
+- Do NOT widen scope beyond this story.
+- Do NOT refactor unrelated code.
+- Preserve all existing behaviour unless the story explicitly requires change.
+- After making changes, stop — the test runner will check the result.
+
+== Test command ==
+{test_command}
+
+Make the changes, then STOP. Do not run the test command yourself.

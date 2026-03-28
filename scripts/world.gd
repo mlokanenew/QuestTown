@@ -21,11 +21,16 @@ func _ready() -> void:
 		var btn := get_node_or_null("UILayer/UI/BuildButton")
 		if btn:
 			btn.pressed.connect(_on_build_tavern_pressed)
+		var btn2 := get_node_or_null("UILayer/UI/BuildWeaponsShopButton")
+		if btn2:
+			btn2.pressed.connect(_on_build_weapons_shop_pressed)
 		GameState.gold_changed.connect(_on_gold_changed)
 		GameState.hero_state_changed.connect(_on_hero_state_changed)
 		GameState.hero_removed.connect(_on_hero_removed)
 
 func _physics_process(delta: float) -> void:
+	if RuntimeConfig.is_headless():
+		return  # sim is driven on-demand by CommandServer in headless mode
 	sim.physics_step(delta)
 	# Refresh selected hero panel each physics tick so state/position stay current
 	if _selected_hero_id >= 0 and GameState.heroes.has(_selected_hero_id):
@@ -96,6 +101,9 @@ func _on_build_tavern_pressed() -> void:
 	if GameState.get_building_count("tavern") > 0:
 		return
 	build_manager.start_placement("tavern")
+
+func _on_build_weapons_shop_pressed() -> void:
+	build_manager.start_placement("weapons_shop")
 
 func _on_gold_changed(amount: int) -> void:
 	var lbl := get_node_or_null("UILayer/UI/GoldLabel")

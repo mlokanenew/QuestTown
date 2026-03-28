@@ -1,36 +1,62 @@
 extends Node
 class_name CommandServer
-## Localhost WebSocket server that exposes the simulation JSON API.
-## Started in both headless and visual modes so Python tools can connect.
-##
-## Protocol: send one JSON object per message, receive one JSON object back.
+## Outbound TCP client — connects to the Python driver's server.
+## Newline-delimited JSON protocol.
+## Python starts first and listens; Godot connects on startup.
 
-var _server: WebSocketMultiplayerPeer = null
+var _client: StreamPeerTCP = null
 var _sim: Node = null
+var _buf: String = ""   # accumulate partial lines
 
 func start(port: int) -> void:
-	_server = WebSocketMultiplayerPeer.new()
-	var err := _server.create_server(port)
+	_client = StreamPeerTCP.new()
+	var err := _client.connect_to_host("127.0.0.1", port)
 	if err != OK:
-		push_error("CommandServer: failed to bind port %d (error %d)" % [port, err])
+		push_error("CommandServer: connect_to_host failed (err %d)" % err)
+		_client = null
 		return
-	print("[CommandServer] listening on ws://127.0.0.1:%d" % port)
+	print("[CMD] connecting to tcp://127.0.0.1:%d" % port)
 
 func set_sim(sim: Node) -> void:
 	_sim = sim
 
-func _process(_delta: float) -> void:
-	if _server == null:
+func _ready() -> void:
+	print("[CMD] CommandServer _ready")
+
+func _physics_process(_delta: float) -> void:
+	if _client == null:
 		return
-	_server.poll()
-	while _server.get_available_packet_count() > 0:
-		var pkt := _server.get_packet()
-		var text := pkt.get_string_from_utf8()
-		var parsed: Variant = JSON.parse_string(text)
-		if parsed == null or not (parsed is Dictionary):
-			_respond({"ok": false, "error": "invalid JSON"})
-			continue
-		_handle(parsed)
+	_client.poll()
+	var status := _client.get_status()
+	if status == StreamPeerTCP.STATUS_NONE or status == StreamPeerTCP.STATUS_ERROR:
+		return
+	if status == StreamPeerTCP.STATUS_CONNECTING:
+		return  # still completing handshake
+
+	var avail := _client.get_available_bytes()
+	while avail > 0:
+		# Read byte-by-byte to find newline boundary reliably
+		var chunk: String = _client.get_string(avail)
+		_buf += chunk
+		avail = 0
+		# Process all complete lines in buffer
+		while "\n" in _buf:
+			var nl := _buf.find("\n")
+			var line := _buf.left(nl).strip_edges()
+			_buf = _buf.substr(nl + 1)
+			if line != "":
+				print("[CMD] rx: %s" % line.left(120))
+				var parsed: Variant = JSON.parse_string(line)
+				if parsed == null or not (parsed is Dictionary):
+					_respond({"ok": false, "error": "invalid JSON"})
+				else:
+					_handle(parsed)
+
+func _respond(data: Dictionary) -> void:
+	if _client == null:
+		return
+	var line := JSON.stringify(data) + "\n"
+	_client.put_data(line.to_utf8_buffer())
 
 func _handle(cmd: Dictionary) -> void:
 	if _sim == null:
@@ -76,7 +102,6 @@ func _handle(cmd: Dictionary) -> void:
 			_respond({"ok": true, "reached": reached, "tick": GameState.tick})
 
 		"select_entity":
-			# Visual mode: emit signal for UI; no-op in headless
 			_respond({"ok": true})
 
 		"set_timescale":
@@ -85,9 +110,3 @@ func _handle(cmd: Dictionary) -> void:
 
 		_:
 			_respond({"ok": false, "error": "unknown command: %s" % c})
-
-func _respond(data: Dictionary) -> void:
-	if _server == null:
-		return
-	var text := JSON.stringify(data)
-	_server.put_packet(text.to_utf8_buffer())

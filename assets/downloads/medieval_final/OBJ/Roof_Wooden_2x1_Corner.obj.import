@@ -1,0 +1,25 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://banc8o60025tf"
+path="res://.godot/imported/Roof_Wooden_2x1_Corner.obj-fc30ac9d8de00fa0919784e6e7ff087b.mesh"
+
+[deps]
+
+files=["res://.godot/imported/Roof_Wooden_2x1_Corner.obj-fc30ac9d8de00fa0919784e6e7ff087b.mesh"]
+
+source_file="res://assets/downloads/medieval_final/OBJ/Roof_Wooden_2x1_Corner.obj"
+dest_files=["res://.godot/imported/Roof_Wooden_2x1_Corner.obj-fc30ac9d8de00fa0919784e6e7ff087b.mesh", "res://.godot/imported/Roof_Wooden_2x1_Corner.obj-fc30ac9d8de00fa0919784e6e7ff087b.mesh"]
+
+[params]
+
+generate_tangents=true
+generate_lods=true
+generate_shadow_mesh=true
+generate_lightmap_uv2=false
+generate_lightmap_uv2_texel_size=0.2
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+force_disable_mesh_compression=false

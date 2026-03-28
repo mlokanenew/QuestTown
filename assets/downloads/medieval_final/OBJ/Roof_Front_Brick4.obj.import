@@ -1,0 +1,25 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://bf08occct354u"
+path="res://.godot/imported/Roof_Front_Brick4.obj-8eb1e80ec2210ff9a4fd69e3b8ab0a1e.mesh"
+
+[deps]
+
+files=["res://.godot/imported/Roof_Front_Brick4.obj-8eb1e80ec2210ff9a4fd69e3b8ab0a1e.mesh"]
+
+source_file="res://assets/downloads/medieval_final/OBJ/Roof_Front_Brick4.obj"
+dest_files=["res://.godot/imported/Roof_Front_Brick4.obj-8eb1e80ec2210ff9a4fd69e3b8ab0a1e.mesh", "res://.godot/imported/Roof_Front_Brick4.obj-8eb1e80ec2210ff9a4fd69e3b8ab0a1e.mesh"]
+
+[params]
+
+generate_tangents=true
+generate_lods=true
+generate_shadow_mesh=true
+generate_lightmap_uv2=false
+generate_lightmap_uv2_texel_size=0.2
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+force_disable_mesh_compression=false

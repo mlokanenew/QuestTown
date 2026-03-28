@@ -1,0 +1,25 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://del02ycqg4vhh"
+path="res://.godot/imported/Ranger_Bow.obj-46d0ee69789d9f898a53bf1b84cad6e2.mesh"
+
+[deps]
+
+files=["res://.godot/imported/Ranger_Bow.obj-46d0ee69789d9f898a53bf1b84cad6e2.mesh"]
+
+source_file="res://assets/downloads/quat_extracted/RPG Characters - Nov 2020/OBJ/Only Weapons/Ranger_Bow.obj"
+dest_files=["res://.godot/imported/Ranger_Bow.obj-46d0ee69789d9f898a53bf1b84cad6e2.mesh", "res://.godot/imported/Ranger_Bow.obj-46d0ee69789d9f898a53bf1b84cad6e2.mesh"]
+
+[params]
+
+generate_tangents=true
+generate_lods=true
+generate_shadow_mesh=true
+generate_lightmap_uv2=false
+generate_lightmap_uv2_texel_size=0.2
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+force_disable_mesh_compression=false

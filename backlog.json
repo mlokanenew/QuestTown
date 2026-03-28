@@ -1,0 +1,29 @@
+{
+  "epics": [
+    {
+      "id": "EPIC-001",
+      "title": "Town MVP — Buildings",
+      "stories": [
+        {
+          "id": "US-001",
+          "title": "Blacksmith building can be placed",
+          "status": "todo",
+          "description": "As a player, I can place a Blacksmith building on the town grid. The Blacksmith has a footprint of 2x2, costs 80 gold, and attracts fighters and soldiers.",
+          "acceptance_criteria": [
+            "place_building type=blacksmith succeeds in headless simulation",
+            "building_count_gte 1 assertion passes after placement",
+            "Blacksmith appears in buildings.json data with correct id, cost and footprint",
+            "Blacksmith.tscn scene file exists and is loadable"
+          ],
+          "test_command": "python tools/check_blacksmith.py",
+          "files_in_scope": [
+            "data/buildings.json",
+            "tests/scenarios/blacksmith_test.json",
+            "scenes/buildings/Blacksmith.tscn",
+            "scripts/simulation/BuildingSystem.gd"
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -3,7 +3,8 @@ class_name BuildingPresenter
 ## Listens to GameState signals and spawns 3D building scenes.
 
 const BUILDING_SCENES: Dictionary = {
-	"tavern": "res://scenes/buildings/Tavern.tscn",
+	"tavern":        "res://scenes/buildings/Tavern.tscn",
+	"weapons_shop":  "res://scenes/buildings/WeaponsShop.tscn",
 }
 
 # Dict[building_id -> Node3D]

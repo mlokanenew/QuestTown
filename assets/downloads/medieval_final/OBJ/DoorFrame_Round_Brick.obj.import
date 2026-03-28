@@ -1,0 +1,25 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://c61mlqnrw3c14"
+path="res://.godot/imported/DoorFrame_Round_Brick.obj-65674e68eb1e2e493c5a9484cd82cb74.mesh"
+
+[deps]
+
+files=["res://.godot/imported/DoorFrame_Round_Brick.obj-65674e68eb1e2e493c5a9484cd82cb74.mesh"]
+
+source_file="res://assets/downloads/medieval_final/OBJ/DoorFrame_Round_Brick.obj"
+dest_files=["res://.godot/imported/DoorFrame_Round_Brick.obj-65674e68eb1e2e493c5a9484cd82cb74.mesh", "res://.godot/imported/DoorFrame_Round_Brick.obj-65674e68eb1e2e493c5a9484cd82cb74.mesh"]
+
+[params]
+
+generate_tangents=true
+generate_lods=true
+generate_shadow_mesh=true
+generate_lightmap_uv2=false
+generate_lightmap_uv2_texel_size=0.2
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+force_disable_mesh_compression=false

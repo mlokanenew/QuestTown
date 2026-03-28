@@ -7,5 +7,14 @@
     "hero_spawn_weight": 1,
     "footprint": [2, 2],
     "scene": "res://scenes/buildings/Tavern.tscn"
+  },
+  {
+    "id": "weapons_shop",
+    "name": "Weapons Shop",
+    "description": "Blades, bows, and bucklers. Fighters and mercenaries are drawn here.",
+    "cost": 80,
+    "hero_spawn_weight": 1,
+    "footprint": [2, 2],
+    "scene": "res://scenes/buildings/WeaponsShop.tscn"
   }
 ]

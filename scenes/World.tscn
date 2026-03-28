@@ -93,6 +93,9 @@ text = "Gold: 100"
 [node name="BuildButton" type="Button" parent="UILayer/UI"]
 text = "Build Tavern  (50g)"
 
+[node name="BuildWeaponsShopButton" type="Button" parent="UILayer/UI"]
+text = "Build Weapons Shop  (80g)"
+
 [node name="EventLogPanel" type="PanelContainer" parent="UILayer"]
 anchor_left = 0.0
 anchor_top = 1.0

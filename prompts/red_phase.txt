@@ -1,0 +1,25 @@
+You are working on story {story_id}: {story_title}
+
+== Description ==
+{description}
+
+== Acceptance Criteria ==
+{acceptance_criteria}
+
+== Files in scope ==
+{files_in_scope}
+
+== Rules — RED PHASE ==
+- Follow strict red-green TDD.
+- In this step, write or update AUTOMATED TESTS ONLY.
+- Do NOT implement production code beyond the minimum scaffolding needed to make the tests importable/runnable.
+- The tests should fail for the intended reason (feature not implemented), not due to import errors or missing files.
+- Create the scenario JSON at tests/scenarios/ if it does not exist yet.
+- Write the smallest test that covers the acceptance criteria.
+- Stop when the tests exist and fail for the right reason.
+- Do not attempt to make the tests pass.
+
+== Test command ==
+{test_command}
+
+Run the test command at the end and confirm it exits non-zero for the expected reason.
