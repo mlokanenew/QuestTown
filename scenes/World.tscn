@@ -307,6 +307,10 @@ text = "Level"
 text = "Core facts"
 autowrap_mode = 3
 
+[node name="BuildingActionButton" type="Button" parent="UILayer/RightPanel/VBox"]
+text = "Upgrade Building"
+visible = false
+
 [node name="MoreDetailsButton" type="Button" parent="UILayer/RightPanel/VBox"]
 text = "More Details"
 
