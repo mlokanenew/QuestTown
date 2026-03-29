@@ -82,7 +82,7 @@ func _format(event: Dictionary) -> String:
 				event.get("service", "service")
 			]
 		"hero_spent_at_weapons_shop":
-			return "[%d] %s spends %dg at the weapon shop." % [
+			return "[%d] %s spends %dg at the general goods shop." % [
 				event.get("tick", 0),
 				event.get("hero_name", "?"),
 				event.get("amount", 0)

@@ -42,8 +42,8 @@
   },
   {
     "id": "weapons_shop",
-    "name": "Weapons Shop",
-    "description": "Blades, bows, and bucklers. Fighters and mercenaries are drawn here.",
+    "name": "General Goods",
+    "description": "A practical town shop selling travel gear, simple weapons, packs, and useful supplies for new adventurers.",
     "footprint": [2, 2],
     "scene": "res://scenes/buildings/WeaponsShop.tscn",
     "base_cost": 80,
@@ -51,7 +51,7 @@
     "levels": [
       {
         "level": 1,
-        "name": "Basic Forge",
+        "name": "Front Counter",
         "upgrade_cost": 25,
         "effects": {
           "gear_spending": 1,
@@ -61,7 +61,7 @@
       },
       {
         "level": 2,
-        "name": "Better Blades",
+        "name": "Travel Supplies",
         "upgrade_cost": 35,
         "effects": {
           "gear_spending": 2,
@@ -71,7 +71,7 @@
       },
       {
         "level": 3,
-        "name": "Armour Rack",
+        "name": "Packed Shelves",
         "upgrade_cost": 0,
         "effects": {
           "gear_spending": 3,
