@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://world"]
+[gd_scene load_steps=15 format=3 uid="uid://world"]
 
 [ext_resource type="Script" path="res://scripts/world.gd" id="1_world"]
 [ext_resource type="Script" path="res://scripts/simulation/SimulationRoot.gd" id="2_simroot"]
@@ -9,6 +9,7 @@
 [ext_resource type="Script" path="res://scripts/presentation/WorldProps.gd" id="7_worldprops"]
 [ext_resource type="Script" path="res://scripts/presentation/EventLog.gd" id="8_eventlog"]
 [ext_resource type="Script" path="res://scripts/presentation/CameraController.gd" id="9_camera"]
+[ext_resource type="Script" path="res://scripts/ui/MenuHost.gd" id="10_menuhost"]
 
 [sub_resource type="PlaneMesh" id="ground_mesh"]
 size = Vector2(80, 80)
@@ -118,6 +119,9 @@ text = "2x"
 
 [node name="Speed3Button" type="Button" parent="UILayer/TopBar/TopBarRow"]
 text = "3x"
+
+[node name="OptionsButton" type="Button" parent="UILayer/TopBar/TopBarRow"]
+text = "Options"
 
 [node name="LeftPanel" type="PanelContainer" parent="UILayer"]
 anchors_preset = 9
@@ -246,46 +250,94 @@ theme_override_font_sizes/font_size = 16
 [node name="CollapseButton" type="Button" parent="UILayer/RightPanel/VBox/Header"]
 text = ">"
 
-[node name="NameLabel" type="Label" parent="UILayer/RightPanel/VBox"]
+[node name="SummaryRow" type="HBoxContainer" parent="UILayer/RightPanel/VBox"]
+theme_override_constants/separation = 10
+
+[node name="PortraitPanel" type="PanelContainer" parent="UILayer/RightPanel/VBox/SummaryRow"]
+custom_minimum_size = Vector2(88, 88)
+
+[node name="PortraitMargin" type="MarginContainer" parent="UILayer/RightPanel/VBox/SummaryRow/PortraitPanel"]
+theme_override_constants/margin_left = 6
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 6
+theme_override_constants/margin_bottom = 6
+
+[node name="PortraitTexture" type="TextureRect" parent="UILayer/RightPanel/VBox/SummaryRow/PortraitPanel/PortraitMargin"]
+custom_minimum_size = Vector2(76, 76)
+expand_mode = 1
+stretch_mode = 5
+
+[node name="SummaryText" type="VBoxContainer" parent="UILayer/RightPanel/VBox/SummaryRow"]
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="NameLabel" type="Label" parent="UILayer/RightPanel/VBox/SummaryRow/SummaryText"]
 text = "Hero Name"
 theme_override_font_sizes/font_size = 16
 
-[node name="CareerLabel" type="Label" parent="UILayer/RightPanel/VBox"]
+[node name="CareerLabel" type="Label" parent="UILayer/RightPanel/VBox/SummaryRow/SummaryText"]
 text = "Career"
 
-[node name="StateLabel" type="Label" parent="UILayer/RightPanel/VBox"]
+[node name="StateLabel" type="Label" parent="UILayer/RightPanel/VBox/SummaryRow/SummaryText"]
 text = "State"
 
-[node name="LevelLabel" type="Label" parent="UILayer/RightPanel/VBox"]
-text = "Level"
+[node name="SummaryMetaLabel" type="Label" parent="UILayer/RightPanel/VBox/SummaryRow/SummaryText"]
+text = "Summary"
+autowrap_mode = 3
+
+[node name="HealthSectionLabel" type="Label" parent="UILayer/RightPanel/VBox"]
+text = "Health"
+
+[node name="HealthBar" type="ProgressBar" parent="UILayer/RightPanel/VBox"]
+show_percentage = false
 
 [node name="HealthLabel" type="Label" parent="UILayer/RightPanel/VBox"]
 text = "Health"
 
-[node name="HeroGoldLabel" type="Label" parent="UILayer/RightPanel/VBox"]
+[node name="XpSectionLabel" type="Label" parent="UILayer/RightPanel/VBox"]
+text = "Experience"
+
+[node name="XpBar" type="ProgressBar" parent="UILayer/RightPanel/VBox"]
+show_percentage = false
+
+[node name="LevelLabel" type="Label" parent="UILayer/RightPanel/VBox"]
+text = "Level"
+
+[node name="PrimaryFactsLabel" type="Label" parent="UILayer/RightPanel/VBox"]
+text = "Core facts"
+autowrap_mode = 3
+
+[node name="MoreDetailsButton" type="Button" parent="UILayer/RightPanel/VBox"]
+text = "More Details"
+
+[node name="ExtraDetails" type="VBoxContainer" parent="UILayer/RightPanel/VBox"]
+theme_override_constants/separation = 6
+visible = false
+
+[node name="HeroGoldLabel" type="Label" parent="UILayer/RightPanel/VBox/ExtraDetails"]
 text = "Gold"
 
-[node name="BiasLabel" type="Label" parent="UILayer/RightPanel/VBox"]
+[node name="BiasLabel" type="Label" parent="UILayer/RightPanel/VBox/ExtraDetails"]
 text = "Bias"
 autowrap_mode = 3
 
-[node name="StatsLabel" type="Label" parent="UILayer/RightPanel/VBox"]
+[node name="StatsLabel" type="Label" parent="UILayer/RightPanel/VBox/ExtraDetails"]
 text = "Stats"
 autowrap_mode = 3
 
-[node name="SkillsLabel" type="Label" parent="UILayer/RightPanel/VBox"]
+[node name="SkillsLabel" type="Label" parent="UILayer/RightPanel/VBox/ExtraDetails"]
 text = "Skills"
 autowrap_mode = 3
 
-[node name="TagsLabel" type="Label" parent="UILayer/RightPanel/VBox"]
+[node name="TagsLabel" type="Label" parent="UILayer/RightPanel/VBox/ExtraDetails"]
 text = "Tags"
 autowrap_mode = 3
 
-[node name="CurrentQuestLabel" type="Label" parent="UILayer/RightPanel/VBox"]
+[node name="CurrentQuestLabel" type="Label" parent="UILayer/RightPanel/VBox/ExtraDetails"]
 text = "Current Quest"
 autowrap_mode = 3
 
-[node name="DescriptionLabel" type="Label" parent="UILayer/RightPanel/VBox"]
+[node name="DescriptionLabel" type="Label" parent="UILayer/RightPanel/VBox/ExtraDetails"]
 text = "Description"
 autowrap_mode = 3
 
@@ -367,3 +419,11 @@ text = "Recent Completed Quests"
 [node name="CompletedQuestListLabel" type="Label" parent="UILayer/QuestDrawer/QuestVBox"]
 text = "No quests have been completed yet."
 autowrap_mode = 3
+
+[node name="MenuHost" type="Control" parent="UILayer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("10_menuhost")

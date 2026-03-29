@@ -1,9 +1,13 @@
 extends Node3D
 ## Root scene script. Wires SimulationRoot, CommandServer, and ScenarioRunner together.
 
+const OPTIONS_SCENE := preload("res://scenes/ui/OptionsMenu.tscn")
+
 @onready var sim: Node = $SimulationRoot
 @onready var cmd_server: Node = $CommandServer
 @onready var build_manager: Node = $BuildManager
+@onready var camera_controller: Camera3D = $Camera3D
+@onready var menu_host: Control = $UILayer/MenuHost
 
 var _selected_hero_id: int = -1
 var _selected_building_id: int = -1
@@ -13,11 +17,20 @@ var _left_panel_collapsed: bool = false
 var _right_panel_collapsed: bool = true
 var _event_feed_expanded: bool = false
 var _selected_entity_kind: String = ""
+var _details_expanded: bool = false
 
 const BUILDING_ICONS := {
 	"tavern": "res://assets/ui/tavern_icon.svg",
 	"weapons_shop": "res://assets/ui/weapons_shop_icon.svg",
 	"temple": "res://assets/ui/temple_icon.svg",
+}
+
+const HERO_PORTRAITS := {
+	"martial": "res://assets/characters/knight_texture.png",
+	"rogue": "res://assets/characters/rogue_texture.png",
+	"scholar": "res://assets/characters/mage_texture.png",
+	"devout": "res://assets/characters/mage_texture.png",
+	"commoner": "res://assets/characters/barbarian_texture.png",
 }
 
 func _ready() -> void:
@@ -91,6 +104,12 @@ func _ready() -> void:
 		var speed3 := get_node_or_null("UILayer/TopBar/TopBarRow/Speed3Button")
 		if speed3:
 			speed3.pressed.connect(func() -> void: _set_time_scale(3.0))
+		var options_btn := get_node_or_null("UILayer/TopBar/TopBarRow/OptionsButton")
+		if options_btn:
+			options_btn.pressed.connect(_open_options_menu)
+		var more_details_btn := get_node_or_null("UILayer/RightPanel/VBox/MoreDetailsButton")
+		if more_details_btn:
+			more_details_btn.pressed.connect(_toggle_details_expanded)
 		GameState.gold_changed.connect(_on_gold_changed)
 		GameState.building_placed.connect(_on_building_state_changed)
 		GameState.building_removed.connect(_on_building_removed)
@@ -234,31 +253,65 @@ func _refresh_hero_panel(hero_id: int) -> void:
 	if not GameState.heroes.has(hero_id):
 		return
 	var h: Dictionary = GameState.heroes[hero_id]
+	var portrait := get_node_or_null("UILayer/RightPanel/VBox/SummaryRow/PortraitPanel/PortraitMargin/PortraitTexture")
 	var title_lbl := get_node_or_null("UILayer/RightPanel/VBox/Header/EntityTitle")
-	var name_lbl := get_node_or_null("UILayer/RightPanel/VBox/NameLabel")
-	var career_lbl := get_node_or_null("UILayer/RightPanel/VBox/CareerLabel")
-	var state_lbl := get_node_or_null("UILayer/RightPanel/VBox/StateLabel")
+	var name_lbl := get_node_or_null("UILayer/RightPanel/VBox/SummaryRow/SummaryText/NameLabel")
+	var career_lbl := get_node_or_null("UILayer/RightPanel/VBox/SummaryRow/SummaryText/CareerLabel")
+	var state_lbl := get_node_or_null("UILayer/RightPanel/VBox/SummaryRow/SummaryText/StateLabel")
+	var summary_lbl := get_node_or_null("UILayer/RightPanel/VBox/SummaryRow/SummaryText/SummaryMetaLabel")
 	var level_lbl := get_node_or_null("UILayer/RightPanel/VBox/LevelLabel")
+	var health_bar := get_node_or_null("UILayer/RightPanel/VBox/HealthBar")
 	var health_lbl := get_node_or_null("UILayer/RightPanel/VBox/HealthLabel")
-	var gold_lbl := get_node_or_null("UILayer/RightPanel/VBox/HeroGoldLabel")
-	var bias_lbl := get_node_or_null("UILayer/RightPanel/VBox/BiasLabel")
-	var stats_lbl := get_node_or_null("UILayer/RightPanel/VBox/StatsLabel")
-	var skills_lbl := get_node_or_null("UILayer/RightPanel/VBox/SkillsLabel")
-	var tags_lbl := get_node_or_null("UILayer/RightPanel/VBox/TagsLabel")
-	var desc_lbl := get_node_or_null("UILayer/RightPanel/VBox/DescriptionLabel")
-	var quest_lbl := get_node_or_null("UILayer/RightPanel/VBox/CurrentQuestLabel")
+	var xp_bar := get_node_or_null("UILayer/RightPanel/VBox/XpBar")
+	var primary_lbl := get_node_or_null("UILayer/RightPanel/VBox/PrimaryFactsLabel")
+	var gold_lbl := get_node_or_null("UILayer/RightPanel/VBox/ExtraDetails/HeroGoldLabel")
+	var bias_lbl := get_node_or_null("UILayer/RightPanel/VBox/ExtraDetails/BiasLabel")
+	var stats_lbl := get_node_or_null("UILayer/RightPanel/VBox/ExtraDetails/StatsLabel")
+	var skills_lbl := get_node_or_null("UILayer/RightPanel/VBox/ExtraDetails/SkillsLabel")
+	var tags_lbl := get_node_or_null("UILayer/RightPanel/VBox/ExtraDetails/TagsLabel")
+	var desc_lbl := get_node_or_null("UILayer/RightPanel/VBox/ExtraDetails/DescriptionLabel")
+	var quest_lbl := get_node_or_null("UILayer/RightPanel/VBox/ExtraDetails/CurrentQuestLabel")
+	var max_health := int(h.get("max_health", 0))
+	var health := int(h.get("health", 0))
+	var level := int(h.get("level", 1))
+	var xp := int(h.get("xp", 0))
+	var xp_progress := xp % 100
 	if title_lbl:
 		title_lbl.text = "Hero"
+	if portrait:
+		var archetype: String = String(h.get("career_archetype", "commoner")).to_lower()
+		portrait.texture = load(HERO_PORTRAITS.get(archetype, HERO_PORTRAITS["commoner"]))
 	if name_lbl:
 		name_lbl.text = h["name"]
 	if career_lbl:
 		career_lbl.text = "%s  [%s]" % [h["career"], h.get("career_archetype", "")]
 	if state_lbl:
-		state_lbl.text = h["state"].capitalize()
+		state_lbl.text = "Activity: %s" % _format_entity_state(h["state"])
+	if summary_lbl:
+		summary_lbl.text = "Personal gold %dg   Quest bias %s" % [h.get("gold", 0), h.get("quest_bias", "-")]
+	if health_bar:
+		health_bar.max_value = max(1, max_health)
+		health_bar.value = health
+		health_bar.visible = true
+	if xp_bar:
+		xp_bar.max_value = 100
+		xp_bar.value = xp_progress
+		xp_bar.visible = true
 	if level_lbl:
-		level_lbl.text = "Level %d  XP %d" % [h.get("level", 1), h.get("xp", 0)]
+		level_lbl.text = "Level %d  XP %d / next level" % [level, xp_progress]
 	if health_lbl:
-		health_lbl.text = "Health %d/%d" % [h.get("health", 0), h.get("max_health", 0)]
+		health_lbl.text = "Health %d / %d" % [health, max_health]
+	if primary_lbl:
+		var current_quest: Dictionary = h.get("current_quest", {})
+		var activity := "No active quest"
+		if not current_quest.is_empty():
+			activity = "%s (%s)" % [current_quest.get("name", "?"), _format_quest_state(h.get("state", ""))]
+		primary_lbl.text = "Current activity: %s\nCore stats: MGT %d  AGI %d  WIT %d" % [
+			activity,
+			h.get("stats", {}).get("might", 0),
+			h.get("stats", {}).get("agility", 0),
+			h.get("stats", {}).get("wits", 0)
+		]
 	if gold_lbl:
 		gold_lbl.text = "Gold %d" % h.get("gold", 0)
 	if bias_lbl:
@@ -284,6 +337,7 @@ func _refresh_hero_panel(hero_id: int) -> void:
 			quest_lbl.text = "Current Quest: None"
 		else:
 			quest_lbl.text = "Current Quest: %s" % current_quest.get("name", "?")
+	_refresh_details_visibility()
 
 func _hide_hero_panel() -> void:
 	_selected_hero_id = -1
@@ -307,19 +361,24 @@ func _refresh_building_panel(building_id: int) -> void:
 	var building: Dictionary = GameState.buildings.get(building_id, {})
 	if building.is_empty():
 		return
+	var portrait := get_node_or_null("UILayer/RightPanel/VBox/SummaryRow/PortraitPanel/PortraitMargin/PortraitTexture")
 	var title_lbl := get_node_or_null("UILayer/RightPanel/VBox/Header/EntityTitle")
-	var name_lbl := get_node_or_null("UILayer/RightPanel/VBox/NameLabel")
-	var career_lbl := get_node_or_null("UILayer/RightPanel/VBox/CareerLabel")
-	var state_lbl := get_node_or_null("UILayer/RightPanel/VBox/StateLabel")
+	var name_lbl := get_node_or_null("UILayer/RightPanel/VBox/SummaryRow/SummaryText/NameLabel")
+	var career_lbl := get_node_or_null("UILayer/RightPanel/VBox/SummaryRow/SummaryText/CareerLabel")
+	var state_lbl := get_node_or_null("UILayer/RightPanel/VBox/SummaryRow/SummaryText/StateLabel")
+	var summary_lbl := get_node_or_null("UILayer/RightPanel/VBox/SummaryRow/SummaryText/SummaryMetaLabel")
 	var level_lbl := get_node_or_null("UILayer/RightPanel/VBox/LevelLabel")
+	var health_bar := get_node_or_null("UILayer/RightPanel/VBox/HealthBar")
 	var health_lbl := get_node_or_null("UILayer/RightPanel/VBox/HealthLabel")
-	var gold_lbl := get_node_or_null("UILayer/RightPanel/VBox/HeroGoldLabel")
-	var bias_lbl := get_node_or_null("UILayer/RightPanel/VBox/BiasLabel")
-	var stats_lbl := get_node_or_null("UILayer/RightPanel/VBox/StatsLabel")
-	var skills_lbl := get_node_or_null("UILayer/RightPanel/VBox/SkillsLabel")
-	var tags_lbl := get_node_or_null("UILayer/RightPanel/VBox/TagsLabel")
-	var desc_lbl := get_node_or_null("UILayer/RightPanel/VBox/DescriptionLabel")
-	var quest_lbl := get_node_or_null("UILayer/RightPanel/VBox/CurrentQuestLabel")
+	var xp_bar := get_node_or_null("UILayer/RightPanel/VBox/XpBar")
+	var primary_lbl := get_node_or_null("UILayer/RightPanel/VBox/PrimaryFactsLabel")
+	var gold_lbl := get_node_or_null("UILayer/RightPanel/VBox/ExtraDetails/HeroGoldLabel")
+	var bias_lbl := get_node_or_null("UILayer/RightPanel/VBox/ExtraDetails/BiasLabel")
+	var stats_lbl := get_node_or_null("UILayer/RightPanel/VBox/ExtraDetails/StatsLabel")
+	var skills_lbl := get_node_or_null("UILayer/RightPanel/VBox/ExtraDetails/SkillsLabel")
+	var tags_lbl := get_node_or_null("UILayer/RightPanel/VBox/ExtraDetails/TagsLabel")
+	var desc_lbl := get_node_or_null("UILayer/RightPanel/VBox/ExtraDetails/DescriptionLabel")
+	var quest_lbl := get_node_or_null("UILayer/RightPanel/VBox/ExtraDetails/CurrentQuestLabel")
 	var building_type: String = building.get("type", "")
 	var data: Dictionary = DataLoader.buildings_by_id.get(building_type, {})
 	var level: int = int(building.get("level", 1))
@@ -329,16 +388,35 @@ func _refresh_building_panel(building_id: int) -> void:
 		level_name = String(levels[level - 1].get("name", ""))
 	if title_lbl:
 		title_lbl.text = "Building"
+	if portrait:
+		portrait.texture = load(BUILDING_ICONS.get(building_type, ""))
 	if name_lbl:
 		name_lbl.text = data.get("name", building_type.capitalize())
 	if career_lbl:
-		career_lbl.text = "Type: %s" % building_type.replace("_", " ").capitalize()
+		career_lbl.text = "Type: %s" % String(building_type).replace("_", " ").capitalize()
 	if state_lbl:
-		state_lbl.text = "Selected for upgrade/removal"
+		state_lbl.text = "Activity: Selected for upgrade/removal"
+	if summary_lbl:
+		summary_lbl.text = "Base cost %dg   Position %.0f, %.0f" % [
+			int(data.get("base_cost", 0)),
+			float(building.get("position", {}).get("x", 0.0)),
+			float(building.get("position", {}).get("z", 0.0))
+		]
+	if health_bar:
+		health_bar.max_value = max(1, levels.size())
+		health_bar.value = level
+		health_bar.visible = true
+	if xp_bar:
+		xp_bar.visible = false
 	if level_lbl:
-		level_lbl.text = "Level %d  %s" % [level, level_name]
+		level_lbl.text = "Level %d / %d  %s" % [level, max(1, levels.size()), level_name]
 	if health_lbl:
 		health_lbl.text = "Footprint %s" % str(data.get("footprint", [1, 1]))
+	if primary_lbl:
+		primary_lbl.text = "Summary: %s\nUpgrade state: %s" % [
+			data.get("description", ""),
+			"Upgradeable" if level < levels.size() else "Max level reached"
+		]
 	if gold_lbl:
 		gold_lbl.text = "Base Cost %dg" % int(data.get("base_cost", 0))
 	if bias_lbl:
@@ -348,11 +426,15 @@ func _refresh_building_panel(building_id: int) -> void:
 	if skills_lbl:
 		skills_lbl.text = "Scene: %s" % data.get("scene", "")
 	if tags_lbl:
-		tags_lbl.text = "Effects: %s" % ", ".join(data.get("levels", [])[level - 1].get("effects", {}).keys()) if level > 0 and level <= levels.size() else ""
+		var effect_names: Array = []
+		if level > 0 and level <= levels.size():
+			effect_names = data.get("levels", [])[level - 1].get("effects", {}).keys()
+		tags_lbl.text = "Effects: %s" % ", ".join(effect_names)
 	if quest_lbl:
 		quest_lbl.text = "Current Use: %s" % ("Supports quests and town services")
 	if desc_lbl:
 		desc_lbl.text = data.get("description", "")
+	_refresh_details_visibility()
 
 func _remove_selected_building() -> void:
 	if _selected_building_id < 0:
@@ -430,6 +512,7 @@ func _on_state_reloaded() -> void:
 	_refresh_quest_ui()
 	_on_gold_changed(GameState.gold)
 	_set_status("Loaded save from user://questtown_save.json")
+	_refresh_details_visibility()
 
 func _upgrade_building_type(building_type: String) -> void:
 	var building := _get_building_of_type(building_type)
@@ -623,6 +706,18 @@ func _set_status(message: String) -> void:
 	if status_label:
 		status_label.text = message
 
+func _toggle_details_expanded() -> void:
+	_details_expanded = not _details_expanded
+	_refresh_details_visibility()
+
+func _refresh_details_visibility() -> void:
+	var extra := get_node_or_null("UILayer/RightPanel/VBox/ExtraDetails")
+	if extra:
+		extra.visible = _details_expanded
+	var button := get_node_or_null("UILayer/RightPanel/VBox/MoreDetailsButton")
+	if button:
+		button.text = "Less Details" if _details_expanded else "More Details"
+
 func _upgrade_selected_building() -> void:
 	if _selected_building_id < 0:
 		return
@@ -686,8 +781,36 @@ func _refresh_top_bar() -> void:
 		var state: String = hero.get("state", "")
 		if state in ["departing_quest", "on_quest", "returning"]:
 			active_expeditions += 1
-	summary.text = "Heroes: %d   Expeditions: %d   Speed: %.0fx" % [GameState.heroes.size(), active_expeditions, Engine.time_scale]
+	summary.text = "Heroes: %d / 5   Expeditions: %d   Zoom: %.0f%%   Speed: %.0fx" % [
+		GameState.heroes.size(),
+		active_expeditions,
+		100.0 * _get_camera_zoom_fraction(),
+		Engine.time_scale
+	]
 
 func _set_time_scale(value: float) -> void:
 	Engine.time_scale = value
 	_refresh_top_bar()
+
+func _open_options_menu() -> void:
+	if menu_host == null or not menu_host.has_method("show_menu"):
+		return
+	var options: Control = menu_host.show_menu(OPTIONS_SCENE)
+	if options != null:
+		options.closed.connect(func() -> void:
+			menu_host.close_menu()
+			_refresh_top_bar()
+		)
+
+func _get_camera_zoom_fraction() -> float:
+	if camera_controller == null:
+		return 1.0
+	var min_size := 8.0
+	var max_size := 28.0
+	var size_fraction := inverse_lerp(max_size, min_size, camera_controller.size)
+	return clamp(size_fraction, 0.0, 1.0)
+
+func _format_entity_state(raw_state: String) -> String:
+	if raw_state == "":
+		return "idle"
+	return raw_state.replace("_", " ").capitalize()
