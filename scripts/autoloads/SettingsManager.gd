@@ -3,9 +3,10 @@ extends Node
 
 const CONFIG_PATH := "user://settings.cfg"
 const SECTION := "display"
+const UI_SCALE_VERSION := 2
 
 var window_mode: String = "windowed"
-var ui_scale: float = 1.0
+var ui_scale: float = 1.5
 
 func _ready() -> void:
 	load_settings()
@@ -17,11 +18,16 @@ func load_settings() -> void:
 		return
 	window_mode = String(config.get_value(SECTION, "window_mode", window_mode))
 	ui_scale = float(config.get_value(SECTION, "ui_scale", ui_scale))
+	var stored_scale_version: int = int(config.get_value(SECTION, "ui_scale_version", 1))
+	if stored_scale_version < UI_SCALE_VERSION:
+		ui_scale = 1.5
+		save_settings()
 
 func save_settings() -> void:
 	var config := ConfigFile.new()
 	config.set_value(SECTION, "window_mode", window_mode)
 	config.set_value(SECTION, "ui_scale", ui_scale)
+	config.set_value(SECTION, "ui_scale_version", UI_SCALE_VERSION)
 	config.save(CONFIG_PATH)
 
 func apply_settings() -> void:
@@ -37,7 +43,7 @@ func toggle_window_mode() -> void:
 	save_settings()
 
 func cycle_ui_scale() -> void:
-	var scales := [1.0, 1.15, 1.3]
+	var scales := [1.0, 1.25, 1.5]
 	var current_index := scales.find(round(ui_scale * 100.0) / 100.0)
 	if current_index < 0:
 		current_index = 0
