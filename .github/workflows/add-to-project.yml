@@ -14,10 +14,9 @@ on:
 jobs:
   add-to-project:
     runs-on: ubuntu-latest
-    if: ${{ vars.GITHUB_PROJECT_URL != '' }}
     steps:
       - name: Add item to project
         uses: actions/add-to-project@v1.0.2
         with:
-          project-url: ${{ vars.GITHUB_PROJECT_URL }}
+          project-url: https://github.com/users/mlokanenew/projects/1
           github-token: ${{ secrets.PROJECT_AUTOMATION_TOKEN }}
