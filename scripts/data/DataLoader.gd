@@ -6,6 +6,7 @@ var careers: Array = []
 var buildings: Array = []
 var quests: Array = []
 var skills: Array = []
+var characteristics: Array = []
 var hero_names: Dictionary = {"first": [], "last": []}
 
 # Indexed lookups
@@ -13,12 +14,14 @@ var careers_by_id: Dictionary = {}
 var buildings_by_id: Dictionary = {}
 var quests_by_id: Dictionary = {}
 var skills_by_id: Dictionary = {}
+var characteristics_by_id: Dictionary = {}
 
 func _ready() -> void:
 	careers = _load_json("res://data/careers.json")
 	buildings = _load_json("res://data/buildings.json")
 	quests = _load_json("res://data/quests.json")
 	skills = _load_json("res://data/skills.json")
+	characteristics = _load_json("res://data/characteristics.json")
 	hero_names = _load_json("res://data/hero_names.json")
 
 	for c in careers:
@@ -29,6 +32,8 @@ func _ready() -> void:
 		quests_by_id[q["id"]] = q
 	for s in skills:
 		skills_by_id[s["id"]] = s
+	for characteristic in characteristics:
+		characteristics_by_id[characteristic["id"]] = characteristic
 
 func _load_json(path: String) -> Variant:
 	var file := FileAccess.open(path, FileAccess.READ)

@@ -92,6 +92,7 @@ func add_hero(name: String, career_data: Dictionary, profile: Dictionary = {}) -
 		"name": name,
 		"career_id": career_data.get("id", "mercenary"),
 		"career": career_name,
+		"career_tier": career_data.get("tier", "basic"),
 		"career_archetype": career_data.get("archetype", "martial"),
 		"career_description": career_data.get("description", ""),
 		"quest_bias": career_data.get("quest_bias", "local"),

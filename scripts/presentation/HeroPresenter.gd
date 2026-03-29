@@ -16,6 +16,16 @@ const CAREER_MODELS: Dictionary = {
 	"Peasant":       "res://assets/characters/Mage.glb",
 }
 const DEFAULT_MODEL := "res://assets/characters/Knight.glb"
+const ARCHETYPE_MODELS: Dictionary = {
+	"martial": "res://assets/characters/Knight.glb",
+	"scout": "res://assets/characters/Rogue.glb",
+	"rogue": "res://assets/characters/Rogue_Hooded.glb",
+	"faith": "res://assets/characters/Mage.glb",
+	"survivor": "res://assets/characters/Barbarian.glb",
+	"warden": "res://assets/characters/Knight.glb",
+	"runner": "res://assets/characters/Rogue.glb",
+	"commoner": "res://assets/characters/Barbarian.glb",
+}
 
 # KayKit GLB animation names (check what's available in AnimationPlayer)
 const ANIM_IDLE  := "Idle"
@@ -108,7 +118,10 @@ func _make_hero_node(hero: Dictionary) -> Node3D:
 	root.name = "Hero_%d" % hero["id"]
 
 	# Load GLB model for this career
-	var model_path: String = CAREER_MODELS.get(hero["career"], DEFAULT_MODEL)
+	var model_path: String = CAREER_MODELS.get(
+		hero["career"],
+		ARCHETYPE_MODELS.get(hero.get("career_archetype", ""), DEFAULT_MODEL)
+	)
 	var packed: PackedScene = load(model_path)
 	if packed:
 		var model := packed.instantiate()

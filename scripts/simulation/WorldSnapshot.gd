@@ -35,6 +35,7 @@ func _heroes() -> Array:
 			"name":     h["name"],
 			"career_id": h.get("career_id", ""),
 			"career":   h["career"],
+			"career_tier": h.get("career_tier", "basic"),
 			"career_archetype": h.get("career_archetype", ""),
 			"level":    h["level"],
 			"xp":       h.get("xp", 0),

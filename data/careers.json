@@ -1,102 +1,2146 @@
 [
   {
-    "id": "mercenary",
-    "name": "Mercenary",
-    "archetype": "martial",
-    "quest_bias": "combat",
-    "service_bias": "weapons_shop",
-    "trait_tags": ["frontline", "professional", "paid_steel"],
-    "skill_ids": ["animal_care", "dodge_blow", "gossip", "perception"],
-    "description": "A hardened sell-sword who travels wherever coin and danger are found."
-  },
-  {
-    "id": "hunter",
-    "name": "Hunter",
-    "archetype": "scout",
-    "quest_bias": "beast",
-    "service_bias": "weapons_shop",
-    "trait_tags": ["ranged", "wilderness", "tracker"],
-    "skill_ids": ["concealment", "follow_trail", "outdoor_survival", "perception", "search", "set_trap"],
-    "description": "A wilderness stalker comfortable with traps, trails, and dangerous game."
-  },
-  {
-    "id": "thief",
-    "name": "Thief",
-    "archetype": "rogue",
-    "quest_bias": "risky",
+    "id": "agitator",
+    "name": "Agitator",
+    "tier": "basic",
+    "archetype": "commoner",
+    "quest_bias": "support",
     "service_bias": "tavern",
-    "trait_tags": ["agile", "opportunist", "urban"],
-    "skill_ids": ["charm", "concealment", "gamble", "perception", "pick_lock"],
-    "description": "A quick-handed schemer who excels at risk, stealth, and dirty opportunity."
+    "trait_tags": [
+      "commoner",
+      "urban",
+      "support"
+    ],
+    "skill_ids": [
+      "academic_knowledge_various",
+      "gossip",
+      "concealment",
+      "charm",
+      "perception",
+      "speak_language_various"
+    ],
+    "description": "For the most part, the people of the Empire have little say in politics. The Emperor and the Elector Counts make and enforce the laws, with the support of the various churches (Sigmar and Ulric most conspicuously). Nonetheless, ardent political activists are a common sight in the cities of the Empire. These Agitators organize on behalf of various causes, handing out leaflets, giving rousing speeches, and stirring up the populace. The lunatic fringe is simply ignored, but successful Agitators-those who can tap into the wellspring of Peasant and Burgher resentment-are usually viewed as a threat to the state. They are hounded by local watchman, accused of heresy by church officials, or forced to submit to the tender mercies of the Witch Hunters. Agitators continue on despite the risks. Some truly believe in their cause, but others are cynical power seekers as corrupt as those they rail against.",
+    "career_entries": [
+      "Burgher",
+      "Captain",
+      "Herald",
+      "Highwayman",
+      "Scribe",
+      "Servant",
+      "Student",
+      "Zealot"
+    ],
+    "career_exits": [
+      "Charlatan",
+      "Demagogue",
+      "Outlaw",
+      "Politician",
+      "Rogue",
+      "Zealot"
+    ],
+    "ocr_review_required": false
   },
   {
-    "id": "initiate",
-    "name": "Initiate",
+    "id": "apprentice_wizard",
+    "name": "Apprentice Wizard",
+    "tier": "basic",
     "archetype": "faith",
     "quest_bias": "spiritual",
     "service_bias": "temple",
-    "trait_tags": ["devout", "scholarly", "healer"],
-    "skill_ids": ["academic_theology", "charm", "heal", "perception", "read_write"],
-    "description": "A novice of the temple trained in doctrine, first aid, and disciplined service."
+    "trait_tags": [
+      "faith",
+      "faith"
+    ],
+    "skill_ids": [
+      "academic_knowledge_various",
+      "channelling",
+      "magical_sense",
+      "perception",
+      "search",
+      "speak_arcane_language",
+      "speak_language_various"
+    ],
+    "description": "Humans born with magical talent are dangerous and feared individuals. Daemons and disaster gather about an untrained Wizard. To deal with this threat the Empire sends such people away to join one of the eight Orders of Wizardry. During their apprenticeship young Wizards learn how to practice magic safely, and contemplate which Order they will eventually join. Some apprentices will be bound to serve the Wizard who uncovered their talents, whilst others adventure to garner enough money to pay for their tutelage at the Colleges of Magic. Elves are naturally magical, and do not need to attend these Human institutions, learning from their own lore masters instead. See Chapter 7: Magic for more details on the Orders of Magic.",
+    "career_entries": [
+      "Hedge Wizard",
+      "Scholar",
+      "Scribe",
+      "Student"
+    ],
+    "career_exits": [
+      "Journeyman Wizard",
+      "Scholar",
+      "Scribe"
+    ],
+    "ocr_review_required": false
   },
   {
-    "id": "soldier",
-    "name": "Soldier",
+    "id": "bailiff",
+    "name": "Bailiff",
+    "tier": "basic",
+    "archetype": "warden",
+    "quest_bias": "beast",
+    "service_bias": "weapons_shop",
+    "trait_tags": [
+      "warden",
+      "support",
+      "travel"
+    ],
+    "skill_ids": [
+      "academic_knowledge_various",
+      "animal_care",
+      "gossip",
+      "charm",
+      "command",
+      "navigation",
+      "intimidate",
+      "perception",
+      "ride"
+    ],
+    "description": "Barber-Surgeons provide painful but effective healing to the common folk of the Empire. They are not as learned as Physicians, which is why Physicians maintain a separate guild, but they know quite a lot about anatomy. While they do cut hair and shave, they are more noted for their bleedings, surgeries, and amputations. Barber-Surgeons carry a variety of razor-sharp blades, from small scalpels to enormous bone saws. They have even more sinister looking tools for the most hated of their avocations: dentistry. Many large ships have a dedicated Barber-Surgeon as part of the crew; they are also common in towns and cities.",
+    "career_entries": [
+      "Bodyguard",
+      "Jailer"
+    ],
+    "career_exits": [
+      "Militiaman",
+      "Politician",
+      "Protagonist",
+      "Racketeer",
+      "Smuggler",
+      "Toll Keeper"
+    ],
+    "ocr_review_required": false
+  },
+  {
+    "id": "barber_surgeon",
+    "name": "Barber-Surgeon",
+    "tier": "basic",
+    "archetype": "commoner",
+    "quest_bias": "escort",
+    "service_bias": "tavern",
+    "trait_tags": [
+      "commoner",
+      "support",
+      "travel"
+    ],
+    "skill_ids": [
+      "charm",
+      "drive",
+      "swim",
+      "haggle",
+      "heal",
+      "perception",
+      "speak_language_various",
+      "trade_various"
+    ],
+    "description": "Barber-Surgeons provide painful but effective healing to the common folk of the Empire. They are not as learned as Physicians, which is why Physicians maintain a separate guild, but they know quite a lot about anatomy. While they do cut hair and shave, they are more noted for their bleedings, surgeries, and amputations. Barber-Surgeons carry a variety of razor-sharp blades, from small scalpels to enormous bone saws. They have even more sinister looking tools for the most hated of their avocations: dentistry. Many large ships have a dedicated Barber-Surgeon as part of the crew; they are also common in towns and cities.",
+    "career_entries": [
+      "Initiate",
+      "Student"
+    ],
+    "career_exits": [
+      "Interrogator",
+      "Grave Robber",
+      "Physician",
+      "Tradesman",
+      "Vagabond"
+    ],
+    "ocr_review_required": false
+  },
+  {
+    "id": "boatman",
+    "name": "Boatman",
+    "tier": "basic",
+    "archetype": "scout",
+    "quest_bias": "escort",
+    "service_bias": "weapons_shop",
+    "trait_tags": [
+      "scout",
+      "wilderness",
+      "support",
+      "travel"
+    ],
+    "skill_ids": [
+      "consume_alcohol",
+      "gossip",
+      "navigation",
+      "outdoor_survival",
+      "perception",
+      "row",
+      "sail",
+      "secret_language_various",
+      "speak_language_various",
+      "swim"
+    ],
+    "description": "The rivers of the Empire are vital arteries of communication and commerce. They provide speedy transportation and link most of the major cities of the realm. Boatmen ply these busy waterways, taking passengers and goods throughout the Empire and even into Kislev. Although the rivers are safer than the dark forest roads, they are not without danger. Many routes pass through wild country untouched by civilisation. Boatmen must be ready to protect their cargoes and fares from raiders and bandits. Experienced Boatmen are tough and resourceful, equally adept at boat handling, navigation, and combat.",
+    "career_entries": [
+      "Ferryman",
+      "Smuggler"
+    ],
+    "career_exits": [
+      "Fisherman",
+      "Marine",
+      "Navigator",
+      "Seaman",
+      "Smuggler"
+    ],
+    "ocr_review_required": false
+  },
+  {
+    "id": "bodyguard",
+    "name": "Bodyguard",
+    "tier": "basic",
     "archetype": "martial",
     "quest_bias": "combat",
     "service_bias": "weapons_shop",
-    "trait_tags": ["disciplined", "garrison", "frontline"],
-    "skill_ids": ["dodge_blow", "gossip", "intimidate", "perception"],
-    "description": "A trained professional from the ranks of the army, used to patrols and hard fighting."
+    "trait_tags": [
+      "martial",
+      "frontline",
+      "support"
+    ],
+    "skill_ids": [
+      "dodge_blow",
+      "heal",
+      "intimidate",
+      "perception"
+    ],
+    "description": "Old Worlders claim Altdorf merchants are so dishonest they can't even trust themselves with their own lives-thus they pay Bodyguards to look after their assets. The Old World is, of course, a dangerous place and its cities are no exception. It's all too easy to end up with a knife in the back on the crowded streets of a major metropolis like Nuln or Middenheim. The rich and powerful use Bodyguards to protect themselves from thieves and common riffraff. While many look like the thugs they are, others are gussied up in the livery of the Noble or Merchant House they serve. Some of the groups are so big that they are practically private armies.",
+    "career_entries": [
+      "Estalian Diestro",
+      "Jailer",
+      "Mercenary",
+      "Thug"
+    ],
+    "career_exits": [
+      "Bailiff",
+      "Bounty Hunter",
+      "Interrogator",
+      "Jailer",
+      "Mercenary",
+      "Protagonist",
+      "Racketeer"
+    ],
+    "ocr_review_required": false
   },
   {
-    "id": "rat_catcher",
-    "name": "Rat Catcher",
+    "id": "bone_picker",
+    "name": "Bone Picker",
+    "tier": "basic",
     "archetype": "survivor",
     "quest_bias": "beast",
     "service_bias": "tavern",
-    "trait_tags": ["gritty", "vermin_hunter", "underdog"],
-    "skill_ids": ["animal_care", "concealment", "perception", "search", "set_trap"],
-    "description": "A filthy but stubborn vermin hunter who survives where others refuse to tread."
+    "trait_tags": [
+      "survivor",
+      "support",
+      "travel"
+    ],
+    "skill_ids": [
+      "animal_care",
+      "charm",
+      "gossip",
+      "drive",
+      "evaluate",
+      "haggle",
+      "perception",
+      "search"
+    ],
+    "description": "Bone Pickers are scavengers, scraping a living together off the refuse of others. They lead their carts through villages and towns, collecting old bones, rags, and other junk and disposing of it in return for a few pennies or a small item in trade. Sometimes known as rag and bone men or rag pickers, they are a common sight in the Empire's cities, which generate large amounts of waste. Since many goods pass through their hands, Bone Pickers are also petty traders. What is trash to a wealthy Burgher is treasure to a poor Peasant.",
+    "career_entries": [
+      "Peasant",
+      "Rat Catcher",
+      "Vagabond"
+    ],
+    "career_exits": [
+      "Camp Follower",
+      "Cat Burglar",
+      "Fence",
+      "Grave Robber",
+      "Smuggler"
+    ],
+    "ocr_review_required": false
+  },
+  {
+    "id": "bounty_hunter",
+    "name": "Bounty Hunter",
+    "tier": "basic",
+    "archetype": "scout",
+    "quest_bias": "combat",
+    "service_bias": "weapons_shop",
+    "trait_tags": [
+      "scout",
+      "wilderness"
+    ],
+    "skill_ids": [
+      "follow_trail",
+      "intimidate",
+      "outdoor_survival",
+      "perception",
+      "search",
+      "shadowing",
+      "silent_move"
+    ],
+    "description": "Bounty Hunters live by tracking down wanted criminals, bandits, and fugitives and bringing them to justice. The lone Bounty Hunter can go places that ungainly military units cannot, which makes such men a useful adjunct to the watch and militia. Local rulers, guilds, and councils pay the bounties. They may find Bounty Hunters distasteful, but they are an effective counter to brigands, Goblin bands, and the like. Bounty Hunters are professional killers who place little value on sanctity of life. They are utterly ruthless, using their formidable skills to track and eliminate their quarries. The poor view them with fear, since more than one Peasant has been murdered and passed off as the real culprit. The authorities view them as a necessary evil, but never a welcome one.",
+    "career_entries": [
+      "Bodyguard",
+      "Fieldwarden",
+      "Hunter",
+      "Kislevite Kossar",
+      "Mercenary",
+      "Pit Fighter"
+    ],
+    "career_exits": [
+      "Mercenary",
+      "Protagonist",
+      "Scout",
+      "Targeteer",
+      "Vampire Hunter"
+    ],
+    "ocr_review_required": false
+  },
+  {
+    "id": "burgher",
+    "name": "Burgher",
+    "tier": "basic",
+    "archetype": "commoner",
+    "quest_bias": "local",
+    "service_bias": "tavern",
+    "trait_tags": [
+      "commoner",
+      "support",
+      "travel"
+    ],
+    "skill_ids": [
+      "consume_alcohol",
+      "drive",
+      "evaluate",
+      "gossip",
+      "haggle",
+      "perception",
+      "search",
+      "speak_language_various"
+    ],
+    "description": "As cities have become more and more important to the Empire, a new class of citizen has emerged: the Burgher. Burghers-or their ancestors-clawed their way up from the peasantry and made new lives for themselves in the cities. Now they are the glue that holds urban society together. Burghers are shop owners, petty merchants, excisemen, traders, and local officials. They are neither as despised as the peasantry nor as exalted as the nobility. While they suffer the most from plague, living in tightly packed neighbourhoods as they do, they would not leave the city for a life of hard toil in the country. In their minds, cities breed opportunity, not just disease.",
+    "career_entries": [
+      "Innkeeper",
+      "Servant"
+    ],
+    "career_exits": [
+      "Agitator",
+      "Fence",
+      "Innkeeper",
+      "Merchant",
+      "Militiaman",
+      "Tradesman",
+      "Valet"
+    ],
+    "ocr_review_required": false
   },
   {
     "id": "camp_follower",
     "name": "Camp Follower",
+    "tier": "basic",
     "archetype": "survivor",
-    "quest_bias": "support",
+    "quest_bias": "beast",
     "service_bias": "tavern",
-    "trait_tags": ["resourceful", "trader", "resilient"],
-    "skill_ids": ["animal_care", "charm", "evaluate", "gossip", "haggle", "search"],
-    "description": "A resourceful hanger-on of marching armies, always looking for the next edge."
+    "trait_tags": [
+      "survivor",
+      "support",
+      "travel"
+    ],
+    "skill_ids": [
+      "animal_care",
+      "drive",
+      "charm",
+      "evaluate",
+      "gossip",
+      "haggle",
+      "perception",
+      "search",
+      "speak_language_various",
+      "sleight_of_hand"
+    ],
+    "description": "In the Empire, armies are always on the move. Forces range from local militia units scouring the forest for bandits to the full armed might of the Emperor taking the field against greenskins or the forces of Chaos. No army travels alone. A caravan of Camp Followers always trails behind. They include petty traders looking to make extra money, war widows trying to make a wage cooking or sewing, and corpse looters hoping to scavenge battlefields. While scorned by the Noble leaders of many armies, Camp Followers provide key support for troops in the field.",
+    "career_entries": [
+      "Bone Picker",
+      "Servant"
+    ],
+    "career_exits": [
+      "Charcoal-Burner",
+      "Charlatan",
+      "Servant",
+      "Smuggler",
+      "Spy",
+      "Tradesman",
+      "Vagabond"
+    ],
+    "ocr_review_required": false
   },
   {
-    "id": "roadwarden",
-    "name": "Roadwarden",
+    "id": "charcoal_burner",
+    "name": "Charcoal-Burner",
+    "tier": "basic",
+    "archetype": "commoner",
+    "quest_bias": "beast",
+    "service_bias": "tavern",
+    "trait_tags": [
+      "commoner",
+      "wilderness",
+      "support",
+      "travel"
+    ],
+    "skill_ids": [
+      "concealment",
+      "drive",
+      "gossip",
+      "haggle",
+      "outdoor_survival",
+      "perception",
+      "scale_sheer_surface",
+      "search",
+      "secret_signs"
+    ],
+    "description": "Charcoal-Burners can be found in every village in the Empire. They burn wood to create charcoal, an important fuel for the winter months. Since their work is both dirty and potentially dangerous, they work outside their villages. The outskirts of the forest are best, as wood is easily accessible. This proximity to the forest also makes charcoal-burning dangerous work, since isolated parties of such men are easy prey for the malign creatures of the wood. A Charcoal-Burner camp always has weapons handy, even if they are nothing more than clubs cut from the nearby trees.",
+    "career_entries": [
+      "Camp Follower",
+      "Hunter",
+      "Miner",
+      "Peasant"
+    ],
+    "career_exits": [
+      "Hunter",
+      "Miner",
+      "Scout",
+      "Vagabond",
+      "Woodsman"
+    ],
+    "ocr_review_required": false
+  },
+  {
+    "id": "coachman",
+    "name": "Coachman",
+    "tier": "basic",
+    "archetype": "runner",
+    "quest_bias": "escort",
+    "service_bias": "tavern",
+    "trait_tags": [
+      "runner",
+      "support",
+      "travel"
+    ],
+    "skill_ids": [
+      "animal_care",
+      "drive",
+      "gossip",
+      "haggle",
+      "heal",
+      "ride",
+      "navigation",
+      "perception",
+      "secret_signs",
+      "speak_language_various"
+    ],
+    "description": "While the Empire is a mighty nation, its lands are far from safe. Large stretches of it have never been pacified or cultivated. A precarious system of roads connects the villages, towns, and cities, and it is here that the Coachmen earn their pay, working for one of the many Imperially chartered coaching companies. The roads are frequently in ill repair or plagued by Goblins, Beastmen, and brigands. Nonetheless, the Coachmen risk life and limb to bring passengers and cargo safely through the hazards of the Imperial roadways. Each day is a race to reach the next settlement or coaching inn before sunset. No one wants to be on the road in the dark of the night, especially when the Chaos moon is in the sky.",
+    "career_entries": [
+      "Outrider",
+      "Messenger"
+    ],
+    "career_exits": [
+      "Ferryman",
+      "Highwayman",
+      "Outlaw",
+      "Roadwarden",
+      "Scout",
+      "Smuggler",
+      "Toll Keeper"
+    ],
+    "ocr_review_required": false
+  },
+  {
+    "id": "entertainer",
+    "name": "Entertainer",
+    "tier": "basic",
+    "archetype": "commoner",
+    "quest_bias": "beast",
+    "service_bias": "tavern",
+    "trait_tags": [
+      "commoner",
+      "support",
+      "travel"
+    ],
+    "skill_ids": [
+      "animal_care",
+      "swim",
+      "charm",
+      "evaluate",
+      "gossip",
+      "perception",
+      "performer_various",
+      "speak_language_various",
+      "blather",
+      "charm_animal",
+      "hypnotism",
+      "ride",
+      "scale_sheer_surface",
+      "sleight_of_hand",
+      "ventriloquism"
+    ],
+    "description": "From acrobats to strongmen, from knife throwers to hypnotists, from dancers to ventriloquists, the Empire is full of Entertainers. Some do it for the roar of the crowd and others for the money. Many become Entertainers just to escape the hard life of the Imperial villager. Entertainers travel frequently, sometimes alone but more often in troupes that perform in villages, towns, and cities. Lucky troupes get continuous bookings, sometimes spending months in the same city. The less fortunate scrape by as they can, always looking for a more appreciative crowd (or a less suspicious watch) over the next hill. The very best Entertainers gain Noble sponsorship and earn undreamed of sums of money performing for the upper crust.",
+    "career_entries": [
+      "Herald",
+      "Rogue",
+      "Thief",
+      "Vagabond"
+    ],
+    "career_exits": [
+      "Charlatan",
+      "Minstrel",
+      "Rogue",
+      "Thief",
+      "Vagabond"
+    ],
+    "ocr_review_required": false
+  },
+  {
+    "id": "envoy",
+    "name": "Envoy",
+    "tier": "basic",
+    "archetype": "commoner",
+    "quest_bias": "support",
+    "service_bias": "tavern",
+    "trait_tags": [
+      "commoner",
+      "support"
+    ],
+    "skill_ids": [
+      "charm",
+      "evaluate",
+      "gossip",
+      "haggle",
+      "perception",
+      "secret_language_various",
+      "swim",
+      "trade_various"
+    ],
+    "description": "The elder members of the great Elven mercantile families are far removed from the everyday life of the Empire. To them, Humans live and die so quickly that it's hard to keep up with current trends and politics in the Old World. When they need such knowledge, they turn to their Envoys. These young Elves are the public face of the Merchant Houses. They of the Merchant Houses. They negotiate the contracts, make the deals, and keep the peace with the Humans of trading hubs such as Altdorf, Nuln, and Marienburg. Even Elves have a limit to their patience, so it is unsurprising that many Envoys take leave of their families for the adventurer's life.",
+    "career_entries": [
+      "Student",
+      "Tradesman"
+    ],
+    "career_exits": [
+      "Charlatan",
+      "Merchant",
+      "Rogue",
+      "Seaman",
+      "Student",
+      "Vagabond"
+    ],
+    "ocr_review_required": false
+  },
+  {
+    "id": "estalian_diestro",
+    "name": "Estalian Diestro",
+    "tier": "basic",
+    "archetype": "commoner",
+    "quest_bias": "local",
+    "service_bias": "tavern",
+    "trait_tags": [
+      "commoner"
+    ],
+    "skill_ids": [
+      "academic_knowledge_various",
+      "dodge_blow",
+      "speak_language_various"
+    ],
+    "description": "The Estalian Kingdoms are southwest of the Empire. There the threat of Chaos seems remote. The Chaos Wastes are quite distant from this sunny land, which has never witnessed the wrath of bloodthirsty hordes the way the Empire and Kislev have. Its people engage in other pursuits, from science and scholarship to crime and vendetta. One thing Estalians dearly love is swordplay. Its cities sport many fencing schools, each with its own style. Many of these styles are descended from the teachings of Master Figueroa, a legendary swordsman who applied the latest scientific theories to his swordplay with spectacular results. Followers of the Figueroa style, known as Diestro, fight and duel across Estonia. Some, bored with their homeland, seek excitement elsewhere, favouring Tilea and Bretonnia. The bravest travel northeast to the Empire to test their rapiers against worthy opponents, and to see a land in the front line of the struggle against Chaos.",
+    "career_entries": [
+      "None"
+    ],
+    "career_exits": [
+      "Bodyguard",
+      "Duellist",
+      "Highwayman",
+      "Protagonist",
+      "Rogue"
+    ],
+    "ocr_review_required": false
+  },
+  {
+    "id": "ferryman",
+    "name": "Ferryman",
+    "tier": "basic",
+    "archetype": "commoner",
+    "quest_bias": "escort",
+    "service_bias": "tavern",
+    "trait_tags": [
+      "commoner",
+      "support"
+    ],
+    "skill_ids": [
+      "charm",
+      "evaluate",
+      "secret_language_various",
+      "gossip",
+      "intimidate",
+      "haggle",
+      "perception",
+      "row",
+      "swim"
+    ],
+    "description": "Rivers both large and small cut through the Empire. While a few are shallow enough to ford easily, most require transport to cross safely. Ferrymen make their living moving people and goods across the Empire's rivers, for a fee of course. They favour flat-bottomed barges because they have a shallow draft and plenty of deckspace. Ferrymen in more remote areas also favour the blunderbuss. Bandits are a constant danger and the blunderbuss provides not-so- subtle encouragement to move along. Many Ferrymen are also extortionists of the highest order, arbitrarily changing their prices based on the apparent wealth and desperateness of their passengers.",
+    "career_entries": [
+      "Coachman",
+      "Smuggler",
+      "Toll Keeper"
+    ],
+    "career_exits": [
+      "Boatman",
+      "Highwayman",
+      "Roadwarden",
+      "Seaman",
+      "Smuggler"
+    ],
+    "ocr_review_required": false
+  },
+  {
+    "id": "fieldwarden",
+    "name": "Fieldwarden",
+    "tier": "basic",
+    "archetype": "scout",
+    "quest_bias": "beast",
+    "service_bias": "weapons_shop",
+    "trait_tags": [
+      "scout",
+      "wilderness"
+    ],
+    "skill_ids": [
+      "academic_knowledge_various",
+      "concealment",
+      "follow_trail",
+      "outdoor_survival",
+      "perception",
+      "search",
+      "silent_move"
+    ],
+    "description": "To outsiders the Moot looks like a safe and happy land. The extent to which that's true is due to the Fieldwardens. These Halflings patrol the borders of the Moot, keeping away threats and unwanted outsiders. They are skilled skirmishers who use their intimate knowledge of the Moot to maximum advantage. They prefer to attack from ambush, using their superior skill with missile weapons to neutralize the size advantage of their foes. Since the Moot shares a border with Sylvania, the Fieldwardens have particular expertise in dealing with the living dead. More than one band of zombies has been brought down by a fusillade of slingstones from determined Fieldwardens.",
+    "career_entries": [
+      "Hunter",
+      "Militiaman",
+      "Toll Keeper"
+    ],
+    "career_exits": [
+      "Bounty Hunter",
+      "Mercenary",
+      "Scout",
+      "Vagabond",
+      "Vampire Hunter"
+    ],
+    "ocr_review_required": false
+  },
+  {
+    "id": "fisherman",
+    "name": "Fisherman",
+    "tier": "basic",
+    "archetype": "scout",
+    "quest_bias": "beast",
+    "service_bias": "weapons_shop",
+    "trait_tags": [
+      "scout",
+      "wilderness",
+      "support",
+      "travel"
+    ],
+    "skill_ids": [
+      "consume_alcohol",
+      "haggle",
+      "navigation",
+      "trade_various",
+      "outdoor_survival",
+      "perception",
+      "row",
+      "sail",
+      "speak_language_various",
+      "swim"
+    ],
+    "description": "Fishermen seek the bounty of the sea. The many villages on Nordland's coastline are home to countless Fishermen. These hearty souls brave the Sea of Claws in small craft, despite the constant threat of pirates and raiders from Norsca. There are also some fishing communities inland, by lakes and rivers, though these villages also pursue agriculture. Fishermen are an independent lot as a matter of course. They work in small crews, and when on the water every decision is their own. This spirited nature is one reason why dockside taverns are always unruly.",
+    "career_entries": [
+      "Boatman",
+      "Peasant"
+    ],
+    "career_exits": [
+      "Marine",
+      "Merchant",
+      "Militiaman",
+      "Navigator",
+      "Seaman"
+    ],
+    "ocr_review_required": false
+  },
+  {
+    "id": "grave_robber",
+    "name": "Grave Robber",
+    "tier": "basic",
+    "archetype": "commoner",
+    "quest_bias": "escort",
+    "service_bias": "tavern",
+    "trait_tags": [
+      "commoner",
+      "support",
+      "travel"
+    ],
+    "skill_ids": [
+      "drive",
+      "gossip",
+      "haggle",
+      "perception",
+      "scale_sheer_surface",
+      "search",
+      "secret_signs",
+      "silent_move"
+    ],
+    "description": "Grave Robbers make their living among the dead. Both medical and magical professions create a constant demand for fresh corpses, some for study, others for more sinister purposes. Obtaining such corpses legally is quite difficult, so Physicians and Wizards both have come to rely on Grave Robbers. It is a loathsome profession, but a profitable one. The freshest corpses can command exorbitant prices. The risks of this line of work are substantial. Watchmen, Priests of Morr (the God of Death), and Witch Hunters all keep careful watch of graveyards and punish interlopers harshly.",
+    "career_entries": [
+      "Barber-Surgeon",
+      "Bone Picker",
+      "Rat Catcher"
+    ],
+    "career_exits": [
+      "Cat Burglar",
+      "Fence",
+      "Rat Catcher",
+      "Student",
+      "Thief"
+    ],
+    "ocr_review_required": false
+  },
+  {
+    "id": "hedge_wizard",
+    "name": "Hedge Wizard",
+    "tier": "basic",
+    "archetype": "faith",
+    "quest_bias": "beast",
+    "service_bias": "temple",
+    "trait_tags": [
+      "faith",
+      "faith",
+      "support"
+    ],
+    "skill_ids": [
+      "animal_care",
+      "haggle",
+      "charm",
+      "intimidate",
+      "channelling",
+      "charm_animal",
+      "trade_various",
+      "heal",
+      "hypnotism",
+      "magical_sense",
+      "perception",
+      "search"
+    ],
+    "description": "Hedge Wizards are magically talented people with no formal magical training. Using instinct, luck, and superstitious trappings, they can perform minor, specialized spells. Though they may not always be aware of it, Hedge Wizards dally with danger every time they use their charms and cantrips. For this reason the Witch Hunters eagerly track and execute these unfortunate folk who all too often unconsciously invite daemons and disaster into the world. Some Hedge Wizards take the sensible route and join the Orders of Magic, whilst others hide their shameful secret.",
+    "career_entries": [
+      "None"
+    ],
+    "career_exits": [
+      "Apprentice Wizard",
+      "Charlatan",
+      "Initiate",
+      "Outlaw",
+      "Vagabond"
+    ],
+    "ocr_review_required": false
+  },
+  {
+    "id": "hunter",
+    "name": "Hunter",
+    "tier": "basic",
+    "archetype": "scout",
+    "quest_bias": "beast",
+    "service_bias": "weapons_shop",
+    "trait_tags": [
+      "scout",
+      "wilderness"
+    ],
+    "skill_ids": [
+      "concealment",
+      "follow_trail",
+      "outdoor_survival",
+      "perception",
+      "search",
+      "swim",
+      "secret_signs",
+      "silent_move",
+      "set_trap"
+    ],
+    "description": "While the Empire has come far from the tribes that founded it 2500 years ago, some things haven't changed at all. Although Peasants till parts of the land, huge expanses of the Empire are still covered with forest or are hostile to agriculture. These are the lands where Hunters and trappers thrive. They use the same techniques as their ancestors to take down game, be it a trap or a well-placed shot. It takes skill to stalk wild animals while avoiding the dark creatures of the woods. Hunters in their animal skin clothes and fur hats may appear uncouth to city folks, but they don't much care what others think of them.",
+    "career_entries": [
+      "Charcoal-Burner",
+      "Kithband Warrior",
+      "Woodsman"
+    ],
+    "career_exits": [
+      "Bounty Hunter",
+      "Charcoal-Burner",
+      "Fieldwarden",
+      "Kithband Warrior",
+      "Miner",
+      "Scout",
+      "Soldier",
+      "Targeteer"
+    ],
+    "ocr_review_required": false
+  },
+  {
+    "id": "initiate",
+    "name": "Initiate",
+    "tier": "basic",
+    "archetype": "faith",
+    "quest_bias": "spiritual",
+    "service_bias": "temple",
+    "trait_tags": [
+      "faith",
+      "faith",
+      "support"
+    ],
+    "skill_ids": [
+      "academic_knowledge_various",
+      "charm",
+      "heal",
+      "perception",
+      "speak_language_various"
+    ],
+    "description": "Religion has taken second place to money in the affections of many Old Worlders, but there are still many young men and women willing to devote their lives to the Gods. It takes great dedication and training to become a Priest. Initiates are Priests-in-training. They undergo harsh instruction under strict teachers, and until they are finished they are not allowed to preach or conduct services. Their training includes literacy and calligraphy, the study of scriptures, and the art of the sermon. They also learn the basics of weapon use so the temple can be defended in times of need.",
+    "career_entries": [
+      "Hedge Wizard",
+      "Knight",
+      "Scribe",
+      "Student",
+      "Vampire Hunter",
+      "Witch Hunter",
+      "Zealot"
+    ],
+    "career_exits": [
+      "Barber-Surgeon",
+      "Demagogue",
+      "Friar",
+      "Priest",
+      "Scribe",
+      "Zealot"
+    ],
+    "ocr_review_required": false
+  },
+  {
+    "id": "jailer",
+    "name": "Jailer",
+    "tier": "basic",
     "archetype": "warden",
     "quest_bias": "escort",
     "service_bias": "weapons_shop",
-    "trait_tags": ["mounted", "patrol", "lawkeeper"],
-    "skill_ids": ["animal_care", "drive", "follow_trail", "navigation", "outdoor_survival"],
-    "description": "A mounted patrol officer who keeps roads open and travellers alive."
+    "trait_tags": [
+      "warden",
+      "ocr_review"
+    ],
+    "skill_ids": [
+      "command",
+      "consume_alcohol",
+      "dodge_blow"
+    ],
+    "description": "The Empire is a nation of laws, which means it's also a nation of jails. Despite the best efforts of the clergy of Verena, the Goddess of Justice, the inent are just as likely as the guilty to end up in jail. Better too harsh than too lax is the opinion of the law. Imperial jails are foul dungeons that smell equally of fear and excrement. Jailers preside over these institutions, using a combination of brutality and humiliation to keep order. Jailers generally hav no sn utic , and are seldom swayed by pleas or speeches (though bribes are gladly accepted). The worst are outright sdiss, delghting inhe powr they hold ver thrhargs.",
+    "career_entries": [
+      "Bodyguard",
+      "Watchman"
+    ],
+    "career_exits": [],
+    "ocr_review_required": true
+  },
+  {
+    "id": "kislevite_kossar",
+    "name": "Kislevite Kossar",
+    "tier": "basic",
+    "archetype": "commoner",
+    "quest_bias": "local",
+    "service_bias": "tavern",
+    "trait_tags": [
+      "commoner",
+      "ocr_review"
+    ],
+    "skill_ids": [
+      "consume_alcohol"
+    ],
+    "description": "Orignally, the Kossars were an Ungol tribe that lived northeast of the Empire. A eastern people known as the Gospodars invaded this region, subjugated the Ungols, and founded the nation of Kislev. During this conflict, the Kossars sold their skills to the Gospodars as Mercenaries, fighting against her Ungol tribes.Their unique styleo fighting impressed the Gospodar nobility, and since that time Kossar regiments have served the Tzars of Kislev. These days the Kossars are no longer a tribe, but a tough military unit drawn from all over Kislev. They are armed with bows and great axes, making them quite flexible on the battlefield. Many Kossars, tired of the ceaseless warfare ot ative an travel the Empie to become Mercenaries or adventurers. you are from Kislev. - Kislevite Kossar Advance Scheme -",
+    "career_entries": [],
+    "career_exits": [],
+    "ocr_review_required": true
+  },
+  {
+    "id": "kithband_warrior",
+    "name": "Kithband Warrior",
+    "tier": "basic",
+    "archetype": "commoner",
+    "quest_bias": "beast",
+    "service_bias": "tavern",
+    "trait_tags": [
+      "commoner",
+      "wilderness",
+      "support"
+    ],
+    "skill_ids": [
+      "concealment",
+      "dodge_blow",
+      "follow_trail",
+      "heal",
+      "search",
+      "outdoor_survival",
+      "perception",
+      "scale_sheer_surface",
+      "silent_move"
+    ],
+    "description": "Some Elves live in secluded glades deep inside the great forests. As the taint of Chaos has become worse, these Elven lands have declined. Within the Empire few Elven communities are left, the largest being in Laurelorn. Beneath the boughs of the forest the Elves fight a hidden battle with Beastmen and other foul creatures. Small units of warriors, known as Kithbands, take the fight to the enemy. As their name indicates, Kithbands are made up of Elves from related family groups and they fight under their clan emblems. These skilled bowmen protect the Elf settlements from the dark things of the wood. Every bow is needed to stave off the destruction of the remaining Elf lands of the Empire.",
+    "career_entries": [
+      "Hunter",
+      "Messenger"
+    ],
+    "career_exits": [
+      "Hunter",
+      "Outrider",
+      "Scout",
+      "Vagabond",
+      "Veteran"
+    ],
+    "ocr_review_required": false
+  },
+  {
+    "id": "marine",
+    "name": "Marine",
+    "tier": "basic",
+    "archetype": "commoner",
+    "quest_bias": "support",
+    "service_bias": "tavern",
+    "trait_tags": [
+      "commoner",
+      "support"
+    ],
+    "skill_ids": [
+      "gamble",
+      "consume_alcohol",
+      "dodge_blow",
+      "gossip",
+      "secret_language_various",
+      "intimidate",
+      "row",
+      "swim"
+    ],
+    "description": "Marines are ship-borne soldiers who can be found in the Imperial fleet and onboard the larger private vessels. They protect their ships from pirates, Norse marauders, and other raiders. Unlike seamen, whose primary duty is sailing the ship, Marines are onboard only to fight. When in port, Marines frequently form press gangs to fill out the ship's crew. More than one unsuspecting citizen has awoken at sea after taking a belaying pin to the head from an overzealous press ganger. Due to these activities, and their own drunken brawling, Marines are resented in many seaside communities. When raiders attack, however, these same citizens are quick to accept the aid of battle-hardened Marines.",
+    "career_entries": [
+      "Boatman",
+      "Fisherman",
+      "Seaman"
+    ],
+    "career_exits": [
+      "Mate",
+      "Outlaw",
+      "Sergeant",
+      "Smuggler",
+      "Thug"
+    ],
+    "ocr_review_required": false
+  },
+  {
+    "id": "mercenary",
+    "name": "Mercenary",
+    "tier": "basic",
+    "archetype": "martial",
+    "quest_bias": "combat",
+    "service_bias": "weapons_shop",
+    "trait_tags": [
+      "martial",
+      "frontline",
+      "support",
+      "travel"
+    ],
+    "skill_ids": [
+      "animal_care",
+      "gamble",
+      "dodge_blow",
+      "drive",
+      "ride",
+      "gossip",
+      "haggle",
+      "perception",
+      "search",
+      "secret_language_various",
+      "speak_language_various",
+      "swim"
+    ],
+    "description": "War never ends in the Old World and that means there is always need for fighting men. While the Empire does maintain a standing army, its strength is bolstered with Mercenaries. Nobles and rich Merchants also hire such fighters to protect their interests, many having what amounts to private armies. Mercenaries range from wild youths with a taste for adventure to grizzled professional soldiers who've seen a dozen battles or more. These sell-swords come from all over, though Tilea is particular famed for its regiments. All Mercenaries dream of untold riches; for most of them, the reality is an early death and an unmarked grave.",
+    "career_entries": [
+      "Bodyguard",
+      "Bounty Hunter",
+      "Demagogue",
+      "Fieldwarden",
+      "Kislevite Kossar",
+      "Militiaman",
+      "Miner",
+      "Norse Berserker",
+      "Outrider",
+      "Pit Fighter",
+      "Soldier",
+      "Thug",
+      "Watchman"
+    ],
+    "career_exits": [
+      "Bodyguard",
+      "Bounty Hunter",
+      "Outlaw",
+      "Sergeant",
+      "Shieldbreaker",
+      "Veteran"
+    ],
+    "ocr_review_required": false
   },
   {
     "id": "messenger",
     "name": "Messenger",
+    "tier": "basic",
     "archetype": "runner",
     "quest_bias": "escort",
     "service_bias": "tavern",
-    "trait_tags": ["swift", "reliable", "traveller"],
-    "skill_ids": ["animal_care", "gossip", "navigation", "outdoor_survival", "perception"],
-    "description": "A fast rider trusted to cross dangerous roads carrying news and orders."
+    "trait_tags": [
+      "runner",
+      "wilderness",
+      "support",
+      "travel"
+    ],
+    "skill_ids": [
+      "animal_care",
+      "gossip",
+      "navigation",
+      "outdoor_survival",
+      "secret_signs",
+      "perception",
+      "ride",
+      "speak_language_various",
+      "swim"
+    ],
+    "description": "With great distances separating the important cities and castles of the Empire, Messengers are an indispensable means of communication. Nobles, Merchants, and military commanders all make extensive use of Messengers, mounted if possible. These brave riders dare to ride the roads of the Empire alone, trusting in their speed to avoid danger. Roadwardens assist official Messengers as much as possible, but there are long, lonely stretches where no help is available. While they are supposed to be immune from harassment, many a Messenger has met a bloody end after delivering a particularly unpleasant missive.",
+    "career_entries": [
+      "Militiaman",
+      "Roadwarden",
+      "Servant"
+    ],
+    "career_exits": [
+      "Coachman",
+      "Herald",
+      "Kithband"
+    ],
+    "ocr_review_required": false
+  },
+  {
+    "id": "militiaman",
+    "name": "Militiaman",
+    "tier": "basic",
+    "archetype": "commoner",
+    "quest_bias": "beast",
+    "service_bias": "tavern",
+    "trait_tags": [
+      "commoner",
+      "wilderness",
+      "support",
+      "travel"
+    ],
+    "skill_ids": [
+      "animal_care",
+      "dodge_blow",
+      "drive",
+      "swim",
+      "gamble",
+      "gossip",
+      "outdoor_survival",
+      "perception",
+      "search",
+      "trade_various"
+    ],
+    "description": "Militias are part-time local defence forces, formed largely from the rural peasantry. Members agree to spend a certain amount of time each year-usually seven days-practicing together on common land. Even this small amount of training can be the difference between life and death on the blood-soaked battlefields of the Old World. Militia Captains are either civil leaders or retired military types. Some militias must provide their own equipment, while the local nobility equips others. This means that while some militia units appear for duty in smart uniforms with well-maintained equipment, others have little more than their patchwork clothes and hunting bows.",
+    "career_entries": [
+      "Artisan",
+      "Bailiff",
+      "Burgher",
+      "Fisherman",
+      "Merchant",
+      "Peasant",
+      "Tradesman",
+      "Woodsman"
+    ],
+    "career_exits": [
+      "Artisan",
+      "Fieldwarden",
+      "Mercenary",
+      "Messenger",
+      "Outlaw",
+      "Sergeant",
+      "Thief"
+    ],
+    "ocr_review_required": false
+  },
+  {
+    "id": "miner",
+    "name": "Miner",
+    "tier": "basic",
+    "archetype": "commoner",
+    "quest_bias": "beast",
+    "service_bias": "tavern",
+    "trait_tags": [
+      "commoner",
+      "wilderness",
+      "support",
+      "travel"
+    ],
+    "skill_ids": [
+      "animal_care",
+      "concealment",
+      "drive",
+      "evaluate",
+      "outdoor_survival",
+      "navigation",
+      "perception",
+      "scale_sheer_surface",
+      "trade_various"
+    ],
+    "description": "Mountains surround the Empire. To the east are the World's Edge Mountains, to the south the Black Mountains, and to the west the Grey Mountains. Dwarfs and Humans have mined these mountains from time immemorial, despite constant attacks from Goblins and other subterranean horrors. Miners brave these conditions in search of iron, silver, gold, gems, and other valuables. Others prefer to prospect on the surface, particularly in the Middle Mountains, which straddle the provinces of Ostland and Hochland. Although these forest-shrouded mountains are fully within the Empire's borders, they are a haven for Trolls, Beastmen, and other foul creatures. Surviving in such an environment takes skill and toughness.",
+    "career_entries": [
+      "Charcoal-Burner",
+      "Hunter"
+    ],
+    "career_exits": [
+      "Charcoal-Burner",
+      "Engineer",
+      "Mercenary",
+      "Scout",
+      "Shieldbreaker",
+      "Smuggler"
+    ],
+    "ocr_review_required": false
+  },
+  {
+    "id": "noble",
+    "name": "Noble",
+    "tier": "basic",
+    "archetype": "commoner",
+    "quest_bias": "local",
+    "service_bias": "tavern",
+    "trait_tags": [
+      "commoner",
+      "ocr_review"
+    ],
+    "skill_ids": [
+      "blather",
+      "command",
+      "consume_alcohol"
+    ],
+    "description": "The Nobles are the ruling class of the Empire. They wield the power, they control the land, and they make the laws. The most important Noble familie are those of Imperial Electors and of course the Emperor himself. There are hure , all vie for more money and more power. Some seek their fortunes in war, others in business or politics. None would sully themselves by practicing a common trade. The most contemptible Nobles do nothing at all, merely live off their family wealth and attend an endless array of parties, dances, and gala events. The younger children of Noble houses, however, do not have it so easy. Since inheritance goes to the eldest, they must often make their on way in e wor, even itmens slumming amongst the lower classes and falling in with adventurers and ne'er-do-wells. ![](images/f00df38fae94873a688a568df3e0a8307c96385d7396e576c14673fe38c28c13.jpg) - Noble Advance Scheme -",
+    "career_entries": [
+      "Squire"
+    ],
+    "career_exits": [],
+    "ocr_review_required": true
+  },
+  {
+    "id": "norse_berserker",
+    "name": "Norse Berserker",
+    "tier": "basic",
+    "archetype": "commoner",
+    "quest_bias": "local",
+    "service_bias": "tavern",
+    "trait_tags": [
+      "commoner"
+    ],
+    "skill_ids": [
+      "consume_alcohol",
+      "intimidate",
+      "performer_various",
+      "speak_language_various",
+      "swim"
+    ],
+    "description": "Norsca is a grim northern land, full of fell beasts such as Ice Trolls and Chaos Spawn, and it breeds tough fighters. The berserkers are a rightly feared warrior cult. Its members go into battle without armour to prove they have no fear. Norsca is a grim northern land, full of fell beasts such as Ice Trols and Chaos Spawn, and it breeds tough fighters. The berserkers are a rightly fearer warrior cult. Its members go into battle without armour to prove they have no fear. They work themselves into an incredible rage, often biting on their own shields. Their feats fill the sagas and loom large in the stories of those Imperial soldiers that have faced them. Some few berserkers make their way to the Empire because they've been exiled or simply have a desire to see more of the world. They rarely stay in one place for long, since no Watchman wants a frothing lunatic disturbing the peace. Berserkers are highly prized Mercenaries, however, due to their rarity and effectiveness.",
+    "career_entries": [
+      "None"
+    ],
+    "career_exits": [
+      "Mercenary",
+      "Pit Fighter",
+      "Seaman",
+      "Sergeant",
+      "Veteran"
+    ],
+    "ocr_review_required": false
+  },
+  {
+    "id": "outlaw",
+    "name": "Outlaw",
+    "tier": "basic",
+    "archetype": "rogue",
+    "quest_bias": "beast",
+    "service_bias": "tavern",
+    "trait_tags": [
+      "rogue",
+      "support",
+      "travel"
+    ],
+    "skill_ids": [
+      "animal_care",
+      "concealment",
+      "dodge_blow",
+      "drive",
+      "ride",
+      "gossip",
+      "secret_signs",
+      "perception",
+      "scale_sheer_surface",
+      "set_trap",
+      "swim",
+      "silent_move"
+    ],
+    "description": "Imperial justice is swift and merciless. It is no wonder then that so many flee the watch and take on the life of the Outlaw. The hills and forests are full of Outlaw bands. It is a precarious existence, as they must deal not only with Roadwardens, Soldiers, and other agents of law, but also the dark denizens of the wilds. While many Outlaws are nothing more than common thieves, robbing coaches and caravans, others claim to champion the peasantry and fight for \"justice not law.\" As long as the Outlaws confine their attacks to the rich, the Peasants aid them with food, information, and places to hide. This support, and the rough terrain Outlaws use for their bases, makes them difficult for the state to deal with. Local Nobles often resort to the use of Bounty Hunters to end their bandit troubles. - Outlaw Advance Scheme -",
+    "career_entries": [
+      "Agitator",
+      "Charlatan",
+      "Coachman",
+      "Hedge Wizard",
+      "Innkeeper",
+      "Marine",
+      "Mercenary",
+      "Militiaman",
+      "Peasant",
+      "Roadwarden",
+      "Rogue",
+      "Squire",
+      "Toll Keeper",
+      "Woodsman",
+      "Zealot"
+    ],
+    "career_exits": [
+      "Demagogue",
+      "Highwayman",
+      "Thief",
+      "Vagabond",
+      "Veteran"
+    ],
+    "ocr_review_required": false
+  },
+  {
+    "id": "outrider",
+    "name": "Outrider",
+    "tier": "basic",
+    "archetype": "commoner",
+    "quest_bias": "beast",
+    "service_bias": "tavern",
+    "trait_tags": [
+      "commoner",
+      "wilderness",
+      "travel"
+    ],
+    "skill_ids": [
+      "animal_care",
+      "follow_trail",
+      "navigation",
+      "outdoor_survival",
+      "perception",
+      "ride",
+      "search",
+      "silent_move"
+    ],
+    "description": "Outriders are experienced outdoorsmen who reconnoitre for armies, caravans, and other travelling parties. They are the eyes and ears, constantly on the lookout for ambushes and other hazards. Because they operate in advance of the main party, they must be self-sufficient and level-headed. Outriders must trust their instincts and make their own decisions, because they have no one else to turn to when they are alone in the wild. Most Outriders operate in home area and use to their advantage. A few specialize in trailblazing, riding ahead into unknown and hostile territory. These Outriders earn more money for their services, but their life expectancy is short.",
+    "career_entries": [
+      "Kitband Warrior",
+      "Messenger",
+      "Roadwarden",
+      "Soldier"
+    ],
+    "career_exits": [
+      "Coachman",
+      "Highwayman",
+      "Mercenary",
+      "Roadwarden",
+      "Scout"
+    ],
+    "ocr_review_required": false
   },
   {
     "id": "peasant",
     "name": "Peasant",
+    "tier": "basic",
     "archetype": "commoner",
     "quest_bias": "local",
     "service_bias": "tavern",
-    "trait_tags": ["humble", "rural", "hardy"],
-    "skill_ids": ["animal_care", "charm", "concealment", "drive", "gamble"],
-    "description": "A rural labourer pushed into adventure by hardship, hunger, or simple bad luck."
+    "trait_tags": [
+      "commoner",
+      "support",
+      "travel",
+      "ocr_review"
+    ],
+    "skill_ids": [
+      "animal_care",
+      "charm",
+      "animal_training",
+      "swim",
+      "charm_animal",
+      "trade_various",
+      "concealment",
+      "drive",
+      "gamble",
+      "performer_various"
+    ],
+    "description": "The peasantry makes up the preponderance of the Empire's population. While the Nobles rule and the Burghers trade, the Peasants toil. They are farmers, labourers, and herdsman. In times of war, they fight and die for the Empire. Many Peasants seek a betr life in the city, only t join the legion of beggars on the verge of starvation. The majority spends their whole lives in the village they were born in, surrounded by hostile country and only occasionally getting news of the outside world. While they are provincial and superstitious, the Peasants are the heart of the Empire. - Peasant Advance Scheme -",
+    "career_entries": [],
+    "career_exits": [],
+    "ocr_review_required": true
+  },
+  {
+    "id": "pit_fighter",
+    "name": "Pit Fighter",
+    "tier": "basic",
+    "archetype": "martial",
+    "quest_bias": "combat",
+    "service_bias": "weapons_shop",
+    "trait_tags": [
+      "martial",
+      "frontline",
+      "ocr_review"
+    ],
+    "skill_ids": [
+      "dodge_blow",
+      "intimidate"
+    ],
+    "description": "It is said that the sport of pit fighting has its origins amongst the Ogres. It is easy enough to believe that a race as dim-witted as the Ogres would contribute fights to the death to the culture of the Old World. In years past most Pit Fighters were criminals or prisoners of war. They'd be thrown in a ring or a pit with a few weapons and only the winner would leave alive. These days there is a class of professional Pit Fighters in addition to the condemned. They seek excitement and glory in the pit, though most fight naught but a brutal death as the crowd howls for their blood. Successful Pit Fighters can become wealthy (from prize money and the rampant gambling that surou te sor) lowi slave fgters buy therem. -Pit Fighter Advance Scheme",
+    "career_entries": [],
+    "career_exits": [],
+    "ocr_review_required": true
+  },
+  {
+    "id": "protagonist",
+    "name": "Protagonist",
+    "tier": "basic",
+    "archetype": "commoner",
+    "quest_bias": "escort",
+    "service_bias": "tavern",
+    "trait_tags": [
+      "commoner",
+      "support",
+      "travel"
+    ],
+    "skill_ids": [
+      "dodge_blow",
+      "gossip",
+      "intimidate",
+      "ride"
+    ],
+    "description": "Protagonists are professional bullies. Their fighting skills are for hire and they will beat up just about anyone for the right price. In many cases, Protagonists hide the fact that they are hired help, making up ridiculous excuses to start a brawl with the chosen target. The moneyman watches the humiliation of his foe, for enjoyment or profit of both. Roughing up a few locals is comparatively cheap, while more formidable opponents and more grievous injuries are proportionally more expensive. Most leave outright murder to the Assassins, but exceptions to this rule can be purchased. Jobless Protagonists simply pick their own fights and rob their victims. Needless to say, Watchmen keep a close eye on known Protagonists, so they tend to move quickly from place to place.",
+    "career_entries": [
+      "Bailiff",
+      "Bodyguard",
+      "Bounty Hunter",
+      "Estalian Diestro",
+      "Pit Fighter"
+    ],
+    "career_exits": [
+      "Duellist",
+      "Pit Fighter",
+      "Racketeer",
+      "Thief",
+      "Thug"
+    ],
+    "ocr_review_required": false
+  },
+  {
+    "id": "rat_catcher",
+    "name": "Rat Catcher",
+    "tier": "basic",
+    "archetype": "survivor",
+    "quest_bias": "beast",
+    "service_bias": "tavern",
+    "trait_tags": [
+      "survivor"
+    ],
+    "skill_ids": [
+      "animal_care",
+      "concealment",
+      "perception",
+      "search",
+      "set_trap",
+      "silent_move"
+    ],
+    "description": "The Rat Catcher is a common sight throughout the Empire. They can be found in villages, towns, and cities, making a living by disposing of the vermin that infest all dwellings in this unsanitary age. Rat Catchers are often travelling folk, although larger towns and cities have permanent contingents of \u201cvermin soldiers.\u201d Rats are their chief enemy, but they can also dispose of moles, mice, and even fouler pests. City-dwelling Rat Catchers spend a great deal of time in the sewers, wading through rivers of filth in search of their prey. It\u2019s a dirty job but it helps keep the plague away.",
+    "career_entries": [
+      "Grave Robber",
+      "Jailer",
+      "Runbearer",
+      "Tomb Robber"
+    ],
+    "career_exits": [
+      "Bone Picker",
+      "Cat Burglar",
+      "Grave Robber",
+      "Jailer",
+      "Shieldbreaker",
+      "Thief"
+    ],
+    "ocr_review_required": false
+  },
+  {
+    "id": "roadwarden",
+    "name": "Roadwarden",
+    "tier": "basic",
+    "archetype": "warden",
+    "quest_bias": "escort",
+    "service_bias": "weapons_shop",
+    "trait_tags": [
+      "warden",
+      "wilderness",
+      "travel",
+      "ocr_review"
+    ],
+    "skill_ids": [
+      "animal_care",
+      "drive",
+      "follow_trail",
+      "secret_signs",
+      "navigation",
+      "outdoor_survival",
+      "perception",
+      "ride",
+      "search"
+    ],
+    "description": "The Empire consists of pockets of civilisation tenuously connected to each ot and rivers. Much of the land is heavily forested, and such terrain is home to bandits, Mutants, Beastmen, and Goblins. Merely travelling from one city to another is an adventure, despite the constant vigilance of the Roadwardens. These lawmen patrol the roads and tracks of the Empire, protecting travellers and their goods. Since their numbers are small, they work with local militia and Soldiers to deal with larger threats. Most of the time though, it is up to small groups of Roadwardens to deal with all but the worst hazards. ![](images/0b372937ea8298fd42dff769faf02ea3e3222d2302bd835d1ffacbda48bb76fa.jpg) - Roadwarden Advance Scheme -",
+    "career_entries": [],
+    "career_exits": [
+      "Highwayman",
+      "Messenger",
+      "Outlaw",
+      "Outrider",
+      "Scout",
+      "Sergeant",
+      "Toll Keeper"
+    ],
+    "ocr_review_required": true
+  },
+  {
+    "id": "rogue",
+    "name": "Rogue",
+    "tier": "basic",
+    "archetype": "rogue",
+    "quest_bias": "risky",
+    "service_bias": "tavern",
+    "trait_tags": [
+      "rogue",
+      "ocr_review"
+    ],
+    "skill_ids": [
+      "blather",
+      "charm",
+      "evaluate",
+      "perception"
+    ],
+    "description": "If Rogues have a creed, it is this: never do an honest day's work if you voith con men use their charm and luck to make their way in the world. Some work as bawds, professional guides to the dens of vice and inequity to be found in any city. Others are professional gamblers or raconteurs. All Rogues favour their wits over their swords, and they always have a ready story on their lips. While Rogues often have one city as home turf, some travel from place to place, profiting from elaborate schemes and then moving on. The most skill Rogues go undetected. Their lies are convincing that even those they hav swindled never realize it was a con. -Rogue Advance Scheme -",
+    "career_entries": [],
+    "career_exits": [],
+    "ocr_review_required": true
+  },
+  {
+    "id": "runebearer",
+    "name": "Runebearer",
+    "tier": "basic",
+    "archetype": "commoner",
+    "quest_bias": "beast",
+    "service_bias": "tavern",
+    "trait_tags": [
+      "commoner",
+      "wilderness",
+      "travel"
+    ],
+    "skill_ids": [
+      "dodge_blow",
+      "navigation",
+      "outdoor_survival",
+      "secret_signs",
+      "perception",
+      "swim"
+    ],
+    "description": "The Undgrin Ankor, a network of elaborate tunnels that once ran the length of the World's Edge Mountains, connects the Dwarfholds east of the Empire. Communication between holds is carried out by means of Runebearers-specially trained young Dwarfs who risk life and limb to carry messages (written in the runic script of the Dwarfs) from one hold to another. Over recent centuries, as more Dwarfholds have fallen to the Goblinoids and more tunnels have become ruined, the Runebearers' lot has become increasingly difficult. They are forced to take more circuitous routes, and even these are fraught with danger as the enemies discover the routes. Often, Runebearers must leave the tunnels altogether and cross mountains and valleys on the surface. Runebearers who specialize in long distances are sometimes used to carry messages between the Dwarf communities of the Empire and those of mountains.",
+    "career_entries": [
+      "Shieldbreaker"
+    ],
+    "career_exits": [
+      "Rat Catcher",
+      "Scout",
+      "Shieldbreaker",
+      "Tomb Robber",
+      "Veteran"
+    ],
+    "ocr_review_required": false
+  },
+  {
+    "id": "scribe",
+    "name": "Scribe",
+    "tier": "basic",
+    "archetype": "commoner",
+    "quest_bias": "support",
+    "service_bias": "tavern",
+    "trait_tags": [
+      "commoner",
+      "support"
+    ],
+    "skill_ids": [
+      "academic_knowledge_various",
+      "gossip",
+      "perception",
+      "secret_language_various",
+      "speak_language_various",
+      "trade_various"
+    ],
+    "description": "Since most citizens of the Empire are illiterate, Scribes are very much in demand. Virtually every government, civil, military, or religious institution requires a large number of Scribes for record keeping. There are also public Scribes, who make a living writing and reading letters for the common folk. Scribes are well educated and many go on to become Scholars or lawyers. A few tire of reading about the adventures of others and resolve to have some of their own. With their extensive knowledge of other languages, they make excellent translators for foreign expeditions. ## Talents: Linguistics",
+    "career_entries": [
+      "Apprentice Wizard",
+      "Initiate"
+    ],
+    "career_exits": [
+      "Agitator",
+      "Apprentice Wizard",
+      "Initiate",
+      "Navigator",
+      "Scholar"
+    ],
+    "ocr_review_required": false
+  },
+  {
+    "id": "seaman",
+    "name": "Seaman",
+    "tier": "basic",
+    "archetype": "commoner",
+    "quest_bias": "local",
+    "service_bias": "tavern",
+    "trait_tags": [
+      "commoner"
+    ],
+    "skill_ids": [
+      "consume_alcohol",
+      "perception",
+      "dodge_blow",
+      "row",
+      "sail",
+      "scale_sheer_surface",
+      "speak_language_various",
+      "swim"
+    ],
+    "description": "Most Imperial seamen come from the province of Nordland, which has a long stretch of coast on the Sea of Claws. The Greatships, Wolfships, and Wargalleys of the Imperial Fleet patrol these waters, protecting the Empire from Norse longships, Bretonnian buccaneers, and the dreaded fleets of Chaos. Hardened Seaman crew these ships, while their compatriots sail merchantmen, pirate vessels, and other privately owned craft. Elven sailors can be found on the Sea of Claws as well, particularly those engaged by their great Merchant Houses. The activity of the region revolves around Marienburg, the greatest port in the Old World. This city and its surrounding area (known as the Wasteland) used to be the Imperial province of Westerland but it bought its independence years ago. While Marienburg itself is neutral territory, the Sea of Claws is the site of daily clashes. On blood-soaked decks, Seamen earn their rum ration and their booty.",
+    "career_entries": [
+      "Boatman",
+      "Envoy",
+      "Ferryman",
+      "Fisherman",
+      "Norse Berserker",
+      "Smuggler"
+    ],
+    "career_exits": [
+      "Marine",
+      "Mate",
+      "Navigator",
+      "Rogue",
+      "Smuggler"
+    ],
+    "ocr_review_required": false
+  },
+  {
+    "id": "servant",
+    "name": "Servant",
+    "tier": "basic",
+    "archetype": "commoner",
+    "quest_bias": "local",
+    "service_bias": "tavern",
+    "trait_tags": [
+      "commoner",
+      "support",
+      "travel"
+    ],
+    "skill_ids": [
+      "animal_care",
+      "trade_various",
+      "blather",
+      "dodge_blow",
+      "drive",
+      "search",
+      "evaluate",
+      "haggle",
+      "gossip",
+      "perception"
+    ],
+    "description": "There are few lower on the social ladder than Servants. While their work is necessary, they are usually despised by their social superiors. For the scullion, the stable boy, and the serving wench, escape from their hard lives often seems impossible. These unfortunate must perform an unending number of menial tasks for their employers, be they Nobles, Guild Masters, or Innkeepers. It is possible for a Servant to work up to a better position, but the path is difficult. No one wants to listen to the lad that was cleaning the privy last week. Thus many Servants leave their masters behind and become adventurers instead.",
+    "career_entries": [
+      "Camp Follower",
+      "Peasant",
+      "Rogue"
+    ],
+    "career_exits": [
+      "Agitator",
+      "Burgher",
+      "Camp Follower",
+      "Innkeeper",
+      "Messenger",
+      "Spy",
+      "Thief",
+      "Valet"
+    ],
+    "ocr_review_required": false
+  },
+  {
+    "id": "shieldbreaker",
+    "name": "Shieldbreaker",
+    "tier": "basic",
+    "archetype": "commoner",
+    "quest_bias": "local",
+    "service_bias": "tavern",
+    "trait_tags": [
+      "commoner",
+      "ocr_review"
+    ],
+    "skill_ids": [
+      "shadowing"
+    ],
+    "description": "Chaos and greenskin incursions have overrun many Dwarfholds WM remaining fortress cities, the Dwarfs have trained elite Soldiers who specialize in fighting deep underground. They are the Shieldbreakers, doughty warriors that seek to stem the tide of evil and safeguard their people. While most Shieldbreakers are Dwarfs, members of other races join their ranks from tim to time in exchange for Dwarfen gold. Young Dwarfs fom the Empire n bom Shakers prove thr mettle and show solidarity with their mounta kin. - Shieldbreaker Advance Scheme -",
+    "career_entries": [],
+    "career_exits": [
+      "Pit Fighter",
+      "Runebearer",
+      "Smuggler",
+      "Tomb Robber",
+      "Veteran"
+    ],
+    "ocr_review_required": true
+  },
+  {
+    "id": "smuggler",
+    "name": "Smuggler",
+    "tier": "basic",
+    "archetype": "rogue",
+    "quest_bias": "escort",
+    "service_bias": "tavern",
+    "trait_tags": [
+      "rogue",
+      "support",
+      "travel",
+      "ocr_review"
+    ],
+    "skill_ids": [
+      "drive",
+      "evaluate",
+      "gossip",
+      "secret_language_various",
+      "haggle",
+      "perception",
+      "row",
+      "search",
+      "swim"
+    ],
+    "description": "![](images/b2128ebefb6220e6d50dfbe65f99924154c836ceaf212c1104ad50a51581253b.jpg) the real thieves. Most of the sea and road trade of the Old World is subject to duties and taxes. Imperial tax collectors, local excisemen, petty lords, and anyone with enough muscle can place a duty on the movement of goods. Legal taxes are bad enough, but many pirates and Outlaw Chiefs also demand a cut to allow safe passage. In large ports like Marienburg, nearly everything moving in or out is taxed in some way. Given this state of affairs, the Smugglers' trade continues to thrive. While smuggling is, of course, illegal, most folks in the Empire don't think much of cutting a few corners. In thei minds, the taxmen and bureauc -Smuggler Advance Scheme",
+    "career_entries": [],
+    "career_exits": [
+      "Boatman",
+      "Charlatan",
+      "Fence",
+      "Ferryman",
+      "Seaman",
+      "Shieldbreaker",
+      "Thief"
+    ],
+    "ocr_review_required": true
+  },
+  {
+    "id": "soldier",
+    "name": "Soldier",
+    "tier": "basic",
+    "archetype": "martial",
+    "quest_bias": "combat",
+    "service_bias": "weapons_shop",
+    "trait_tags": [
+      "martial",
+      "frontline",
+      "support",
+      "travel"
+    ],
+    "skill_ids": [
+      "animal_care",
+      "heal",
+      "perception",
+      "dodge_blow",
+      "drive",
+      "ride",
+      "gamble",
+      "gossip",
+      "intimidate"
+    ],
+    "description": "Every province and city-state in the Empire maintains its own army, trained and equipped at its own expense. Together these regional forces make up the Imperial Army, though they are often supplemented with militia troops and Mercenaries. These Soldiers are full-time, paid professionals, usually drawn from the Peasant or Burgher classes. They man the Empire's fortresses, patrol the borders, and repel invaders. Most Soldiers of the infantry train with either the halberd or the firearm. Although dominated by the nobility, the Imperial Army also promotes based on ability and it is possible to rise through the ranks to a command position (though the bigotry of the ruling class makes this difficult). Imperial Dwarfs and Halfings are usually formed into their wn units. - Soldier Advance Scheme -",
+    "career_entries": [],
+    "career_exits": [
+      "Mercenary",
+      "Outrider",
+      "Sergeant",
+      "Veteran",
+      "Watchman"
+    ],
+    "ocr_review_required": true
+  },
+  {
+    "id": "squire",
+    "name": "Squire",
+    "tier": "basic",
+    "archetype": "commoner",
+    "quest_bias": "beast",
+    "service_bias": "tavern",
+    "trait_tags": [
+      "commoner",
+      "support",
+      "travel"
+    ],
+    "skill_ids": [
+      "academic_knowledge_various",
+      "animal_care",
+      "animal_training",
+      "charm",
+      "gossip",
+      "dodge_blow",
+      "ride",
+      "speak_language_various"
+    ],
+    "description": "Squires are Knights in training. Often of Noble blood, they assist Knights on and off the field of battle. Though they can appear to be nothing more than glorified Servants, fetching food and wine for their lord or tending to his horses and panoply, the gruellg work is meant to toughen up the Squires and ready them for knighthood. Their lords are also supposed to provide them with martial training, though some are lax in this duty. Favoured Noble sons serve as Squires for a few months at best, while those less fortunate spend years trying to earn their spurs. Note: If, during character creation, you take Common Knowledge (Bretonnia) and Speak Language (Breton), your character can be from Bretonnia at your option. -Squire Advance Scheme -",
+    "career_entries": [
+      "Herald",
+      "Noble",
+      "Valet"
+    ],
+    "career_exits": [
+      "Knight",
+      "Noble",
+      "Outlaw",
+      "Sergeant",
+      "Veteran"
+    ],
+    "ocr_review_required": false
+  },
+  {
+    "id": "student",
+    "name": "Student",
+    "tier": "basic",
+    "archetype": "commoner",
+    "quest_bias": "support",
+    "service_bias": "tavern",
+    "trait_tags": [
+      "commoner",
+      "support"
+    ],
+    "skill_ids": [
+      "academic_knowledge_various",
+      "gossip",
+      "charm",
+      "consume_alcohol",
+      "heal",
+      "search",
+      "perception",
+      "speak_language_various"
+    ],
+    "description": "The great cities of the Empire have many universities. Most, like the Imperial School of Engineers in Altdorf, are funded by the state. The first college in the Empire was established in Nuln and that city is still famous for its learning institutions (and, ironically, its Imperial Gunnery School). Students across the Empire can choose from a wide variety of courses, from history to anatomy to science. Of course, many study nothing more than the bottom of a bottle and wash out of school in less than a year. Elven Students don't go to Imperial universities, but learn from their own loremasters instead. Halfling students are admitted to Universities on sufferance, due to an obscure piece of Imperial Ordinance demanded by the Elder of",
+    "career_entries": [
+      "Envoy",
+      "Grave Robber",
+      "Minstrel",
+      "Noble",
+      "Valet"
+    ],
+    "career_exits": [
+      "Agitator",
+      "Apprentice Wizard",
+      "Barber-Surgeon",
+      "Engineer",
+      "Envoy",
+      "Initiate",
+      "Physician",
+      "Scholar"
+    ],
+    "ocr_review_required": false
+  },
+  {
+    "id": "thief",
+    "name": "Thief",
+    "tier": "basic",
+    "archetype": "rogue",
+    "quest_bias": "risky",
+    "service_bias": "tavern",
+    "trait_tags": [
+      "rogue",
+      "urban"
+    ],
+    "skill_ids": [
+      "charm",
+      "scale_sheer_surface",
+      "concealment",
+      "evaluate",
+      "disguise",
+      "gamble",
+      "pick_locks",
+      "perception",
+      "sleight_of_hand",
+      "search",
+      "secret_language_various",
+      "secret_signs",
+      "silent_move"
+    ],
+    "description": "The Empire is home to many honest, hard working citizens and Thieves are dedicated to taking as much of their money as possible. They tend to be jacks-of-all-trades, willing and able to take advantage of any moneymaking opportunity that comes along. Specialist Thieves include blackmailers, embezzlers, kidnappers, pickpockets, and cattle thieves. Towns and cities of any size have Thieves' Guilds, which control and organize criminal activity. A few towns have more than one guild, which leads to vicious fighting until one guild eliminates its rival. The most successful Thieves' Guilds own so many legitimate businesses that over time they turn into Merchant Guilds. It is a rare guild that leaves its larcenous ways behind, however.",
+    "career_entries": [
+      "Entertainer",
+      "Grave Robber",
+      "Interrogator",
+      "Militiaman",
+      "Outlaw",
+      "Protagonist",
+      "Rat Catcher",
+      "Rogue",
+      "Servant",
+      "Smuggler",
+      "Toll Keeper",
+      "Tomb Robber",
+      "Vagabond"
+    ],
+    "career_exits": [
+      "Cat Burglar",
+      "Charlatan",
+      "Entertainer",
+      "Fence",
+      "Rogue",
+      "Tomb Robber"
+    ],
+    "ocr_review_required": false
+  },
+  {
+    "id": "thug",
+    "name": "Thug",
+    "tier": "basic",
+    "archetype": "commoner",
+    "quest_bias": "local",
+    "service_bias": "tavern",
+    "trait_tags": [
+      "commoner",
+      "ocr_review"
+    ],
+    "skill_ids": [
+      "consume_alcohol",
+      "dodge_blow",
+      "gamble",
+      "secret_language_various"
+    ],
+    "description": "- Thug Advance Scheme - In the criminal underworld, strength and viciousness are highly prized virtues and no profession illustrates this more clearly than the Thug. When protection money is owed, when Agitators threaten to expose corruption, or when rivals overstep themselves, the Thug is there. A few thwacks with a club is usually enough to send the right message, but harder cases get the full treatment. It's wisest to flee in such circumstances, but the graveyards are full of those that thought quick wits would be enough to save them. Every Thieves' Guild and criminal organisation has Thugs in its ranks.",
+    "career_entries": [
+      "Marine",
+      "Protagonist"
+    ],
+    "career_exits": [
+      "Bodyguard",
+      "Interrogator",
+      "Mercenary",
+      "Pit Fighter",
+      "Racketeer"
+    ],
+    "ocr_review_required": true
+  },
+  {
+    "id": "toll_keeper",
+    "name": "Toll Keeper",
+    "tier": "basic",
+    "archetype": "warden",
+    "quest_bias": "escort",
+    "service_bias": "weapons_shop",
+    "trait_tags": [
+      "warden",
+      "ocr_review"
+    ],
+    "skill_ids": [
+      "dodge_blow",
+      "evaluate",
+      "perception"
+    ],
+    "description": "# - Toll Keeper Advance Scheme- Collecting money for the government is a thankless job. Doing so in the midst of the wilderness is practically a death sentence. Toll Keepers live in isolated roadside houses, collecting money from passing travellers. The monies collected go towards the upkeep of the roads, but that doesn't stop travellers from berating, beating, and even killing Toll Keepers trying to do their jobs. If that weren't bad enough, tollhouses are prime targets for bandits. A Toll Keeper's life is so fraught with peril and few do it for very long, despite the high wages the position pays.",
+    "career_entries": [
+      "Bailiff",
+      "Coachman",
+      "Roadwarden"
+    ],
+    "career_exits": [
+      "Ferryman",
+      "Fieldwarden",
+      "Highwayman",
+      "Outlaw",
+      "Soldier",
+      "Politician",
+      "Thief"
+    ],
+    "ocr_review_required": true
+  },
+  {
+    "id": "tomb_robber",
+    "name": "Tomb Robber",
+    "tier": "basic",
+    "archetype": "commoner",
+    "quest_bias": "local",
+    "service_bias": "tavern",
+    "trait_tags": [
+      "commoner",
+      "ocr_review"
+    ],
+    "skill_ids": [
+      "evaluate",
+      "perception",
+      "pick_locks",
+      "silent_move"
+    ],
+    "description": "Tomb Robbers differ from Grave Robber in that they are interested in the valuable to be found in burial sites rather than the bodies themselves. Although very few graves in the Old World include valuable goods these days, there are many ancient burial sites that contain priceless treasures. Tomb Robbers are experts in locating such sites and plundering their riches. Secret tombs are usually in dangerous and inaccessible areas. Those within the Empire's borders are revered and protected by local inhabitants, so accessing these sites can be just as dangerous. Clever traps and deceptions protect the richest tombs and skilled Tomb Robbers must learn to disarm or bypass them. Few survive long enough to raid more than one tomb. - Tomb Robber Advance Scheme -",
+    "career_entries": [
+      "Runebearer",
+      "Shieldbreaker",
+      "Thief"
+    ],
+    "career_exits": [
+      "Fence",
+      "Rat Catcher",
+      "Shieldbreaker",
+      "Thief",
+      "Vampire Hunter"
+    ],
+    "ocr_review_required": true
+  },
+  {
+    "id": "tradesman",
+    "name": "Tradesman",
+    "tier": "basic",
+    "archetype": "commoner",
+    "quest_bias": "local",
+    "service_bias": "tavern",
+    "trait_tags": [
+      "commoner",
+      "support",
+      "travel",
+      "ocr_review"
+    ],
+    "skill_ids": [
+      "animal_care",
+      "gossip",
+      "drive",
+      "haggle",
+      "evaluate",
+      "perception",
+      "secret_language_various",
+      "trade_various"
+    ],
+    "description": "Tradesmen are skilled labourers and craftsmen. Although they tend to cluster together in cities, they can also be found in villages across the Empire. They provide many of the goods used by Merchants when trading abroad, and are valued as an important part of the Empire's economy. Tradesmen include apothecaries, armourers, bowyers, brewers, calligraphers, carpenters, cartographers, gem cutters, gunsmiths, herbalists, peddlers, shipwrights, smiths, stoneworkers, tailors, and weaponsmiths. Each trade has its own guild, though not all guilds have local chapters. ![](images/61769517adb8153da51616a04ded3aa6761bf6a588c6da2224086efb0834f825.jpg) - Tradesman Advance Scheme -",
+    "career_entries": [],
+    "career_exits": [
+      "Captain",
+      "Envoy",
+      "Militiaman",
+      "Zealot"
+    ],
+    "ocr_review_required": true
+  },
+  {
+    "id": "troll_slayer",
+    "name": "Troll Slayer",
+    "tier": "basic",
+    "archetype": "commoner",
+    "quest_bias": "local",
+    "service_bias": "tavern",
+    "trait_tags": [
+      "commoner"
+    ],
+    "skill_ids": [
+      "consume_alcohol",
+      "dodge_blow",
+      "intimidate"
+    ],
+    "description": "Dwarfs who have been disgraced, crosse in love,or therwise humiliated abandon traditional society and seek the sweet release of death. They hunt the most dangerous of monsters in the hopes offinding a glorious end. Most of them die fairly quickly, but those few who survive become members of the strange cult of ![](images/ebb57daeee86b817c90f19158392b2a02f506fad1b726499e7df5051eb6f26ba.jpg) - Troll Slayer Advance Scheme -",
+    "career_entries": [
+      "Pit Fighter"
+    ],
+    "career_exits": [],
+    "ocr_review_required": false
+  },
+  {
+    "id": "vagabond",
+    "name": "Vagabond",
+    "tier": "basic",
+    "archetype": "survivor",
+    "quest_bias": "beast",
+    "service_bias": "tavern",
+    "trait_tags": [
+      "survivor",
+      "wilderness",
+      "support",
+      "travel"
+    ],
+    "skill_ids": [
+      "gossip",
+      "secret_language_various",
+      "navigation",
+      "outdoor_survival",
+      "performer_various"
+    ],
+    "description": "# -Vagabond Advance Scheme - Vagabonds love life on the road. The traditional Peasant or Burgher existence seems like prison to them. Who wants to wake up in the same village or city every day, doing the same thing as yesterday? Vagabonds are footloose wanderers who look on each day as a new adventure. They may take on odd jobs here and there to earn some brass, but they never stay in one place for long. The road beckons, with the promise of something better always over the next hill. While they do love to travel, they are not ignorant of the dangers of the road. Vagabonds can thus often be found in travelling companies, formed for mutual protection. The law has tt love he us and in many places Vagabonds are viewed as common criminals.",
+    "career_entries": [
+      "Barber-Surgeon",
+      "Camp Follower",
+      "Cat Burglar",
+      "Envoy",
+      "Hedge Wizard",
+      "Kithband Warrior",
+      "Outlaw",
+      "Soldier",
+      "Woodsman"
+    ],
+    "career_exits": [
+      "Bone Picker",
+      "Scout",
+      "Woodsman"
+    ],
+    "ocr_review_required": true
+  },
+  {
+    "id": "valet",
+    "name": "Valet",
+    "tier": "basic",
+    "archetype": "commoner",
+    "quest_bias": "support",
+    "service_bias": "tavern",
+    "trait_tags": [
+      "commoner",
+      "support"
+    ],
+    "skill_ids": [
+      "academic_knowledge_various",
+      "blather",
+      "evaluate",
+      "haggle",
+      "search"
+    ],
+    "description": "A Valet is a personal manservant for a Nobleman, high-ranking military commander, or wealthy Burgher. He is responsible for the comfort and appearance of his charge, including grooming, wardrobe, and presentation. A Valet is ready with a hat and cloak when it's raining, a walking stick for outdoor jaunts, and a dress coat for formal occasions. A welltrained Valet is indispensable for the style-conscious Noble. Though they enjoy a lifestyle most Servants would kill for, Valets often resent the vacuous Nobles they are forced to attend. Women who perform these services for Noblewomen are known as handmaidens. - Valet Advance Scheme -",
+    "career_entries": [
+      "Burgher",
+      "Servant"
+    ],
+    "career_exits": [
+      "Herald",
+      "Rogue",
+      "Squire",
+      "Steward",
+      "Student"
+    ],
+    "ocr_review_required": false
+  },
+  {
+    "id": "watchman",
+    "name": "Watchman",
+    "tier": "basic",
+    "archetype": "martial",
+    "quest_bias": "combat",
+    "service_bias": "weapons_shop",
+    "trait_tags": [
+      "martial",
+      "support",
+      "ocr_review"
+    ],
+    "skill_ids": [
+      "academic_knowledge_various",
+      "dodge_blow",
+      "follow_trail",
+      "gossip",
+      "intimidate",
+      "perception"
+    ],
+    "description": "# - Watchman Advance Scheme - Originally, cities ON and towns were responsible for recruiting and maintaining their own watch organisations. Corruption was so widespread that the Emperor gave the job to the army instead. Now, certain regiments on garrison duty must serve as the town watch. This has cut down dramatically on corruption, though the army itself is not immune. Watchmen are responsible for maintaining law and order and are empowered to make arrests. They also double as fire fighters in smaller towns. For some Soldiers, watch duty is a temporary assignment. For others, it becomes a lifelong career.",
+    "career_entries": [
+      "Jailer",
+      "Soldier"
+    ],
+    "career_exits": [
+      "Mercenary",
+      "Racketeer",
+      "Sergeant",
+      "Soldier",
+      "Tradesman"
+    ],
+    "ocr_review_required": true
+  },
+  {
+    "id": "woodsman",
+    "name": "Woodsman",
+    "tier": "basic",
+    "archetype": "commoner",
+    "quest_bias": "beast",
+    "service_bias": "tavern",
+    "trait_tags": [
+      "commoner"
+    ],
+    "skill_ids": [
+      "concealment",
+      "follow_trail",
+      "set_trap",
+      "perception",
+      "scale_sheer_surface",
+      "secret_language_various",
+      "secret_signs",
+      "silent_move"
+    ],
+    "description": "Woodsmen live among the mighty forests of the Empire, looking after trees they will fell for timber. The more fortunate Woodsmen work for Noble families on large estates. The braver souls work on the edges of civilisation, helping to expand the settled lands. These Woodsmen must deal with all the dangers of the forest, from pitfalls and bandits to wild animals and Beastmen. They always keep their axes handy and not just for chopping wood. Woodsmen have been known to clash with Elves, since the Elves do not take kindly to the clearing of their precious forests.",
+    "career_entries": [
+      "Charcoal-Burner",
+      "Vagabond"
+    ],
+    "career_exits": [
+      "Hunter",
+      "Militiaman",
+      "Outlaw",
+      "Scout",
+      "Vagabond"
+    ],
+    "ocr_review_required": false
+  },
+  {
+    "id": "zealot",
+    "name": "Zealot",
+    "tier": "basic",
+    "archetype": "faith",
+    "quest_bias": "spiritual",
+    "service_bias": "temple",
+    "trait_tags": [
+      "faith",
+      "faith"
+    ],
+    "skill_ids": [
+      "academic_knowledge_various",
+      "charm",
+      "intimidate"
+    ],
+    "description": "![](images/5b0313b89d64737bc472a7c0ba0abf06431abddcb8cc8e539d7eb705039fbc15.jpg) Zealots have lost it all. Maybe their families were murdered by Beastmen or their villages sacked by Orcs. Or conniving Merchants destroyed their businesses or powerful Nobles carried off their daughters. Whatever the case, nothing was left for these men and women but religion. They found solace in the angry sermons of the warrior Priests of Sigmar or Ulric. Now they wander the Empire in tattered clothes, looking to smite the minions of evil and Chaos. They want redemption through blood-be it their own or that of their enemies. They may not have the training of Soldiers but they do have the fire of faith and that is a strong weapon indeed. - Zealot Advance Scheme -",
+    "career_entries": [
+      "Agitator",
+      "Initiate",
+      "Judicial Champion",
+      "Peasant",
+      "Tradesman"
+    ],
+    "career_exits": [
+      "Agitator",
+      "Initiate",
+      "Flagellant",
+      "Friar",
+      "Outlaw"
+    ],
+    "ocr_review_required": false
   }
 ]
