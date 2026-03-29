@@ -89,47 +89,12 @@ func _step_hero(id: int, delta: float, building_system: Object) -> void:
 func spawn_hero() -> Dictionary:
 	var name := DataLoader.random_hero_name(_rng)
 	var career_data := DataLoader.random_career(_rng)
-	var h := GameState.add_hero(name, career_data, _build_profile(career_data))
+	var h := GameState.add_hero(name, career_data, DataLoader.generate_wfrp_starting_profile(career_data.get("id", ""), _rng))
 	# Start position: random edge of map
 	var spawn_x := _rng.randf_range(-8.0, 8.0)
 	var spawn_pos := Vector3(spawn_x, 0.0, 15.0)
 	_set_position(h["id"], spawn_pos)
 	return h
-
-func _build_profile(career_data: Dictionary) -> Dictionary:
-	var stats := _base_stats_for_archetype(career_data.get("archetype", "martial"))
-	for key in stats.keys():
-		stats[key] += _rng.randi_range(0, 1)
-
-	var max_health: int = 8 + int(stats.get("endurance", 0))
-	return {
-		"xp": 0,
-		"gold": _rng.randi_range(8, 18),
-		"health": max_health,
-		"max_health": max_health,
-		"stats": stats,
-	}
-
-func _base_stats_for_archetype(archetype: String) -> Dictionary:
-	match archetype:
-		"martial":
-			return {"might": 4, "agility": 2, "wits": 2, "spirit": 1, "endurance": 4}
-		"scout":
-			return {"might": 2, "agility": 4, "wits": 3, "spirit": 2, "endurance": 3}
-		"rogue":
-			return {"might": 2, "agility": 4, "wits": 3, "spirit": 1, "endurance": 2}
-		"faith":
-			return {"might": 2, "agility": 2, "wits": 3, "spirit": 4, "endurance": 3}
-		"survivor":
-			return {"might": 2, "agility": 3, "wits": 3, "spirit": 2, "endurance": 4}
-		"warden":
-			return {"might": 3, "agility": 3, "wits": 3, "spirit": 2, "endurance": 3}
-		"runner":
-			return {"might": 1, "agility": 4, "wits": 3, "spirit": 2, "endurance": 3}
-		"commoner":
-			return {"might": 2, "agility": 2, "wits": 2, "spirit": 2, "endurance": 4}
-		_:
-			return {"might": 2, "agility": 2, "wits": 2, "spirit": 2, "endurance": 2}
 
 func _move_toward(from: Vector3, to: Vector3, delta: float) -> Vector3:
 	var dir := (to - from)
@@ -151,6 +116,7 @@ func _finish_return(id: int) -> void:
 	var hero: Dictionary = GameState.heroes[id]
 	var next_state: String = hero.get("post_quest_state", "idling")
 	if next_state == "recovering":
+		GameState.heroes[id]["wound_state"] = "minor_wounded"
 		GameState.set_hero_state(id, "recovering")
 		GameState.log_event("hero_recovering", {
 			"hero_id": id,
@@ -160,6 +126,7 @@ func _finish_return(id: int) -> void:
 		GameState.heroes[id]["idle_ticks_remaining"] = int(hero.get("return_idle_ticks", 180))
 		GameState.heroes[id]["needs_lodging"] = true
 		GameState.heroes[id]["service_cooldown_ticks"] = 30
+		GameState.heroes[id]["wound_state"] = "minor_wounded" if int(GameState.heroes[id].get("health", 0)) < int(GameState.heroes[id].get("max_health", 0)) else "healthy"
 		GameState.set_hero_state(id, "idling")
 	GameState.log_event("hero_returned_from_quest", {
 		"hero_id": id,

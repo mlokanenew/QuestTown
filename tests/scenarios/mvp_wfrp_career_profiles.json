@@ -1,0 +1,16 @@
+{
+  "name": "MVP heroes use WFRP starter profiles",
+  "goal": "Place the Inn, let MVP heroes arrive, and verify they spawn with WFRP-derived stats and trappings from the selected source careers.",
+  "seed": 42,
+  "max_ticks": 2400,
+  "commands": [
+    {"cmd": "place_building", "type": "tavern", "x": 0, "z": 0}
+  ],
+  "assertions": [
+    {"assert": "hero_count_gte", "value": 3},
+    {"assert": "hero_careers_only", "value": ["mercenary", "apprentice_wizard", "thief"]},
+    {"assert": "heroes_have_nonempty_field", "value": "wfrp_stats"},
+    {"assert": "heroes_have_nonempty_field", "value": "starting_trappings"},
+    {"assert": "heroes_have_nonempty_field", "value": "starting_talents"}
+  ]
+}

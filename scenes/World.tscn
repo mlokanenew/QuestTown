@@ -345,6 +345,14 @@ autowrap_mode = 3
 text = "Skills"
 autowrap_mode = 3
 
+[node name="TrappingsLabel" type="Label" parent="UILayer/RightPanel/VBox/ExtraDetails"]
+text = "Trappings"
+autowrap_mode = 3
+
+[node name="TalentsLabel" type="Label" parent="UILayer/RightPanel/VBox/ExtraDetails"]
+text = "Talents"
+autowrap_mode = 3
+
 [node name="TagsLabel" type="Label" parent="UILayer/RightPanel/VBox/ExtraDetails"]
 text = "Tags"
 autowrap_mode = 3

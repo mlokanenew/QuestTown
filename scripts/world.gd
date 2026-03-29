@@ -276,6 +276,8 @@ func _refresh_hero_panel(hero_id: int) -> void:
 	var bias_lbl := get_node_or_null("UILayer/RightPanel/VBox/ExtraDetails/BiasLabel")
 	var stats_lbl := get_node_or_null("UILayer/RightPanel/VBox/ExtraDetails/StatsLabel")
 	var skills_lbl := get_node_or_null("UILayer/RightPanel/VBox/ExtraDetails/SkillsLabel")
+	var trappings_lbl := get_node_or_null("UILayer/RightPanel/VBox/ExtraDetails/TrappingsLabel")
+	var talents_lbl := get_node_or_null("UILayer/RightPanel/VBox/ExtraDetails/TalentsLabel")
 	var tags_lbl := get_node_or_null("UILayer/RightPanel/VBox/ExtraDetails/TagsLabel")
 	var desc_lbl := get_node_or_null("UILayer/RightPanel/VBox/ExtraDetails/DescriptionLabel")
 	var quest_lbl := get_node_or_null("UILayer/RightPanel/VBox/ExtraDetails/CurrentQuestLabel")
@@ -292,11 +294,11 @@ func _refresh_hero_panel(hero_id: int) -> void:
 	if name_lbl:
 		name_lbl.text = h["name"]
 	if career_lbl:
-		career_lbl.text = "%s  [%s]" % [h["career"], h.get("career_archetype", "")]
+		career_lbl.text = "%s  [WFRP %s]" % [h.get("career_role", h["career"]), h["career"]]
 	if state_lbl:
-		state_lbl.text = "Activity: %s" % _format_entity_state(h["state"])
+		state_lbl.text = "Activity: %s   Wounds: %s" % [_format_entity_state(h["state"]), String(h.get("wound_state", "healthy")).replace("_", " ")]
 	if summary_lbl:
-		summary_lbl.text = "Personal gold %dg   Quest bias %s" % [h.get("gold", 0), h.get("quest_bias", "-")]
+		summary_lbl.text = "Personal gold %dg   WFRP career %s" % [h.get("gold", 0), h.get("career", "?")]
 	if health_bar:
 		health_bar.max_value = max(1, max_health)
 		health_bar.value = health
@@ -330,15 +332,30 @@ func _refresh_hero_panel(hero_id: int) -> void:
 		bias_lbl.text = "Quest Bias: %s   Service Bias: %s" % [h.get("quest_bias", "-"), h.get("service_bias", "-")]
 	if stats_lbl:
 		var stats: Dictionary = h.get("stats", {})
-		stats_lbl.text = "Stats  MGT %d  AGI %d  WIT %d  SPR %d  END %d" % [
+		var wfrp_stats: Dictionary = h.get("wfrp_stats", {})
+		stats_lbl.text = "Quest stats  MGT %d  AGI %d  WIT %d  SPR %d  END %d\nWFRP  WS %d  BS %d  S %d  T %d  Ag %d  Int %d  WP %d  Fel %d  W %d  Mag %d" % [
 			stats.get("might", 0),
 			stats.get("agility", 0),
 			stats.get("wits", 0),
 			stats.get("spirit", 0),
-			stats.get("endurance", 0)
+			stats.get("endurance", 0),
+			wfrp_stats.get("WS", 0),
+			wfrp_stats.get("BS", 0),
+			wfrp_stats.get("S", 0),
+			wfrp_stats.get("T", 0),
+			wfrp_stats.get("Ag", 0),
+			wfrp_stats.get("Int", 0),
+			wfrp_stats.get("WP", 0),
+			wfrp_stats.get("Fel", 0),
+			wfrp_stats.get("W", 0),
+			wfrp_stats.get("Mag", 0)
 		]
 	if skills_lbl:
 		skills_lbl.text = "Skills: %s" % ", ".join(h.get("skill_names", []))
+	if trappings_lbl:
+		trappings_lbl.text = "Starting Trappings: %s" % ", ".join(h.get("starting_trappings", []))
+	if talents_lbl:
+		talents_lbl.text = "Starting Talents: %s" % ", ".join(h.get("starting_talents", []))
 	if tags_lbl:
 		tags_lbl.text = "Tags: %s" % ", ".join(h.get("career_tags", []))
 	if desc_lbl:

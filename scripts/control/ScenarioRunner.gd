@@ -148,6 +148,17 @@ func _check(assertion: Dictionary, state: Dictionary) -> bool:
 				if not allowed_careers.has(hero.get("career_id", "")):
 					return false
 			return not state["heroes"].is_empty()
+		"heroes_have_nonempty_field":
+			var field_name: String = assertion.get("value", "")
+			for hero in state["heroes"]:
+				var field_value: Variant = hero.get(field_name, null)
+				if field_value is Array and field_value.is_empty():
+					return false
+				if field_value is Dictionary and field_value.is_empty():
+					return false
+				if field_value == null or String(field_value) == "":
+					return false
+			return not state["heroes"].is_empty()
 	push_warning("ScenarioRunner: unknown assertion type '%s'" % kind)
 	return false
 

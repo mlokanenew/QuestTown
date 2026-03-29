@@ -57,7 +57,7 @@ Allowed commands:
 {"cmd":"upgrade_building","type":"tavern"}
 {"cmd":"upgrade_building","type":"weapons_shop"}
 {"cmd":"upgrade_building","type":"temple"}
-{"cmd":"set_quest_enabled","id":"clear_wolves","enabled":true}
+{"cmd":"set_quest_enabled","id":"clear_rats_cellar","enabled":true}
 {"cmd":"step_ticks","n":600}
 {"cmd":"run_until","event":"hero_arrived_at_tavern","max_ticks":1800}
 {"cmd":"get_world_state"}
@@ -139,6 +139,22 @@ def check_assertions(assertions: list, state: dict) -> tuple[bool, list]:
             allowed = set(assertion.get("value", []))
             if not heroes or any(hero.get("career_id", "") not in allowed for hero in heroes):
                 failures.append(assertion)
+        elif kind == "heroes_have_nonempty_field":
+            field_name = assertion.get("value", "")
+            if not heroes:
+                failures.append(assertion)
+            else:
+                for hero in heroes:
+                    field_value = hero.get(field_name)
+                    if isinstance(field_value, list) and not field_value:
+                        failures.append(assertion)
+                        break
+                    if isinstance(field_value, dict) and not field_value:
+                        failures.append(assertion)
+                        break
+                    if field_value in (None, ""):
+                        failures.append(assertion)
+                        break
     return len(failures) == 0, failures
 
 
