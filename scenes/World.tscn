@@ -307,8 +307,20 @@ text = "Level"
 text = "Core facts"
 autowrap_mode = 3
 
+[node name="ActionStateLabel" type="Label" parent="UILayer/RightPanel/VBox"]
+text = "Current Action"
+autowrap_mode = 3
+
+[node name="OutputStateLabel" type="Label" parent="UILayer/RightPanel/VBox"]
+text = "Output"
+autowrap_mode = 3
+
+[node name="OutputActionButton" type="Button" parent="UILayer/RightPanel/VBox"]
+text = "Produce Output"
+visible = false
+
 [node name="BuildingActionButton" type="Button" parent="UILayer/RightPanel/VBox"]
-text = "Upgrade Building"
+text = "Start Upgrade"
 visible = false
 
 [node name="MoreDetailsButton" type="Button" parent="UILayer/RightPanel/VBox"]

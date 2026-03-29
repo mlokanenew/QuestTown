@@ -24,6 +24,10 @@ func _buildings() -> Array:
 			"id":       b["id"],
 			"type":     b["type"],
 			"level":    b.get("level", 1),
+			"current_action": b.get("current_action", "output"),
+			"action_progress_ticks": b.get("action_progress_ticks", 0),
+			"action_required_ticks": b.get("action_required_ticks", 0),
+			"output_stock": b.get("output_stock", 0),
 			"rotation_degrees_y": b.get("rotation_degrees_y", 0.0),
 			"position": b["position"]
 		})

@@ -46,6 +46,12 @@ func place_building(type: String, position: Vector3) -> Dictionary:
 func upgrade_building(id: int) -> Dictionary:
 	return building_system.upgrade_building(id)
 
+func start_building_upgrade(id: int) -> Dictionary:
+	return building_system.start_upgrade_work(id)
+
+func set_building_output_mode(id: int) -> Dictionary:
+	return building_system.set_output_mode(id)
+
 func remove_building(id: int) -> void:
 	building_system.remove_building(id)
 
@@ -114,6 +120,7 @@ func run_until(event_name: String, max_ticks: int) -> bool:
 
 func _tick(delta: float) -> void:
 	GameState.tick += 1
+	building_system.step()
 	spawn_system.step(hero_system, economy_system, building_system)
 	economy_system.step(building_system)
 	quest_system.step(building_system)

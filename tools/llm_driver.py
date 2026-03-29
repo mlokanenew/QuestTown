@@ -33,7 +33,7 @@ PROJECT_DIR = str(Path(__file__).parent.parent)
 OLLAMA_URL = "http://localhost:11434/api/chat"
 DEFAULT_MODEL = "phi3:mini"
 CONNECT_TIMEOUT = 30
-MAX_LLM_TURNS = 16
+MAX_LLM_TURNS = 24
 OLLAMA_TIMEOUT = 12
 RUN_UNTIL_EVENTS = {
     "hero_arrived_at_tavern",

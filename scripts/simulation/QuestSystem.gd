@@ -5,6 +5,7 @@ class_name QuestSystem
 const MAX_VISIBLE_QUESTS := 4
 const BASE_VISIBLE_QUESTS := 2
 const LEVEL_UP_XP := 20
+const MAX_STORED_RUMOURS := 4
 
 var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 var _next_offer_id: int = 1
@@ -30,9 +31,10 @@ func _refresh_available_quests(building_system: Object) -> void:
 			continue
 		current.append(existing)
 
-	while current.size() < target_count:
+	while current.size() < target_count and _consume_tavern_rumour():
 		var next_offer: Dictionary = _generate_offer(current, building_system)
 		if next_offer.is_empty():
+			_restore_tavern_rumour()
 			break
 		current.append(next_offer)
 
@@ -269,6 +271,20 @@ func _tavern_level() -> int:
 		if building.get("type", "") == "tavern":
 			return int(building.get("level", 1))
 	return 0
+
+func _consume_tavern_rumour() -> bool:
+	for building_id in GameState.buildings.keys():
+		var building: Dictionary = GameState.buildings[building_id]
+		if building.get("type", "") == "tavern":
+			return GameState.consume_building_output_stock(int(building_id), 1)
+	return false
+
+func _restore_tavern_rumour() -> void:
+	for building_id in GameState.buildings.keys():
+		var building: Dictionary = GameState.buildings[building_id]
+		if building.get("type", "") == "tavern":
+			GameState.add_building_output_stock(int(building_id), 1, MAX_STORED_RUMOURS + max(0, int(building.get("level", 1)) - 1))
+			return
 
 func _building_level(building_system: Object, building_type: String) -> int:
 	var building: Dictionary = building_system.get_building_of_type(building_type)

@@ -55,7 +55,7 @@ func _ready() -> void:
 			btn3.pressed.connect(_on_build_temple_pressed)
 		var upgrade_btn := get_node_or_null("UILayer/LeftPanel/VBox/ContextUpgradeButton")
 		if upgrade_btn:
-			upgrade_btn.pressed.connect(_upgrade_selected_building)
+			upgrade_btn.pressed.connect(_start_selected_building_upgrade)
 		var save_btn := get_node_or_null("UILayer/LeftPanel/VBox/SaveLoadRow/SaveButton")
 		if save_btn:
 			save_btn.pressed.connect(_save_world)
@@ -112,11 +112,15 @@ func _ready() -> void:
 			more_details_btn.pressed.connect(_toggle_details_expanded)
 		var building_action_btn := get_node_or_null("UILayer/RightPanel/VBox/BuildingActionButton")
 		if building_action_btn:
-			building_action_btn.pressed.connect(_upgrade_selected_building)
+			building_action_btn.pressed.connect(_start_selected_building_upgrade)
+		var output_action_btn := get_node_or_null("UILayer/RightPanel/VBox/OutputActionButton")
+		if output_action_btn:
+			output_action_btn.pressed.connect(_set_selected_building_output_mode)
 		GameState.gold_changed.connect(_on_gold_changed)
 		GameState.building_placed.connect(_on_building_state_changed)
 		GameState.building_removed.connect(_on_building_removed)
 		GameState.building_upgraded.connect(_on_building_upgraded)
+		GameState.building_action_changed.connect(_on_building_action_changed)
 		GameState.hero_state_changed.connect(_on_hero_state_changed)
 		GameState.hero_removed.connect(_on_hero_removed)
 		GameState.quests_changed.connect(_refresh_quest_ui)
@@ -266,6 +270,8 @@ func _refresh_hero_panel(hero_id: int) -> void:
 	var health_lbl := get_node_or_null("UILayer/RightPanel/VBox/HealthLabel")
 	var xp_bar := get_node_or_null("UILayer/RightPanel/VBox/XpBar")
 	var primary_lbl := get_node_or_null("UILayer/RightPanel/VBox/PrimaryFactsLabel")
+	var action_lbl := get_node_or_null("UILayer/RightPanel/VBox/ActionStateLabel")
+	var output_lbl := get_node_or_null("UILayer/RightPanel/VBox/OutputStateLabel")
 	var gold_lbl := get_node_or_null("UILayer/RightPanel/VBox/ExtraDetails/HeroGoldLabel")
 	var bias_lbl := get_node_or_null("UILayer/RightPanel/VBox/ExtraDetails/BiasLabel")
 	var stats_lbl := get_node_or_null("UILayer/RightPanel/VBox/ExtraDetails/StatsLabel")
@@ -314,6 +320,10 @@ func _refresh_hero_panel(hero_id: int) -> void:
 			h.get("stats", {}).get("agility", 0),
 			h.get("stats", {}).get("wits", 0)
 		]
+	if action_lbl:
+		action_lbl.visible = false
+	if output_lbl:
+		output_lbl.visible = false
 	if gold_lbl:
 		gold_lbl.text = "Gold %d" % h.get("gold", 0)
 	if bias_lbl:
@@ -346,6 +356,7 @@ func _hide_hero_panel() -> void:
 	_selected_entity_kind = ""
 	_refresh_context_upgrade_button()
 	_refresh_building_action_button()
+	_refresh_output_action_button()
 	_apply_panel_state()
 
 func _show_building_panel(building_id: int) -> void:
@@ -357,6 +368,7 @@ func _show_building_panel(building_id: int) -> void:
 	_right_panel_collapsed = false
 	_refresh_building_panel(building_id)
 	_refresh_context_upgrade_button()
+	_refresh_output_action_button()
 	_apply_panel_state()
 
 func _refresh_building_panel(building_id: int) -> void:
@@ -374,6 +386,8 @@ func _refresh_building_panel(building_id: int) -> void:
 	var health_lbl := get_node_or_null("UILayer/RightPanel/VBox/HealthLabel")
 	var xp_bar := get_node_or_null("UILayer/RightPanel/VBox/XpBar")
 	var primary_lbl := get_node_or_null("UILayer/RightPanel/VBox/PrimaryFactsLabel")
+	var action_lbl := get_node_or_null("UILayer/RightPanel/VBox/ActionStateLabel")
+	var output_lbl := get_node_or_null("UILayer/RightPanel/VBox/OutputStateLabel")
 	var gold_lbl := get_node_or_null("UILayer/RightPanel/VBox/ExtraDetails/HeroGoldLabel")
 	var bias_lbl := get_node_or_null("UILayer/RightPanel/VBox/ExtraDetails/BiasLabel")
 	var stats_lbl := get_node_or_null("UILayer/RightPanel/VBox/ExtraDetails/StatsLabel")
@@ -419,6 +433,12 @@ func _refresh_building_panel(building_id: int) -> void:
 			data.get("description", ""),
 			"Upgradeable" if level < levels.size() else "Max level reached"
 		]
+	if action_lbl:
+		action_lbl.visible = true
+		action_lbl.text = _building_action_summary(building)
+	if output_lbl:
+		output_lbl.visible = true
+		output_lbl.text = _building_output_summary(building)
 	if gold_lbl:
 		gold_lbl.text = "Base Cost %dg" % int(data.get("base_cost", 0))
 	if bias_lbl:
@@ -437,6 +457,7 @@ func _refresh_building_panel(building_id: int) -> void:
 	if desc_lbl:
 		desc_lbl.text = data.get("description", "")
 	_refresh_building_action_button()
+	_refresh_output_action_button()
 	_refresh_details_visibility()
 
 func _remove_selected_building() -> void:
@@ -500,12 +521,18 @@ func _on_building_removed(_building_id: int) -> void:
 		_selected_building_id = -1
 		_selected_entity_kind = ""
 	_refresh_building_action_button()
+	_refresh_output_action_button()
 	_apply_panel_state()
 	_refresh_build_ui()
 
 func _on_building_upgraded(_building_id: int, _new_level: int) -> void:
 	if _building_id == _selected_building_id and GameState.buildings.has(_building_id):
 		_refresh_building_panel(_building_id)
+	_refresh_build_ui()
+
+func _on_building_action_changed(building_id: int, _action: String) -> void:
+	if building_id == _selected_building_id and GameState.buildings.has(building_id):
+		_refresh_building_panel(building_id)
 	_refresh_build_ui()
 
 func _on_state_reloaded() -> void:
@@ -517,6 +544,7 @@ func _on_state_reloaded() -> void:
 	_on_gold_changed(GameState.gold)
 	_set_status("Loaded save from user://questtown_save.json")
 	_refresh_building_action_button()
+	_refresh_output_action_button()
 	_refresh_details_visibility()
 
 func _upgrade_building_type(building_type: String) -> void:
@@ -537,6 +565,7 @@ func _refresh_build_ui() -> void:
 	_refresh_build_button("temple", "UILayer/LeftPanel/VBox/BuildRail/BuildTempleButton")
 	_refresh_context_upgrade_button()
 	_refresh_building_action_button()
+	_refresh_output_action_button()
 
 func _refresh_build_button(building_type: String, path: String) -> void:
 	var button := get_node_or_null(path)
@@ -566,16 +595,23 @@ func _refresh_context_upgrade_button() -> void:
 
 	var current_level: int = int(building.get("level", 1))
 	var levels: Array = data.get("levels", [])
+	var current_action: String = building.get("current_action", "output")
 	if current_level >= levels.size():
 		button.visible = true
 		button.text = "%s Max Level" % building_name
+		button.disabled = true
+		return
+	if current_action == "upgrading":
+		var progress_ratio := _action_progress_ratio(building)
+		button.visible = true
+		button.text = "Upgrading %s  (%d%%)" % [building_name, int(round(progress_ratio * 100.0))]
 		button.disabled = true
 		return
 
 	var next_level: Dictionary = levels[current_level]
 	var next_cost: int = int(next_level.get("upgrade_cost", 0))
 	button.visible = true
-	button.text = "Upgrade %s  (L%d -> L%d, %dg)" % [building_name, current_level, current_level + 1, next_cost]
+	button.text = "Start %s Upgrade  (L%d -> L%d, %dg)" % [building_name, current_level, current_level + 1, next_cost]
 	button.disabled = GameState.gold < next_cost
 
 func _refresh_building_action_button() -> void:
@@ -591,15 +627,41 @@ func _refresh_building_action_button() -> void:
 	var building_name: String = data.get("name", building_type.capitalize())
 	var current_level: int = int(building.get("level", 1))
 	var levels: Array = data.get("levels", [])
+	var current_action: String = building.get("current_action", "output")
 	button.visible = true
 	if current_level >= levels.size():
 		button.text = "%s Max Level" % building_name
 		button.disabled = true
 		return
+	if current_action == "upgrading":
+		var progress_ratio := _action_progress_ratio(building)
+		button.text = "Upgrading %s  (%d%%)" % [building_name, int(round(progress_ratio * 100.0))]
+		button.disabled = true
+		return
 	var next_level: Dictionary = levels[current_level]
 	var next_cost: int = int(next_level.get("upgrade_cost", 0))
-	button.text = "Upgrade %s  (L%d -> L%d, %dg)" % [building_name, current_level, current_level + 1, next_cost]
+	button.text = "Start Upgrade  (L%d -> L%d, %dg)" % [current_level, current_level + 1, next_cost]
 	button.disabled = GameState.gold < next_cost
+
+func _refresh_output_action_button() -> void:
+	var button := get_node_or_null("UILayer/RightPanel/VBox/OutputActionButton")
+	if button == null:
+		return
+	if _selected_entity_kind != "building" or _selected_building_id < 0 or not GameState.buildings.has(_selected_building_id):
+		button.visible = false
+		return
+	var building: Dictionary = GameState.buildings[_selected_building_id]
+	var building_type: String = building.get("type", "")
+	var data: Dictionary = DataLoader.buildings_by_id.get(building_type, {})
+	var building_name: String = data.get("name", building_type.capitalize())
+	var current_action: String = building.get("current_action", "output")
+	button.visible = true
+	if current_action == "upgrading":
+		button.text = "Output Paused During Upgrade"
+		button.disabled = true
+		return
+	button.text = "Produce Output  (%s)" % building_name
+	button.disabled = false
 
 func _setup_quest_menu() -> void:
 	var list := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestFilterList")
@@ -749,15 +811,57 @@ func _refresh_details_visibility() -> void:
 	var building_action_btn := get_node_or_null("UILayer/RightPanel/VBox/BuildingActionButton")
 	if building_action_btn:
 		building_action_btn.visible = _selected_entity_kind == "building" and GameState.buildings.has(_selected_building_id)
+	var output_action_btn := get_node_or_null("UILayer/RightPanel/VBox/OutputActionButton")
+	if output_action_btn:
+		output_action_btn.visible = _selected_entity_kind == "building" and GameState.buildings.has(_selected_building_id)
 
 func _upgrade_selected_building() -> void:
+	_start_selected_building_upgrade()
+
+func _start_selected_building_upgrade() -> void:
 	if _selected_building_id < 0:
 		return
-	sim.upgrade_building(_selected_building_id)
+	sim.start_building_upgrade(_selected_building_id)
 	if _selected_entity_kind == "building":
 		_refresh_building_panel(_selected_building_id)
 	_refresh_context_upgrade_button()
 	_refresh_building_action_button()
+	_refresh_output_action_button()
+
+func _set_selected_building_output_mode() -> void:
+	if _selected_building_id < 0:
+		return
+	sim.set_building_output_mode(_selected_building_id)
+	if _selected_entity_kind == "building":
+		_refresh_building_panel(_selected_building_id)
+	_refresh_context_upgrade_button()
+	_refresh_building_action_button()
+	_refresh_output_action_button()
+
+func _building_action_summary(building: Dictionary) -> String:
+	var current_action: String = building.get("current_action", "output")
+	var progress_ratio := _action_progress_ratio(building)
+	if current_action == "upgrading":
+		return "Current Action: Upgrading (%d%% complete)" % int(round(progress_ratio * 100.0))
+	return "Current Action: Producing output (%d%% to next result)" % int(round(progress_ratio * 100.0))
+
+func _building_output_summary(building: Dictionary) -> String:
+	var building_type: String = building.get("type", "")
+	var stock: int = int(building.get("output_stock", 0))
+	match building_type:
+		"tavern":
+			return "Stored Rumours: %d" % stock
+		"weapons_shop":
+			return "Supplies In Stock: %d" % stock
+		"temple":
+			return "Healing Charges Ready: %d" % stock
+		_:
+			return "Stored Output: %d" % stock
+
+func _action_progress_ratio(building: Dictionary) -> float:
+	var required_ticks: int = max(1, int(building.get("action_required_ticks", 0)))
+	var progress_ticks: int = clamp(int(building.get("action_progress_ticks", 0)), 0, required_ticks)
+	return float(progress_ticks) / float(required_ticks)
 
 func _toggle_left_panel() -> void:
 	_left_panel_collapsed = not _left_panel_collapsed

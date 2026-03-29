@@ -4,6 +4,16 @@ class_name BuildingSystem
 ## Owned by SimulationRoot. Works entirely with GameState data.
 
 const CELL_SIZE := 1.0  # world units per grid cell
+const OUTPUT_TICKS := {
+	"tavern": 300,
+	"weapons_shop": 240,
+	"temple": 240,
+}
+const UPGRADE_TICKS := {
+	"tavern": 420,
+	"weapons_shop": 420,
+	"temple": 420,
+}
 
 # Occupied grid cells: Dict[Vector2i -> building_id]
 var _occupied: Dictionary = {}
@@ -24,6 +34,7 @@ func place_building(type: String, position: Vector3) -> Dictionary:
 		return {}
 
 	var b := GameState.add_building(type, position)
+	GameState.set_building_action(int(b["id"]), "output", _output_ticks(type))
 	var footprint: Array = building_data.get("footprint", [1, 1])
 	var cells := _cells_for(position, footprint[0], footprint[1])
 	for cell in cells:
@@ -50,6 +61,48 @@ func upgrade_building(id: int) -> Dictionary:
 		return {}
 
 	return GameState.upgrade_building(id)
+
+func start_upgrade_work(id: int) -> Dictionary:
+	var building: Dictionary = GameState.buildings.get(id, {})
+	if building.is_empty():
+		return {}
+	if building.get("current_action", "output") == "upgrading":
+		return building
+
+	var building_data: Dictionary = DataLoader.buildings_by_id.get(building["type"], {})
+	if building_data.is_empty():
+		return {}
+	var levels: Array = building_data.get("levels", [])
+	var current_level: int = int(building.get("level", 1))
+	if current_level >= levels.size():
+		return {}
+
+	var next_level_data: Dictionary = levels[current_level - 1]
+	var upgrade_cost: int = int(next_level_data.get("upgrade_cost", 0))
+	if not GameState.spend_gold(upgrade_cost):
+		return {}
+
+	var required_ticks: int = _upgrade_ticks(building.get("type", ""))
+	var updated := GameState.set_building_action(id, "upgrading", required_ticks)
+	GameState.log_event("building_upgrade_started", {
+		"building_id": id,
+		"building_type": building.get("type", ""),
+		"building_name": building_data.get("name", building.get("type", "")),
+		"target_level": current_level + 1
+	})
+	return updated
+
+func set_output_mode(id: int) -> Dictionary:
+	var building: Dictionary = GameState.buildings.get(id, {})
+	if building.is_empty():
+		return {}
+	if building.get("current_action", "output") == "upgrading":
+		return {}
+	return GameState.set_building_action(id, "output", _output_ticks(building.get("type", "")))
+
+func step() -> void:
+	for building_id in GameState.buildings.keys():
+		_step_building(int(building_id))
 
 func remove_building(id: int) -> void:
 	var cells_to_free: Array = []
@@ -113,6 +166,10 @@ func rebuild_from_game_state() -> void:
 		)
 		for cell in cells:
 			_occupied[cell] = building["id"]
+		if int(building.get("action_required_ticks", 0)) <= 0:
+			var current_action: String = building.get("current_action", "output")
+			var required_ticks: int = _upgrade_ticks(building.get("type", "")) if current_action == "upgrading" else _output_ticks(building.get("type", ""))
+			GameState.buildings[int(building["id"])]["action_required_ticks"] = required_ticks
 
 func _cells_for(position: Vector3, w: int, d: int) -> Array:
 	var origin := Vector2i(int(position.x / CELL_SIZE), int(position.z / CELL_SIZE))
@@ -127,3 +184,63 @@ func _can_place_instance(type: String, building_data: Dictionary) -> bool:
 	if max_instances <= 0:
 		return true
 	return get_buildings_of_type(type).size() < max_instances
+
+func _step_building(building_id: int) -> void:
+	var building: Dictionary = GameState.buildings.get(building_id, {})
+	if building.is_empty():
+		return
+	var action: String = building.get("current_action", "output")
+	var building_type: String = building.get("type", "")
+	var required_ticks: int = int(building.get("action_required_ticks", 0))
+	if required_ticks <= 0:
+		required_ticks = _upgrade_ticks(building_type) if action == "upgrading" else _output_ticks(building_type)
+	var progress_ticks: int = int(building.get("action_progress_ticks", 0)) + 1
+	if progress_ticks < required_ticks:
+		GameState.set_building_action_progress(building_id, progress_ticks, required_ticks)
+		return
+	if action == "upgrading":
+		GameState.set_building_action_progress(building_id, required_ticks, required_ticks)
+		var upgraded := GameState.upgrade_building(building_id)
+		var building_data: Dictionary = DataLoader.buildings_by_id.get(building_type, {})
+		GameState.set_building_action(building_id, "output", _output_ticks(building_type))
+		GameState.log_event("building_upgrade_completed", {
+			"building_id": building_id,
+			"building_type": building_type,
+			"building_name": building_data.get("name", building_type),
+			"new_level": int(upgraded.get("level", building.get("level", 1)))
+		})
+		return
+	GameState.set_building_action_progress(building_id, 0, required_ticks)
+	_produce_output(building_id, building)
+
+func _produce_output(building_id: int, building: Dictionary) -> void:
+	var building_type: String = building.get("type", "")
+	var building_data: Dictionary = DataLoader.buildings_by_id.get(building_type, {})
+	var output_cap: int = 1 + int(building.get("level", 1))
+	var stock: int = int(building.get("output_stock", 0))
+	if stock >= output_cap:
+		return
+	var output_name := ""
+	match building_type:
+		"tavern":
+			output_name = "Listen for Rumours"
+		"weapons_shop":
+			output_name = "Stock Basic Supplies"
+		"temple":
+			output_name = "Offer Minor Healing"
+		_:
+			output_name = "Produce Output"
+	var next_stock := GameState.add_building_output_stock(building_id, 1, output_cap)
+	GameState.log_event("building_output_completed", {
+		"building_id": building_id,
+		"building_type": building_type,
+		"building_name": building_data.get("name", building_type),
+		"output_name": output_name,
+		"output_stock": next_stock
+	})
+
+func _output_ticks(building_type: String) -> int:
+	return int(OUTPUT_TICKS.get(building_type, 300))
+
+func _upgrade_ticks(building_type: String) -> int:
+	return int(UPGRADE_TICKS.get(building_type, 420))

@@ -66,6 +66,8 @@ func _handle_gear_purchase(hero_id: int, building_system: Object) -> bool:
 	var shop: Dictionary = building_system.get_building_of_type("weapons_shop")
 	if shop.is_empty():
 		return false
+	if int(shop.get("output_stock", 0)) <= 0:
+		return false
 	var gear_offer: Dictionary = DataLoader.get_best_gear_offer(int(shop.get("level", 1)))
 	var spend: int = max(1, int(gear_offer.get("cost", _building_effect(building_system, "weapons_shop", "gear_spending"))))
 	var gear_bonus: int = max(1, int(gear_offer.get("gear_bonus", spend)))
@@ -74,6 +76,7 @@ func _handle_gear_purchase(hero_id: int, building_system: Object) -> bool:
 		"service": "gear",
 		"gear_id": gear_offer.get("id", "")
 	}, func() -> void:
+		GameState.consume_building_output_stock(int(shop.get("id", 0)), 1)
 		GameState.heroes[hero_id]["gear_bonus"] = gear_bonus
 		GameState.heroes[hero_id]["service_cooldown_ticks"] = SERVICE_COOLDOWN_TICKS
 	)
@@ -84,6 +87,8 @@ func _handle_healing(hero_id: int, building_system: Object) -> bool:
 		return false
 	if _building_effect(building_system, "temple", "healing_service") <= 0:
 		return false
+	if int(temple.get("output_stock", 0)) <= 0:
+		return false
 	var recovery_bonus: int = max(1, _building_effect(building_system, "temple", "recovery_bonus"))
 	var service: Dictionary = DataLoader.get_service("temple_healing")
 	var cost: int = max(1, int(service.get("base_cost", 1)) + recovery_bonus - 1)
@@ -92,6 +97,7 @@ func _handle_healing(hero_id: int, building_system: Object) -> bool:
 		"service": "healing",
 		"service_id": service.get("id", "temple_healing")
 	}, func() -> void:
+		GameState.consume_building_output_stock(int(temple.get("id", 0)), 1)
 		var max_health: int = int(GameState.heroes[hero_id].get("max_health", 0))
 		GameState.heroes[hero_id]["health"] = max_health
 		if GameState.heroes[hero_id].get("state", "") == "recovering":
@@ -106,6 +112,8 @@ func _handle_blessing(hero_id: int, building_system: Object) -> bool:
 		return false
 	if _building_effect(building_system, "temple", "healing_service") <= 0:
 		return false
+	if int(temple.get("output_stock", 0)) <= 0:
+		return false
 	var service: Dictionary = DataLoader.get_service("temple_blessing")
 	var spend: int = max(1, int(service.get("base_cost", 1)) + _building_effect(building_system, "temple", "recovery_bonus") - 1)
 	var survival_bonus: int = max(1, _building_effect(building_system, "temple", "survival_bonus") + 1)
@@ -114,6 +122,7 @@ func _handle_blessing(hero_id: int, building_system: Object) -> bool:
 		"service": "blessing",
 		"service_id": service.get("id", "temple_blessing")
 	}, func() -> void:
+		GameState.consume_building_output_stock(int(temple.get("id", 0)), 1)
 		GameState.heroes[hero_id]["blessing_bonus"] = survival_bonus
 		GameState.heroes[hero_id]["service_cooldown_ticks"] = SERVICE_COOLDOWN_TICKS
 	)

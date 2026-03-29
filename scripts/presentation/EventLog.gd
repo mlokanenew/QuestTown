@@ -110,6 +110,24 @@ func _format(event: Dictionary) -> String:
 				event.get("hero_name", "?"),
 				event.get("level", 1)
 			]
+		"building_output_completed":
+			return "[%d] %s finishes %s." % [
+				event.get("tick", 0),
+				event.get("building_name", "?"),
+				event.get("output_name", "its current work")
+			]
+		"building_upgrade_started":
+			return "[%d] %s starts upgrading to level %d." % [
+				event.get("tick", 0),
+				event.get("building_name", "?"),
+				event.get("target_level", 1)
+			]
+		"building_upgrade_completed":
+			return "[%d] %s reaches level %d." % [
+				event.get("tick", 0),
+				event.get("building_name", "?"),
+				event.get("new_level", 1)
+			]
 		_:
 			return ""
 	return ""

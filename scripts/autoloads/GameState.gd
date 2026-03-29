@@ -6,6 +6,7 @@ extends Node
 signal building_placed(building: Dictionary)
 signal building_removed(building_id: int)
 signal building_upgraded(building_id: int, new_level: int)
+signal building_action_changed(building_id: int, action: String)
 signal hero_spawned(hero: Dictionary)
 signal hero_state_changed(hero_id: int, new_state: String)
 signal hero_removed(hero_id: int)
@@ -60,6 +61,10 @@ func add_building(type: String, position: Vector3) -> Dictionary:
 		"id": _next_building_id,
 		"type": type,
 		"level": 1,
+		"current_action": "output",
+		"action_progress_ticks": 0,
+		"action_required_ticks": 0,
+		"output_stock": 0,
 		"rotation_degrees_y": 0.0,
 		"position": {"x": position.x, "y": position.y, "z": position.z}
 	}
@@ -77,9 +82,43 @@ func upgrade_building(id: int) -> Dictionary:
 	if not buildings.has(id):
 		return {}
 	buildings[id]["level"] += 1
+	buildings[id]["current_action"] = "output"
+	buildings[id]["action_progress_ticks"] = 0
+	buildings[id]["action_required_ticks"] = 0
 	var new_level: int = buildings[id]["level"]
 	building_upgraded.emit(id, new_level)
 	return buildings[id]
+
+func set_building_action(id: int, action: String, required_ticks: int = 0) -> Dictionary:
+	if not buildings.has(id):
+		return {}
+	buildings[id]["current_action"] = action
+	buildings[id]["action_progress_ticks"] = 0
+	buildings[id]["action_required_ticks"] = required_ticks
+	building_action_changed.emit(id, action)
+	return buildings[id]
+
+func set_building_action_progress(id: int, progress_ticks: int, required_ticks: int) -> void:
+	if not buildings.has(id):
+		return
+	buildings[id]["action_progress_ticks"] = progress_ticks
+	buildings[id]["action_required_ticks"] = required_ticks
+
+func add_building_output_stock(id: int, amount: int, cap: int) -> int:
+	if not buildings.has(id):
+		return 0
+	var next_value: int = min(cap, int(buildings[id].get("output_stock", 0)) + amount)
+	buildings[id]["output_stock"] = next_value
+	return next_value
+
+func consume_building_output_stock(id: int, amount: int = 1) -> bool:
+	if not buildings.has(id):
+		return false
+	var current_stock: int = int(buildings[id].get("output_stock", 0))
+	if current_stock < amount:
+		return false
+	buildings[id]["output_stock"] = current_stock - amount
+	return true
 
 func get_building_count(type: String) -> int:
 	var count := 0
