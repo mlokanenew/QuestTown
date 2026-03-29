@@ -245,3 +245,10 @@ autowrap_mode = 3
 [node name="ActiveQuestListLabel" type="Label" parent="UILayer/QuestPanel/QuestVBox"]
 text = "No active expeditions."
 autowrap_mode = 3
+
+[node name="CompletedQuestTitle" type="Label" parent="UILayer/QuestPanel/QuestVBox"]
+text = "Recent Completed Quests"
+
+[node name="CompletedQuestListLabel" type="Label" parent="UILayer/QuestPanel/QuestVBox"]
+text = "No quests have been completed yet."
+autowrap_mode = 3

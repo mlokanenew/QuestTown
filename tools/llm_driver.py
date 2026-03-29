@@ -35,6 +35,13 @@ DEFAULT_MODEL = "phi3:mini"
 CONNECT_TIMEOUT = 30
 MAX_LLM_TURNS = 16
 OLLAMA_TIMEOUT = 12
+RUN_UNTIL_EVENTS = {
+    "hero_arrived_at_tavern",
+    "hero_departed_for_quest",
+    "hero_completed_quest",
+    "hero_heading_home",
+    "hero_returned_from_quest",
+}
 
 SYSTEM_PROMPT = """You control a medieval town-builder game test harness.
 
@@ -92,6 +99,9 @@ def check_assertions(assertions: list, state: dict) -> tuple[bool, list]:
                 failures.append(assertion)
         elif kind == "quest_count_gte":
             if len(state.get("quests", [])) < assertion.get("value", 1):
+                failures.append(assertion)
+        elif kind == "completed_quest_count_gte":
+            if len(state.get("completed_quests", [])) < assertion.get("value", 1):
                 failures.append(assertion)
         elif kind == "building_exists":
             if not any(building.get("type") == assertion.get("type", "") for building in buildings):
@@ -209,7 +219,7 @@ def normalize_command(cmd: dict) -> dict | None:
         return {"cmd": "set_quest_enabled", "id": quest_id, "enabled": bool(cmd.get("enabled", True))}
     if name == "run_until":
         event = cmd.get("event", "hero_arrived_at_tavern")
-        if event not in {"hero_arrived_at_tavern"}:
+        if event not in RUN_UNTIL_EVENTS:
             event = "hero_arrived_at_tavern"
         max_ticks = max(1, min(int(cmd.get("max_ticks", 1800)), 7200))
         return {"cmd": "run_until", "event": event, "max_ticks": max_ticks}
@@ -332,9 +342,9 @@ def choose_fallback_command(state: dict, failures: list) -> dict:
             if not heroes:
                 return {"cmd": "run_until", "event": "hero_arrived_at_tavern", "max_ticks": 1800}
             if event_type == "hero_started_quest":
-                return {"cmd": "step_ticks", "n": 600}
-            if event_type in {"hero_completed_quest", "hero_returned_from_quest"}:
-                return {"cmd": "step_ticks", "n": 1200}
+                return {"cmd": "run_until", "event": "hero_departed_for_quest", "max_ticks": 1800}
+            if event_type in {"hero_completed_quest", "hero_heading_home", "hero_returned_from_quest"}:
+                return {"cmd": "run_until", "event": event_type, "max_ticks": 3600}
             if event_type in {"hero_spent_at_tavern", "hero_spent_at_weapons_shop", "hero_spent_at_temple"}:
                 return {"cmd": "step_ticks", "n": 900}
             return {"cmd": "step_ticks", "n": 900}

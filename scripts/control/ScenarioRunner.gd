@@ -106,6 +106,8 @@ func _check(assertion: Dictionary, state: Dictionary) -> bool:
 			return state["buildings"].size() >= int(assertion.get("value", 1))
 		"quest_count_gte":
 			return state.get("quests", []).size() >= int(assertion.get("value", 1))
+		"completed_quest_count_gte":
+			return state.get("completed_quests", []).size() >= int(assertion.get("value", 1))
 		"building_exists":
 			for b in state["buildings"]:
 				if b["type"] == assertion.get("type", ""):

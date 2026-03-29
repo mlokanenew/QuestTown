@@ -6,7 +6,9 @@ extends Node3D
 @onready var build_manager: Node = $BuildManager
 
 var _selected_hero_id: int = -1
+var _selected_building_id: int = -1
 var _quest_filter_boxes: Dictionary = {}
+var _pause_menu: CanvasLayer = null
 
 const BUILDING_ICONS := {
 	"tavern": "res://assets/ui/tavern_icon.svg",
@@ -63,10 +65,15 @@ func _ready() -> void:
 		GameState.hero_removed.connect(_on_hero_removed)
 		GameState.quests_changed.connect(_refresh_quest_ui)
 		GameState.quest_filters_changed.connect(_refresh_quest_ui)
+		GameState.quest_history_changed.connect(_refresh_quest_ui)
 		GameState.state_reloaded.connect(_on_state_reloaded)
 		_setup_quest_menu()
 		_on_gold_changed(GameState.gold)
-		_set_status("F5 save  F9 load  Right-click/Esc cancel placement")
+		_refresh_quest_ui()
+		if RuntimeConfig.request_load_world:
+			RuntimeConfig.request_load_world = false
+			_load_world()
+		_set_status("LMB place/select  RMB rotate build  Q/E cycle  Del remove  F1/F5 save  F2/F9 load")
 
 func _physics_process(delta: float) -> void:
 	if RuntimeConfig.is_headless():
@@ -80,6 +87,14 @@ func _unhandled_input(event: InputEvent) -> void:
 	if RuntimeConfig.is_headless():
 		return
 	if event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode == KEY_F1:
+			_save_world()
+			get_viewport().set_input_as_handled()
+			return
+		if event.keycode == KEY_F2:
+			_load_world()
+			get_viewport().set_input_as_handled()
+			return
 		if event.keycode == KEY_F5:
 			_save_world()
 			get_viewport().set_input_as_handled()
@@ -88,7 +103,25 @@ func _unhandled_input(event: InputEvent) -> void:
 			_load_world()
 			get_viewport().set_input_as_handled()
 			return
+		if event.keycode == KEY_DELETE:
+			_remove_selected_building()
+			get_viewport().set_input_as_handled()
+			return
+		if event.keycode == KEY_ESCAPE and not build_manager.is_placing():
+			_toggle_pause_menu()
+			get_viewport().set_input_as_handled()
+			return
+		if event.keycode == KEY_Q:
+			build_manager.cycle_building_type(-1)
+			get_viewport().set_input_as_handled()
+			return
+		if event.keycode == KEY_E:
+			build_manager.cycle_building_type(1)
+			get_viewport().set_input_as_handled()
+			return
 	if not (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT):
+		return
+	if _try_select_building(event.position):
 		return
 	_try_select_hero(event.position)
 
@@ -108,6 +141,26 @@ func _try_select_hero(mouse_pos: Vector2) -> void:
 		_show_hero_panel(result["collider"].get_meta("hero_id"))
 	else:
 		_hide_hero_panel()
+
+func _try_select_building(mouse_pos: Vector2) -> bool:
+	var camera := get_viewport().get_camera_3d()
+	if camera == null:
+		return false
+	var space_state := get_world_3d().direct_space_state
+	var params := PhysicsRayQueryParameters3D.new()
+	params.from = camera.project_ray_origin(mouse_pos)
+	params.to = params.from + camera.project_ray_normal(mouse_pos) * 200.0
+	params.collide_with_areas = true
+	params.collide_with_bodies = false
+	params.collision_mask = 4
+	var result: Dictionary = space_state.intersect_ray(params)
+	if result.is_empty() or not result["collider"].has_meta("building_id"):
+		_selected_building_id = -1
+		return false
+	_selected_building_id = int(result["collider"].get_meta("building_id"))
+	var building: Dictionary = GameState.buildings.get(_selected_building_id, {})
+	_set_status("Selected %s  (Del remove)" % building.get("type", "building"))
+	return true
 
 func _show_hero_panel(hero_id: int) -> void:
 	if not GameState.heroes.has(hero_id):
@@ -176,6 +229,28 @@ func _hide_hero_panel() -> void:
 	if panel:
 		panel.visible = false
 
+func _remove_selected_building() -> void:
+	if _selected_building_id < 0:
+		return
+	sim.remove_building(_selected_building_id)
+	_set_status("Removed building")
+	_selected_building_id = -1
+
+func _toggle_pause_menu() -> void:
+	if _pause_menu != null:
+		_pause_menu.queue_free()
+		_pause_menu = null
+		get_tree().paused = false
+		return
+	var packed: PackedScene = load("res://scenes/ui/PauseMenu.tscn")
+	if packed == null:
+		return
+	_pause_menu = packed.instantiate()
+	_pause_menu.tree_exited.connect(func() -> void:
+		_pause_menu = null
+	)
+	add_child(_pause_menu)
+
 func _on_hero_state_changed(hero_id: int, _new_state: String) -> void:
 	if hero_id == _selected_hero_id:
 		_refresh_hero_panel(hero_id)
@@ -216,6 +291,7 @@ func _on_building_upgraded(_building_id: int, _new_level: int) -> void:
 
 func _on_state_reloaded() -> void:
 	_hide_hero_panel()
+	_selected_building_id = -1
 	build_manager.cancel_placement()
 	_refresh_build_ui()
 	_refresh_quest_ui()
@@ -328,6 +404,8 @@ func _refresh_quest_ui() -> void:
 
 	var active_summary := get_node_or_null("UILayer/QuestPanel/QuestVBox/ActiveQuestSummaryLabel")
 	var active_list := get_node_or_null("UILayer/QuestPanel/QuestVBox/ActiveQuestListLabel")
+	var completed_title := get_node_or_null("UILayer/QuestPanel/QuestVBox/CompletedQuestTitle")
+	var completed_list := get_node_or_null("UILayer/QuestPanel/QuestVBox/CompletedQuestListLabel")
 	if active_summary == null or active_list == null:
 		return
 
@@ -364,6 +442,21 @@ func _refresh_quest_ui() -> void:
 			returning_count
 		]
 		active_list.text = "\n".join(active_lines)
+
+	if completed_title == null or completed_list == null:
+		return
+	completed_title.text = "Recent Completed Quests"
+	if GameState.completed_quests.is_empty():
+		completed_list.text = "No quests have been completed yet."
+		return
+	var completed_lines: Array = []
+	for entry in GameState.completed_quests.slice(max(0, GameState.completed_quests.size() - 5)):
+		completed_lines.append("%s: %s (%s)" % [
+			entry.get("hero_name", "?"),
+			entry.get("quest_name", "?"),
+			"success" if bool(entry.get("success", false)) else "failed"
+		])
+	completed_list.text = "\n".join(completed_lines)
 
 func _set_all_quest_filters(enabled: bool) -> void:
 	for quest: Dictionary in DataLoader.quests:

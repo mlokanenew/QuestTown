@@ -46,6 +46,9 @@ func place_building(type: String, position: Vector3) -> Dictionary:
 func upgrade_building(id: int) -> Dictionary:
 	return building_system.upgrade_building(id)
 
+func remove_building(id: int) -> void:
+	building_system.remove_building(id)
+
 func get_world_state() -> Dictionary:
 	return snapshot.snapshot()
 

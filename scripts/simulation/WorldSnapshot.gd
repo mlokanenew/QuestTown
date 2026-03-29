@@ -12,6 +12,7 @@ func snapshot() -> Dictionary:
 		"buildings": _buildings(),
 		"heroes":    _heroes(),
 		"quests":    _quests(),
+		"completed_quests": GameState.completed_quests.duplicate(true),
 		"events":    GameState.get_recent_events(100),
 		"warnings":  warnings
 	}
@@ -23,6 +24,7 @@ func _buildings() -> Array:
 			"id":       b["id"],
 			"type":     b["type"],
 			"level":    b.get("level", 1),
+			"rotation_degrees_y": b.get("rotation_degrees_y", 0.0),
 			"position": b["position"]
 		})
 	return result

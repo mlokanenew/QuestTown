@@ -207,6 +207,16 @@ func _resolve_quest(hero_id: int, building_system: Object) -> void:
 	var tavern := _tavern_position()
 	GameState.heroes[hero_id]["target"] = {"x": tavern.x, "y": tavern.y, "z": tavern.z}
 	GameState.set_hero_state(hero_id, "returning")
+	GameState.record_completed_quest({
+		"hero_id": hero_id,
+		"hero_name": hero.get("name", "?"),
+		"quest_name": quest.get("name", "?"),
+		"template_id": quest.get("template_id", ""),
+		"success": succeeded,
+		"gold_reward": gold_gain,
+		"xp_reward": xp_gain,
+		"completed_tick": GameState.tick
+	})
 	GameState.log_event("hero_heading_home", {
 		"hero_id": hero_id,
 		"hero_name": hero.get("name", "?"),

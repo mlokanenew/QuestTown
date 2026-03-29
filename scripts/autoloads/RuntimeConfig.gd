@@ -12,6 +12,7 @@ var mode: Mode = Mode.VISUAL
 var seed_value: int = 0
 var port: int = 8765
 var scenario_path: String = ""
+var request_load_world: bool = false
 
 func _ready() -> void:
 	_parse_args()

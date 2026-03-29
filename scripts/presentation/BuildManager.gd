@@ -1,7 +1,7 @@
 extends Node
 class_name BuildManager
 ## Handles player input for building placement in visual mode.
-## Ghost follows mouse; left-click confirms placement; right-click cancels.
+## Ghost follows mouse; left-click confirms placement; right-click rotates.
 
 var _sim: Node = null
 var _ghost: Node3D = null
@@ -11,16 +11,20 @@ var _ground_plane := Plane(Vector3.UP, 0.0)
 var _footprint: Vector2i = Vector2i.ONE
 var _is_valid_location: bool = false
 var _last_snapped: Vector3 = Vector3.ZERO
+var _rotation_y_degrees: float = 0.0
+var _build_types: Array = []
 
 func _ready() -> void:
 	if RuntimeConfig.is_headless():
 		set_process_input(false)
 		return
 	_sim = get_parent().get_node("SimulationRoot")
+	_build_types = DataLoader.buildings.map(func(building: Dictionary) -> String: return String(building.get("id", "")))
 
 func start_placement(building_type: String) -> void:
 	_current_type = building_type
 	_placing = true
+	_rotation_y_degrees = 0.0
 	var data: Dictionary = DataLoader.buildings_by_id.get(building_type, {})
 	var footprint: Array = data.get("footprint", [1, 1])
 	_footprint = Vector2i(int(footprint[0]), int(footprint[1]))
@@ -35,6 +39,13 @@ func cancel_placement() -> void:
 		_ghost.queue_free()
 		_ghost = null
 	_is_valid_location = false
+	_rotation_y_degrees = 0.0
+
+func is_placing() -> bool:
+	return _placing
+
+func get_current_building_type() -> String:
+	return _current_type
 
 func _input(event: InputEvent) -> void:
 	if not _placing:
@@ -52,11 +63,17 @@ func _input(event: InputEvent) -> void:
 			_confirm_placement(event.position)
 			get_viewport().set_input_as_handled()
 		elif event.button_index == MOUSE_BUTTON_RIGHT:
-			cancel_placement()
+			_rotate_preview(90.0)
 			get_viewport().set_input_as_handled()
 	elif event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_ESCAPE:
 			cancel_placement()
+			get_viewport().set_input_as_handled()
+		elif event.keycode == KEY_Q:
+			cycle_building_type(-1)
+			get_viewport().set_input_as_handled()
+		elif event.keycode == KEY_E:
+			cycle_building_type(1)
 			get_viewport().set_input_as_handled()
 
 func _confirm_placement(mouse_pos: Vector2) -> void:
@@ -68,6 +85,7 @@ func _confirm_placement(mouse_pos: Vector2) -> void:
 		return
 	var result: Variant = _sim.place_building(_current_type, snapped)
 	if not result.is_empty():
+		GameState.buildings[int(result.get("id", -1))]["rotation_degrees_y"] = _rotation_y_degrees
 		cancel_placement()
 
 func _mouse_to_ground(mouse_pos: Vector2) -> Vector3:
@@ -122,6 +140,7 @@ func _update_ghost_validity() -> void:
 			mat = StandardMaterial3D.new()
 			foot.set_surface_override_material(0, mat)
 		mat.albedo_color = Color(0.25, 0.8, 0.45, 0.8) if _is_valid_location else Color(0.9, 0.25, 0.25, 0.8)
+	_ghost.rotation_degrees.y = _rotation_y_degrees
 
 func _apply_ghost_materials(node: Node) -> void:
 	if node is MeshInstance3D:
@@ -137,3 +156,17 @@ func _apply_ghost_materials(node: Node) -> void:
 			mesh_instance.set_surface_override_material(surface_idx, ghost_mat)
 	for child in node.get_children():
 		_apply_ghost_materials(child)
+
+func cycle_building_type(direction: int) -> void:
+	if _build_types.is_empty():
+		return
+	var current_index: int = _build_types.find(_current_type)
+	if current_index < 0:
+		current_index = 0
+	var next_index := posmod(current_index + direction, _build_types.size())
+	start_placement(_build_types[next_index])
+
+func _rotate_preview(amount: float) -> void:
+	_rotation_y_degrees = fmod(_rotation_y_degrees + amount, 360.0)
+	if _ghost:
+		_ghost.rotation_degrees.y = _rotation_y_degrees

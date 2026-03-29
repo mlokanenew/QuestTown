@@ -11,6 +11,7 @@ signal hero_state_changed(hero_id: int, new_state: String)
 signal hero_removed(hero_id: int)
 signal quests_changed()
 signal quest_filters_changed()
+signal quest_history_changed()
 signal event_logged(event: Dictionary)
 signal gold_changed(new_amount: int)
 signal state_reloaded()
@@ -27,6 +28,8 @@ var buildings: Dictionary = {}
 var heroes: Dictionary = {}
 # Array[quest_offer_dict]
 var quests: Array = []
+# Array[quest_result_dict]
+var completed_quests: Array = []
 # Dict[quest_template_id -> bool]
 var enabled_quest_ids: Dictionary = {}
 # Array of event dicts {tick, type, ...}
@@ -42,6 +45,7 @@ func reset(p_seed: int) -> void:
 	buildings.clear()
 	heroes.clear()
 	quests.clear()
+	completed_quests.clear()
 	enabled_quest_ids = {}
 	for quest in DataLoader.quests:
 		enabled_quest_ids[quest.get("id", "")] = true
@@ -56,6 +60,7 @@ func add_building(type: String, position: Vector3) -> Dictionary:
 		"id": _next_building_id,
 		"type": type,
 		"level": 1,
+		"rotation_degrees_y": 0.0,
 		"position": {"x": position.x, "y": position.y, "z": position.z}
 	}
 	_next_building_id += 1
@@ -144,6 +149,12 @@ func set_available_quests(next_quests: Array) -> void:
 	quests = next_quests
 	quests_changed.emit()
 
+func record_completed_quest(entry: Dictionary) -> void:
+	completed_quests.append(entry)
+	while completed_quests.size() > 20:
+		completed_quests.pop_front()
+	quest_history_changed.emit()
+
 func is_quest_enabled(quest_id: String) -> bool:
 	return bool(enabled_quest_ids.get(quest_id, true))
 
@@ -183,6 +194,7 @@ func export_state() -> Dictionary:
 		"buildings": buildings.values().duplicate(true),
 		"heroes": heroes.values().duplicate(true),
 		"quests": quests.duplicate(true),
+		"completed_quests": completed_quests.duplicate(true),
 		"enabled_quest_ids": enabled_quest_ids.duplicate(true),
 		"events": events.duplicate(true),
 		"next_building_id": _next_building_id,
@@ -200,6 +212,7 @@ func import_state(data: Dictionary) -> void:
 	for hero: Dictionary in data.get("heroes", []):
 		heroes[int(hero.get("id", 0))] = hero.duplicate(true)
 	quests = data.get("quests", []).duplicate(true)
+	completed_quests = data.get("completed_quests", []).duplicate(true)
 	enabled_quest_ids = data.get("enabled_quest_ids", {}).duplicate(true)
 	events = data.get("events", []).duplicate(true)
 	_next_building_id = int(data.get("next_building_id", buildings.size() + 1))
@@ -207,4 +220,5 @@ func import_state(data: Dictionary) -> void:
 	gold_changed.emit(gold)
 	quests_changed.emit()
 	quest_filters_changed.emit()
+	quest_history_changed.emit()
 	state_reloaded.emit()
