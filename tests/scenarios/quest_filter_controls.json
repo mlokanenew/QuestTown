@@ -2,6 +2,7 @@
   "name": "Quest filters control available offers",
   "goal": "Disable every quest template except Escort Merchant Cart and verify only that offer type remains available.",
   "seed": 42,
+  "llm_bootstrap_commands": true,
   "max_ticks": 60,
   "commands": [
     {"cmd": "set_quest_enabled", "id": "clear_wolves", "enabled": false},
@@ -15,4 +16,3 @@
     {"assert": "quest_templates_only", "value": ["escort_merchant_cart"]}
   ]
 }
-

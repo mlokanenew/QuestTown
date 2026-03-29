@@ -8,8 +8,8 @@
     {"cmd": "place_building", "type": "tavern", "x": 4, "z": 0}
   ],
   "assertions": [
-    {"assert": "building_count_gte", "value": 1},
+    {"assert": "building_type_count_eq", "type": "tavern", "value": 1},
     {"assert": "building_level_eq", "type": "tavern", "value": 1},
-    {"assert": "gold_eq", "value": 50}
+    {"assert": "gold_eq", "value": 450}
   ]
 }

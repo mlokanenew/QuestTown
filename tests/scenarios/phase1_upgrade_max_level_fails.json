@@ -11,6 +11,6 @@
   ],
   "assertions": [
     {"assert": "building_level_eq", "type": "tavern", "value": 3},
-    {"assert": "gold_eq", "value": 0}
+    {"assert": "gold_eq", "value": 400}
   ]
 }

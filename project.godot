@@ -14,7 +14,7 @@ config/name="QuestTown"
 config/description="WFRP-inspired town builder"
 run/main_scene="res://scenes/Boot.tscn"
 config/features=PackedStringArray("4.6", "Forward Plus")
-config/icon="res://icon.svg"
+config/icon="res://assets/ui/tavern_icon.svg"
 
 [autoload]
 

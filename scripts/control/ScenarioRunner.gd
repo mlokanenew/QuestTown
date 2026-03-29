@@ -86,6 +86,9 @@ func _execute_command(sim: Node, cmd: Dictionary) -> void:
 			sim.save_world(cmd.get("path", ""))
 		"load_world":
 			sim.load_world(cmd.get("path", ""))
+		"set_gold":
+			GameState.gold = int(cmd.get("value", GameState.gold))
+			GameState.gold_changed.emit(GameState.gold)
 		"reset_world":
 			sim.reset_world(cmd.get("seed", 0))
 
@@ -104,6 +107,12 @@ func _check(assertion: Dictionary, state: Dictionary) -> bool:
 			return false
 		"building_count_gte":
 			return state["buildings"].size() >= int(assertion.get("value", 1))
+		"building_type_count_eq":
+			var count := 0
+			for b in state["buildings"]:
+				if b["type"] == assertion.get("type", ""):
+					count += 1
+			return count == int(assertion.get("value", 0))
 		"quest_count_gte":
 			return state.get("quests", []).size() >= int(assertion.get("value", 1))
 		"completed_quest_count_gte":

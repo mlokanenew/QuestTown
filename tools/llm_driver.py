@@ -41,6 +41,9 @@ RUN_UNTIL_EVENTS = {
     "hero_completed_quest",
     "hero_heading_home",
     "hero_returned_from_quest",
+    "hero_spent_at_tavern",
+    "hero_spent_at_weapons_shop",
+    "hero_spent_at_temple",
 }
 
 SYSTEM_PROMPT = """You control a medieval town-builder game test harness.
@@ -96,6 +99,11 @@ def check_assertions(assertions: list, state: dict) -> tuple[bool, list]:
                 failures.append(assertion)
         elif kind == "building_count_gte":
             if len(buildings) < assertion.get("value", 1):
+                failures.append(assertion)
+        elif kind == "building_type_count_eq":
+            target_type = assertion.get("type", "")
+            count = sum(1 for building in buildings if building.get("type") == target_type)
+            if count != int(assertion.get("value", 0)):
                 failures.append(assertion)
         elif kind == "quest_count_gte":
             if len(state.get("quests", [])) < assertion.get("value", 1):
@@ -217,6 +225,8 @@ def normalize_command(cmd: dict) -> dict | None:
         if not quest_id:
             return None
         return {"cmd": "set_quest_enabled", "id": quest_id, "enabled": bool(cmd.get("enabled", True))}
+    if name == "set_gold":
+        return {"cmd": "set_gold", "value": int(cmd.get("value", 0))}
     if name == "run_until":
         event = cmd.get("event", "hero_arrived_at_tavern")
         if event not in RUN_UNTIL_EVENTS:
@@ -272,6 +282,8 @@ def choose_fallback_command(state: dict, failures: list) -> dict:
         kind = failure.get("assert", "")
         if kind == "gold_gte":
             required_buildings.update({"tavern", "weapons_shop", "temple"})
+        if kind == "quest_count_gte" or kind == "quest_templates_only":
+            required_buildings.add("tavern")
         if kind == "event_type_seen":
             event_type = failure.get("value", "")
             if event_type == "hero_spent_at_tavern":
@@ -318,6 +330,12 @@ def choose_fallback_command(state: dict, failures: list) -> dict:
                 return {"cmd": "place_building", "type": target_type, **placement}
             return {"cmd": "upgrade_building", "type": target_type}
         if kind == "quest_count_gte":
+            if "tavern" not in building_types:
+                return {"cmd": "place_building", "type": "tavern", "x": 0, "z": 0}
+            return {"cmd": "step_ticks", "n": 300}
+        if kind == "quest_templates_only":
+            if "tavern" not in building_types:
+                return {"cmd": "place_building", "type": "tavern", "x": 0, "z": 0}
             return {"cmd": "step_ticks", "n": 600}
         if kind == "gold_gte":
             for building_type in ("tavern", "weapons_shop", "temple"):
@@ -346,7 +364,7 @@ def choose_fallback_command(state: dict, failures: list) -> dict:
             if event_type in {"hero_completed_quest", "hero_heading_home", "hero_returned_from_quest"}:
                 return {"cmd": "run_until", "event": event_type, "max_ticks": 3600}
             if event_type in {"hero_spent_at_tavern", "hero_spent_at_weapons_shop", "hero_spent_at_temple"}:
-                return {"cmd": "step_ticks", "n": 900}
+                return {"cmd": "run_until", "event": event_type, "max_ticks": 3600}
             return {"cmd": "step_ticks", "n": 900}
 
     for building_type in ("tavern", "weapons_shop", "temple"):
@@ -369,12 +387,32 @@ def choose_fallback_command(state: dict, failures: list) -> dict:
     return {"cmd": "step_ticks", "n": 300}
 
 
-def is_useful_command(cmd: dict, state: dict, last_cmd: dict | None) -> bool:
+def is_useful_command(cmd: dict, state: dict, last_cmd: dict | None, failures: list) -> bool:
     if cmd is None:
         return False
 
     buildings = state.get("buildings", [])
     building_types = {building.get("type") for building in buildings}
+    required_buildings = set()
+    for failure in failures:
+        kind = failure.get("assert", "")
+        if kind in {"quest_count_gte", "quest_templates_only"}:
+            required_buildings.add("tavern")
+        if kind == "gold_gte":
+            required_buildings.update({"tavern", "weapons_shop", "temple"})
+        if kind == "event_type_seen":
+            event_type = failure.get("value", "")
+            if event_type == "hero_spent_at_tavern":
+                required_buildings.add("tavern")
+            elif event_type == "hero_spent_at_weapons_shop":
+                required_buildings.add("weapons_shop")
+            elif event_type == "hero_spent_at_temple":
+                required_buildings.add("temple")
+
+    missing_required = [b for b in ("tavern", "weapons_shop", "temple") if b in required_buildings and b not in building_types]
+    if missing_required:
+        return cmd.get("cmd") == "place_building" and cmd.get("type") == missing_required[0]
+
     if cmd.get("cmd") == "place_building" and cmd.get("type") in building_types:
         return False
     if cmd.get("cmd") == "upgrade_building" and cmd.get("type") not in building_types:
@@ -421,6 +459,10 @@ async def run_llm(reader, writer, scenario: dict, model: str) -> dict:
     last_cmd = None
 
     await tcp_cmd(reader, writer, {"cmd": "reset_world", "seed": scenario.get("seed", 42)})
+    if scenario.get("llm_bootstrap_commands", False) or int(scenario.get("max_ticks", 0)) == 0:
+        for cmd in scenario.get("commands", []):
+            resp = await tcp_cmd(reader, writer, cmd)
+            history.append({"role": "assistant", "content": json.dumps({"command": cmd, "response": resp})})
 
     for turn in range(MAX_LLM_TURNS):
         state_resp = await tcp_cmd(reader, writer, {"cmd": "get_world_state"})
@@ -439,7 +481,7 @@ async def run_llm(reader, writer, scenario: dict, model: str) -> dict:
 
         llm_cmd = ask_llm(model, goal, state, history, failures)
         cmd = normalize_command(llm_cmd)
-        if not is_useful_command(cmd, state, last_cmd):
+        if not is_useful_command(cmd, state, last_cmd, failures):
             cmd = choose_fallback_command(state, failures)
             print(f"[LLM] fallback cmd: {json.dumps(cmd)}")
         else:

@@ -90,11 +90,11 @@ func get_building_count(type: String) -> int:
 
 # --- Heroes ---
 
-func add_hero(name: String, career_data: Dictionary, profile: Dictionary = {}) -> Dictionary:
+func add_hero(hero_name: String, career_data: Dictionary, profile: Dictionary = {}) -> Dictionary:
 	var career_name: String = career_data.get("name", "Mercenary")
 	var h := {
 		"id": _next_hero_id,
-		"name": name,
+		"name": hero_name,
 		"career_id": career_data.get("id", "mercenary"),
 		"career": career_name,
 		"career_tier": career_data.get("tier", "basic"),

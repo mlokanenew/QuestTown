@@ -5,7 +5,7 @@ const OPTIONS_SCENE := preload("res://scenes/ui/OptionsMenu.tscn")
 
 @onready var _menu_host: MenuHost = $MenuHost
 @onready var _fade: ScreenFade = $ScreenFade
-@onready var _load_button: Button = $Center/VBox/LoadButton
+@onready var _load_button: Button = $Center/VBox/Panel/Margin/Inner/LoadButton
 @onready var _status_label: Label = $Center/VBox/StatusLabel
 
 func _ready() -> void:

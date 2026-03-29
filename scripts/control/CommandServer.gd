@@ -109,6 +109,11 @@ func _handle(cmd: Dictionary) -> void:
 		"load_world":
 			_respond({"ok": _sim.load_world(cmd.get("path", ""))})
 
+		"set_gold":
+			GameState.gold = int(cmd.get("value", GameState.gold))
+			GameState.gold_changed.emit(GameState.gold)
+			_respond({"ok": true, "gold": GameState.gold})
+
 		"get_heroes":
 			_respond({"ok": true, "result": _sim.get_heroes()})
 
