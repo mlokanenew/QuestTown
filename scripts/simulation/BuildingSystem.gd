@@ -44,7 +44,7 @@ func upgrade_building(id: int) -> Dictionary:
 	if current_level >= levels.size():
 		return {}
 
-	var next_level_data: Dictionary = levels[current_level]
+	var next_level_data: Dictionary = levels[current_level - 1]
 	var upgrade_cost: int = int(next_level_data.get("upgrade_cost", 0))
 	if not GameState.spend_gold(upgrade_cost):
 		return {}

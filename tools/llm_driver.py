@@ -21,6 +21,7 @@ Usage:
 import argparse
 import asyncio
 import json
+import socket
 import subprocess
 import sys
 from pathlib import Path
@@ -29,7 +30,6 @@ import requests
 
 GODOT_EXE = r"C:\Users\mloka\Downloads\godot_extracted\Godot_v4.6.1-stable_win64_console.exe"
 PROJECT_DIR = str(Path(__file__).parent.parent)
-TCP_PORT = 8765
 OLLAMA_URL = "http://localhost:11434/api/chat"
 DEFAULT_MODEL = "phi3:mini"
 CONNECT_TIMEOUT = 30
@@ -113,6 +113,14 @@ def check_assertions(assertions: list, state: dict) -> tuple[bool, list]:
             if not any(event.get("type", "") == target for event in state.get("events", [])):
                 failures.append(assertion)
     return len(failures) == 0, failures
+
+
+def choose_port(port_arg: int) -> int:
+    if port_arg > 0:
+        return port_arg
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        sock.bind(("127.0.0.1", 0))
+        return int(sock.getsockname()[1])
 
 
 def ask_llm(model: str, goal: str, state: dict, history: list, failures: list) -> dict | None:
@@ -441,10 +449,12 @@ async def main(args):
     scenario_path = Path(args.scenario)
     with open(scenario_path, encoding="utf-8") as handle:
         scenario = json.load(handle)
+    tcp_port = choose_port(args.port)
 
     print(f"[driver] scenario : {scenario.get('name', '?')}")
     print(f"[driver] goal     : {scenario.get('goal', '(none)')}")
     print(f"[driver] model    : {'--no-llm (scripted)' if args.no_llm else args.model}")
+    print(f"[driver] tcp port : {tcp_port}")
 
     reader_holder = []
     writer_holder = []
@@ -455,8 +465,8 @@ async def main(args):
         writer_holder.append(writer)
         connected.set()
 
-    server = await asyncio.start_server(handler, "127.0.0.1", TCP_PORT)
-    print(f"[driver] TCP server listening on 127.0.0.1:{TCP_PORT}")
+    server = await asyncio.start_server(handler, "127.0.0.1", tcp_port)
+    print(f"[driver] TCP server listening on 127.0.0.1:{tcp_port}")
 
     godot_cmd = [
         GODOT_EXE,
@@ -465,7 +475,7 @@ async def main(args):
         PROJECT_DIR,
         "--",
         "--mode=headless",
-        f"--port={TCP_PORT}",
+        f"--port={tcp_port}",
         f"--seed={scenario.get('seed', 42)}",
     ]
     print("[driver] launching Godot...")
@@ -519,5 +529,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="QuestTown LLM Driver")
     parser.add_argument("--scenario", required=True)
     parser.add_argument("--model", default=DEFAULT_MODEL, help="Ollama model name")
+    parser.add_argument("--port", type=int, default=0, help="TCP port for Godot callback; 0 chooses a free port")
     parser.add_argument("--no-llm", action="store_true", help="Use scripted sequence instead of LLM")
     asyncio.run(main(parser.parse_args()))
