@@ -5,9 +5,8 @@ This repo is structured to use GitHub Projects v2 plus Issues as the source of t
 ## Recommended Project Shape
 
 - One user-level GitHub Project for `QuestTown Development`
-- Issues for all work items
-- Epic issues for large slices
-- Task issues for concrete implementation work
+- User story issues for all tracked work in the kanban
+- Epic issues only as reference or parent issues outside the working board
 - A board view grouped by `Status`
 - A table view for backlog grooming
 - An optional roadmap or iteration view later
@@ -47,8 +46,8 @@ Create these fields in the GitHub Project:
 
 ## Views
 
-- `Board`: group by `Status`
-- `Backlog Table`: sort by `Priority`, then `Size`
+- `Board`: group by `Status`, stories only
+- `Backlog Table`: sort by `Priority`, then `Size`, stories only
 - `Roadmap`: optional once date fields or iterations are in use
 
 ## Automations
@@ -58,6 +57,8 @@ Turn on these Project workflows:
 - auto-add new issues from `mlokanenew/QuestTown`
 - set `Status = Backlog` for new items
 - archive items when `Status = Done`
+
+If epic issues are still used, keep them out of Project views or remove them from the Project after creation so the kanban remains story-only.
 
 This repo also contains `.github/workflows/add-to-project.yml`.
 To enable it:
@@ -74,12 +75,12 @@ To enable it:
 
 ## Assistant Workflow
 
-- move the next actionable item to `Ready`
+- move the next actionable story to `Ready`
 - branch from the linked issue
-- implement the task
+- implement the story
 - open a PR referencing the issue
-- move the issue to `Review / Test`
-- when merged, close the issue and move it to `Done`
+- move the issue to `Done`
+- move it to `Done and Checked` only after it has been verified in-game or through the required checks
 
 ## Current Limitation
 

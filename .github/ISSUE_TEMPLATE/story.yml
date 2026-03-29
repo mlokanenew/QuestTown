@@ -1,15 +1,23 @@
-name: Epic
-description: Large reference issue that should be broken into concrete user stories.
-title: "Epic: "
-labels:
-  - epic
+name: User Story
+description: Player-facing story for one bounded gameplay, UX, or tooling outcome.
+title: "Story: "
 body:
+  - type: textarea
+    id: story
+    attributes:
+      label: User Story
+      description: Write the story in player or developer value form.
+      placeholder: |
+        As a player,
+        I want ...
+        so that ...
+    validations:
+      required: true
   - type: textarea
     id: summary
     attributes:
       label: Summary
-      description: State the user-facing outcome this epic should achieve.
-      placeholder: Deliver a clear, testable gameplay or tooling outcome.
+      description: Describe the concrete change this story should deliver.
     validations:
       required: true
   - type: dropdown
@@ -36,14 +44,15 @@ body:
         - P2
     validations:
       required: true
-  - type: textarea
-    id: child_work
+  - type: dropdown
+    id: size
     attributes:
-      label: Child Stories
-      description: List the concrete user stories that should sit under this epic.
-      placeholder: |
-        - [ ] #123 Story: ...
-        - [ ] #124 Story: ...
+      label: Size
+      options:
+        - XS
+        - S
+        - M
+        - L
     validations:
       required: true
   - type: textarea
@@ -52,7 +61,7 @@ body:
       label: Acceptance Criteria
       placeholder: |
         - Player-visible behavior is complete
-        - Headless test coverage exists
-        - Save/load path remains valid
+        - Tests added or updated
+        - No regressions in the current playable loop
     validations:
       required: true
