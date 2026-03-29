@@ -3,13 +3,18 @@ extends Node
 ## Attach to the UI EventLog node in visual mode.
 
 @export var max_lines: int = 20
-@onready var label: RichTextLabel = $EventLog
+@onready var label: RichTextLabel = $VBox/EventLog
 
 func _ready() -> void:
 	if RuntimeConfig.is_headless():
 		return
+	set_compact_mode(true)
 	GameState.event_logged.connect(_on_event)
 	GameState.state_reloaded.connect(_rebuild_from_state)
+
+func set_compact_mode(compact: bool) -> void:
+	max_lines = 3 if compact else 20
+	_rebuild_from_state()
 
 func _on_event(event: Dictionary) -> void:
 	var msg := _format(event)

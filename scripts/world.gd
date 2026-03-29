@@ -9,6 +9,10 @@ var _selected_hero_id: int = -1
 var _selected_building_id: int = -1
 var _quest_filter_boxes: Dictionary = {}
 var _pause_menu: CanvasLayer = null
+var _left_panel_collapsed: bool = false
+var _right_panel_collapsed: bool = true
+var _event_feed_expanded: bool = false
+var _selected_entity_kind: String = ""
 
 const BUILDING_ICONS := {
 	"tavern": "res://assets/ui/tavern_icon.svg",
@@ -27,36 +31,66 @@ func _ready() -> void:
 		return
 
 	if not RuntimeConfig.is_headless():
-		var btn := get_node_or_null("UILayer/UI/BuildButton")
+		var btn := get_node_or_null("UILayer/LeftPanel/VBox/BuildRail/BuildButton")
 		if btn:
 			btn.pressed.connect(_on_build_tavern_pressed)
-		var btn2 := get_node_or_null("UILayer/UI/BuildWeaponsShopButton")
+		var btn2 := get_node_or_null("UILayer/LeftPanel/VBox/BuildRail/BuildWeaponsShopButton")
 		if btn2:
 			btn2.pressed.connect(_on_build_weapons_shop_pressed)
-		var btn3 := get_node_or_null("UILayer/UI/BuildTempleButton")
+		var btn3 := get_node_or_null("UILayer/LeftPanel/VBox/BuildRail/BuildTempleButton")
 		if btn3:
 			btn3.pressed.connect(_on_build_temple_pressed)
-		var up1 := get_node_or_null("UILayer/UI/UpgradeTavernButton")
-		if up1:
-			up1.pressed.connect(func() -> void: _upgrade_building_type("tavern"))
-		var up2 := get_node_or_null("UILayer/UI/UpgradeWeaponsShopButton")
-		if up2:
-			up2.pressed.connect(func() -> void: _upgrade_building_type("weapons_shop"))
-		var up3 := get_node_or_null("UILayer/UI/UpgradeTempleButton")
-		if up3:
-			up3.pressed.connect(func() -> void: _upgrade_building_type("temple"))
-		var save_btn := get_node_or_null("UILayer/UI/SaveButton")
+		var upgrade_btn := get_node_or_null("UILayer/LeftPanel/VBox/ContextUpgradeButton")
+		if upgrade_btn:
+			upgrade_btn.pressed.connect(_upgrade_selected_building)
+		var save_btn := get_node_or_null("UILayer/LeftPanel/VBox/SaveLoadRow/SaveButton")
 		if save_btn:
 			save_btn.pressed.connect(_save_world)
-		var load_btn := get_node_or_null("UILayer/UI/LoadButton")
+		var load_btn := get_node_or_null("UILayer/LeftPanel/VBox/SaveLoadRow/LoadButton")
 		if load_btn:
 			load_btn.pressed.connect(_load_world)
-		var enable_all_btn := get_node_or_null("UILayer/QuestPanel/QuestVBox/QuestFilterControls/EnableAllQuestsButton")
+		var enable_all_btn := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestFilterControls/EnableAllQuestsButton")
 		if enable_all_btn:
 			enable_all_btn.pressed.connect(func() -> void: _set_all_quest_filters(true))
-		var disable_all_btn := get_node_or_null("UILayer/QuestPanel/QuestVBox/QuestFilterControls/DisableAllQuestsButton")
+		var disable_all_btn := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestFilterControls/DisableAllQuestsButton")
 		if disable_all_btn:
 			disable_all_btn.pressed.connect(func() -> void: _set_all_quest_filters(false))
+		var quest_btn := get_node_or_null("UILayer/TopBar/TopBarRow/QuestDrawerButton")
+		if quest_btn:
+			quest_btn.pressed.connect(_toggle_quest_drawer)
+		var quest_close := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestHeader/QuestCloseButton")
+		if quest_close:
+			quest_close.pressed.connect(_toggle_quest_drawer)
+		var build_toggle := get_node_or_null("UILayer/TopBar/TopBarRow/BuildPanelToggleButton")
+		if build_toggle:
+			build_toggle.pressed.connect(_toggle_left_panel)
+		var details_toggle := get_node_or_null("UILayer/TopBar/TopBarRow/DetailsPanelToggleButton")
+		if details_toggle:
+			details_toggle.pressed.connect(_toggle_right_panel)
+		var left_collapse := get_node_or_null("UILayer/LeftPanel/VBox/Header/CollapseButton")
+		if left_collapse:
+			left_collapse.pressed.connect(_toggle_left_panel)
+		var right_collapse := get_node_or_null("UILayer/RightPanel/VBox/Header/CollapseButton")
+		if right_collapse:
+			right_collapse.pressed.connect(_toggle_right_panel)
+		var left_tab := get_node_or_null("UILayer/LeftPanelTab")
+		if left_tab:
+			left_tab.pressed.connect(_toggle_left_panel)
+		var right_tab := get_node_or_null("UILayer/RightPanelTab")
+		if right_tab:
+			right_tab.pressed.connect(_toggle_right_panel)
+		var expand_log := get_node_or_null("UILayer/EventLogPanel/VBox/Header/ExpandButton")
+		if expand_log:
+			expand_log.pressed.connect(_toggle_event_feed)
+		var speed1 := get_node_or_null("UILayer/TopBar/TopBarRow/Speed1Button")
+		if speed1:
+			speed1.pressed.connect(func() -> void: _set_time_scale(1.0))
+		var speed2 := get_node_or_null("UILayer/TopBar/TopBarRow/Speed2Button")
+		if speed2:
+			speed2.pressed.connect(func() -> void: _set_time_scale(2.0))
+		var speed3 := get_node_or_null("UILayer/TopBar/TopBarRow/Speed3Button")
+		if speed3:
+			speed3.pressed.connect(func() -> void: _set_time_scale(3.0))
 		GameState.gold_changed.connect(_on_gold_changed)
 		GameState.building_placed.connect(_on_building_state_changed)
 		GameState.building_removed.connect(_on_building_removed)
@@ -73,7 +107,10 @@ func _ready() -> void:
 		if RuntimeConfig.request_load_world:
 			RuntimeConfig.request_load_world = false
 			_load_world()
-		_set_status("LMB place/select  RMB rotate build  Q/E cycle  Del remove  F1/F5 save  F2/F9 load")
+		_apply_panel_state()
+		_refresh_top_bar()
+		_toggle_event_feed(false)
+		_set_status("LMB place/select  RMB rotate build  Q/E cycle  Del remove  B/C panels  K quests")
 
 func _physics_process(delta: float) -> void:
 	if RuntimeConfig.is_headless():
@@ -82,6 +119,9 @@ func _physics_process(delta: float) -> void:
 	# Refresh selected hero panel each physics tick so state/position stay current
 	if _selected_hero_id >= 0 and GameState.heroes.has(_selected_hero_id):
 		_refresh_hero_panel(_selected_hero_id)
+	elif _selected_building_id >= 0 and GameState.buildings.has(_selected_building_id):
+		_refresh_building_panel(_selected_building_id)
+	_refresh_top_bar()
 
 func _unhandled_input(event: InputEvent) -> void:
 	if RuntimeConfig.is_headless():
@@ -107,7 +147,23 @@ func _unhandled_input(event: InputEvent) -> void:
 			_remove_selected_building()
 			get_viewport().set_input_as_handled()
 			return
+		if event.keycode == KEY_B:
+			_toggle_left_panel()
+			get_viewport().set_input_as_handled()
+			return
+		if event.keycode == KEY_C:
+			_toggle_right_panel()
+			get_viewport().set_input_as_handled()
+			return
+		if event.keycode == KEY_K:
+			_toggle_quest_drawer()
+			get_viewport().set_input_as_handled()
+			return
 		if event.keycode == KEY_ESCAPE and not build_manager.is_placing():
+			if _is_quest_drawer_open():
+				_toggle_quest_drawer()
+				get_viewport().set_input_as_handled()
+				return
 			_toggle_pause_menu()
 			get_viewport().set_input_as_handled()
 			return
@@ -160,33 +216,39 @@ func _try_select_building(mouse_pos: Vector2) -> bool:
 	_selected_building_id = int(result["collider"].get_meta("building_id"))
 	var building: Dictionary = GameState.buildings.get(_selected_building_id, {})
 	_set_status("Selected %s  (Del remove)" % building.get("type", "building"))
+	_show_building_panel(_selected_building_id)
 	return true
 
 func _show_hero_panel(hero_id: int) -> void:
 	if not GameState.heroes.has(hero_id):
 		return
+	_selected_building_id = -1
+	_selected_entity_kind = "hero"
 	_selected_hero_id = hero_id
 	_refresh_hero_panel(hero_id)
-	var panel := get_node_or_null("UILayer/HeroPanel")
-	if panel:
+	var panel := get_node_or_null("UILayer/RightPanel")
+	if panel and not _right_panel_collapsed:
 		panel.visible = true
 
 func _refresh_hero_panel(hero_id: int) -> void:
 	if not GameState.heroes.has(hero_id):
 		return
 	var h: Dictionary = GameState.heroes[hero_id]
-	var name_lbl := get_node_or_null("UILayer/HeroPanel/VBox/NameLabel")
-	var career_lbl := get_node_or_null("UILayer/HeroPanel/VBox/CareerLabel")
-	var state_lbl := get_node_or_null("UILayer/HeroPanel/VBox/StateLabel")
-	var level_lbl := get_node_or_null("UILayer/HeroPanel/VBox/LevelLabel")
-	var health_lbl := get_node_or_null("UILayer/HeroPanel/VBox/HealthLabel")
-	var gold_lbl := get_node_or_null("UILayer/HeroPanel/VBox/HeroGoldLabel")
-	var bias_lbl := get_node_or_null("UILayer/HeroPanel/VBox/BiasLabel")
-	var stats_lbl := get_node_or_null("UILayer/HeroPanel/VBox/StatsLabel")
-	var skills_lbl := get_node_or_null("UILayer/HeroPanel/VBox/SkillsLabel")
-	var tags_lbl := get_node_or_null("UILayer/HeroPanel/VBox/TagsLabel")
-	var desc_lbl := get_node_or_null("UILayer/HeroPanel/VBox/DescriptionLabel")
-	var quest_lbl := get_node_or_null("UILayer/HeroPanel/VBox/CurrentQuestLabel")
+	var title_lbl := get_node_or_null("UILayer/RightPanel/VBox/Header/EntityTitle")
+	var name_lbl := get_node_or_null("UILayer/RightPanel/VBox/NameLabel")
+	var career_lbl := get_node_or_null("UILayer/RightPanel/VBox/CareerLabel")
+	var state_lbl := get_node_or_null("UILayer/RightPanel/VBox/StateLabel")
+	var level_lbl := get_node_or_null("UILayer/RightPanel/VBox/LevelLabel")
+	var health_lbl := get_node_or_null("UILayer/RightPanel/VBox/HealthLabel")
+	var gold_lbl := get_node_or_null("UILayer/RightPanel/VBox/HeroGoldLabel")
+	var bias_lbl := get_node_or_null("UILayer/RightPanel/VBox/BiasLabel")
+	var stats_lbl := get_node_or_null("UILayer/RightPanel/VBox/StatsLabel")
+	var skills_lbl := get_node_or_null("UILayer/RightPanel/VBox/SkillsLabel")
+	var tags_lbl := get_node_or_null("UILayer/RightPanel/VBox/TagsLabel")
+	var desc_lbl := get_node_or_null("UILayer/RightPanel/VBox/DescriptionLabel")
+	var quest_lbl := get_node_or_null("UILayer/RightPanel/VBox/CurrentQuestLabel")
+	if title_lbl:
+		title_lbl.text = "Hero"
 	if name_lbl:
 		name_lbl.text = h["name"]
 	if career_lbl:
@@ -225,9 +287,72 @@ func _refresh_hero_panel(hero_id: int) -> void:
 
 func _hide_hero_panel() -> void:
 	_selected_hero_id = -1
-	var panel := get_node_or_null("UILayer/HeroPanel")
+	_selected_entity_kind = ""
+	var panel := get_node_or_null("UILayer/RightPanel")
 	if panel:
 		panel.visible = false
+
+func _show_building_panel(building_id: int) -> void:
+	if not GameState.buildings.has(building_id):
+		return
+	_selected_hero_id = -1
+	_selected_entity_kind = "building"
+	_selected_building_id = building_id
+	_refresh_building_panel(building_id)
+	var panel := get_node_or_null("UILayer/RightPanel")
+	if panel and not _right_panel_collapsed:
+		panel.visible = true
+
+func _refresh_building_panel(building_id: int) -> void:
+	var building: Dictionary = GameState.buildings.get(building_id, {})
+	if building.is_empty():
+		return
+	var title_lbl := get_node_or_null("UILayer/RightPanel/VBox/Header/EntityTitle")
+	var name_lbl := get_node_or_null("UILayer/RightPanel/VBox/NameLabel")
+	var career_lbl := get_node_or_null("UILayer/RightPanel/VBox/CareerLabel")
+	var state_lbl := get_node_or_null("UILayer/RightPanel/VBox/StateLabel")
+	var level_lbl := get_node_or_null("UILayer/RightPanel/VBox/LevelLabel")
+	var health_lbl := get_node_or_null("UILayer/RightPanel/VBox/HealthLabel")
+	var gold_lbl := get_node_or_null("UILayer/RightPanel/VBox/HeroGoldLabel")
+	var bias_lbl := get_node_or_null("UILayer/RightPanel/VBox/BiasLabel")
+	var stats_lbl := get_node_or_null("UILayer/RightPanel/VBox/StatsLabel")
+	var skills_lbl := get_node_or_null("UILayer/RightPanel/VBox/SkillsLabel")
+	var tags_lbl := get_node_or_null("UILayer/RightPanel/VBox/TagsLabel")
+	var desc_lbl := get_node_or_null("UILayer/RightPanel/VBox/DescriptionLabel")
+	var quest_lbl := get_node_or_null("UILayer/RightPanel/VBox/CurrentQuestLabel")
+	var building_type: String = building.get("type", "")
+	var data: Dictionary = DataLoader.buildings_by_id.get(building_type, {})
+	var level: int = int(building.get("level", 1))
+	var levels: Array = data.get("levels", [])
+	var level_name: String = ""
+	if level > 0 and level <= levels.size():
+		level_name = String(levels[level - 1].get("name", ""))
+	if title_lbl:
+		title_lbl.text = "Building"
+	if name_lbl:
+		name_lbl.text = data.get("name", building_type.capitalize())
+	if career_lbl:
+		career_lbl.text = "Type: %s" % building_type.replace("_", " ").capitalize()
+	if state_lbl:
+		state_lbl.text = "Selected for upgrade/removal"
+	if level_lbl:
+		level_lbl.text = "Level %d  %s" % [level, level_name]
+	if health_lbl:
+		health_lbl.text = "Footprint %s" % str(data.get("footprint", [1, 1]))
+	if gold_lbl:
+		gold_lbl.text = "Base Cost %dg" % int(data.get("base_cost", 0))
+	if bias_lbl:
+		bias_lbl.text = "Position: (%.0f, %.0f)" % [float(building.get("position", {}).get("x", 0.0)), float(building.get("position", {}).get("z", 0.0))]
+	if stats_lbl:
+		stats_lbl.text = "Upgrades available: %s" % ("Yes" if level < levels.size() else "Maxed")
+	if skills_lbl:
+		skills_lbl.text = "Scene: %s" % data.get("scene", "")
+	if tags_lbl:
+		tags_lbl.text = "Effects: %s" % ", ".join(data.get("levels", [])[level - 1].get("effects", {}).keys()) if level > 0 and level <= levels.size() else ""
+	if quest_lbl:
+		quest_lbl.text = "Current Use: %s" % ("Supports quests and town services")
+	if desc_lbl:
+		desc_lbl.text = data.get("description", "")
 
 func _remove_selected_building() -> void:
 	if _selected_building_id < 0:
@@ -276,14 +401,22 @@ func _on_build_temple_pressed() -> void:
 
 func _on_gold_changed(amount: int) -> void:
 	var lbl := get_node_or_null("UILayer/UI/GoldLabel")
+	lbl = get_node_or_null("UILayer/TopBar/TopBarRow/GoldLabel")
 	if lbl:
 		lbl.text = "Gold: %d" % amount
 	_refresh_build_ui()
+	_refresh_top_bar()
 
 func _on_building_state_changed(_building: Dictionary) -> void:
 	_refresh_build_ui()
 
 func _on_building_removed(_building_id: int) -> void:
+	if _building_id == _selected_building_id:
+		_selected_building_id = -1
+		_selected_entity_kind = ""
+		var panel := get_node_or_null("UILayer/RightPanel")
+		if panel:
+			panel.visible = false
 	_refresh_build_ui()
 
 func _on_building_upgraded(_building_id: int, _new_level: int) -> void:
@@ -311,12 +444,10 @@ func _get_building_of_type(building_type: String) -> Dictionary:
 	return {}
 
 func _refresh_build_ui() -> void:
-	_refresh_build_button("tavern", "UILayer/UI/BuildButton")
-	_refresh_build_button("weapons_shop", "UILayer/UI/BuildWeaponsShopButton")
-	_refresh_build_button("temple", "UILayer/UI/BuildTempleButton")
-	_refresh_upgrade_button("tavern", "UILayer/UI/UpgradeTavernButton")
-	_refresh_upgrade_button("weapons_shop", "UILayer/UI/UpgradeWeaponsShopButton")
-	_refresh_upgrade_button("temple", "UILayer/UI/UpgradeTempleButton")
+	_refresh_build_button("tavern", "UILayer/LeftPanel/VBox/BuildRail/BuildButton")
+	_refresh_build_button("weapons_shop", "UILayer/LeftPanel/VBox/BuildRail/BuildWeaponsShopButton")
+	_refresh_build_button("temple", "UILayer/LeftPanel/VBox/BuildRail/BuildTempleButton")
+	_refresh_context_upgrade_button()
 
 func _refresh_build_button(building_type: String, path: String) -> void:
 	var button := get_node_or_null(path)
@@ -329,32 +460,37 @@ func _refresh_build_button(building_type: String, path: String) -> void:
 	button.icon = load(BUILDING_ICONS.get(building_type, ""))
 	button.disabled = GameState.get_building_count(building_type) > 0 or GameState.gold < base_cost
 
-func _refresh_upgrade_button(building_type: String, path: String) -> void:
-	var button := get_node_or_null(path)
+func _refresh_context_upgrade_button() -> void:
+	var button := get_node_or_null("UILayer/LeftPanel/VBox/ContextUpgradeButton")
 	if button == null:
 		return
+	if _selected_building_id < 0 or not GameState.buildings.has(_selected_building_id):
+		button.visible = false
+		return
+	var building: Dictionary = GameState.buildings[_selected_building_id]
+	var building_type: String = building.get("type", "")
 	var data: Dictionary = DataLoader.buildings_by_id.get(building_type, {})
 	var building_name: String = data.get("name", building_type.capitalize())
-	var building := _get_building_of_type(building_type)
 	if building.is_empty():
-		button.text = "Upgrade %s  (place first)" % building_name
-		button.disabled = true
+		button.visible = false
 		return
 
 	var current_level: int = int(building.get("level", 1))
 	var levels: Array = data.get("levels", [])
 	if current_level >= levels.size():
+		button.visible = true
 		button.text = "%s Max Level" % building_name
 		button.disabled = true
 		return
 
 	var next_level: Dictionary = levels[current_level]
 	var next_cost: int = int(next_level.get("upgrade_cost", 0))
+	button.visible = true
 	button.text = "Upgrade %s  (L%d -> L%d, %dg)" % [building_name, current_level, current_level + 1, next_cost]
 	button.disabled = GameState.gold < next_cost
 
 func _setup_quest_menu() -> void:
-	var list := get_node_or_null("UILayer/QuestPanel/QuestVBox/QuestFilterList")
+	var list := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestFilterList")
 	if list == null:
 		return
 	for child in list.get_children():
@@ -382,11 +518,11 @@ func _refresh_quest_ui() -> void:
 		if enabled:
 			enabled_count += 1
 
-	var summary_label := get_node_or_null("UILayer/QuestPanel/QuestVBox/QuestFilterSummaryLabel")
+	var summary_label := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestFilterSummaryLabel")
 	if summary_label:
 		summary_label.text = "Enabled Templates: %d/%d" % [enabled_count, DataLoader.quests.size()]
 
-	var offers_label := get_node_or_null("UILayer/QuestPanel/QuestVBox/QuestOffersLabel")
+	var offers_label := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestOffersLabel")
 	if offers_label:
 		if GameState.quests.is_empty():
 			offers_label.text = "No quests available with the current filters and building unlocks."
@@ -402,10 +538,10 @@ func _refresh_quest_ui() -> void:
 				])
 			offers_label.text = "\n".join(offer_lines)
 
-	var active_summary := get_node_or_null("UILayer/QuestPanel/QuestVBox/ActiveQuestSummaryLabel")
-	var active_list := get_node_or_null("UILayer/QuestPanel/QuestVBox/ActiveQuestListLabel")
-	var completed_title := get_node_or_null("UILayer/QuestPanel/QuestVBox/CompletedQuestTitle")
-	var completed_list := get_node_or_null("UILayer/QuestPanel/QuestVBox/CompletedQuestListLabel")
+	var active_summary := get_node_or_null("UILayer/QuestDrawer/QuestVBox/ActiveQuestSummaryLabel")
+	var active_list := get_node_or_null("UILayer/QuestDrawer/QuestVBox/ActiveQuestListLabel")
+	var completed_title := get_node_or_null("UILayer/QuestDrawer/QuestVBox/CompletedQuestTitle")
+	var completed_list := get_node_or_null("UILayer/QuestDrawer/QuestVBox/CompletedQuestListLabel")
 	if active_summary == null or active_list == null:
 		return
 
@@ -483,6 +619,75 @@ func _load_world() -> void:
 		_set_status("No save file found")
 
 func _set_status(message: String) -> void:
-	var status_label := get_node_or_null("UILayer/UI/StatusLabel")
+	var status_label := get_node_or_null("UILayer/LeftPanel/VBox/StatusLabel")
 	if status_label:
 		status_label.text = message
+
+func _upgrade_selected_building() -> void:
+	if _selected_building_id < 0:
+		return
+	sim.upgrade_building(_selected_building_id)
+	if _selected_entity_kind == "building":
+		_refresh_building_panel(_selected_building_id)
+
+func _toggle_left_panel() -> void:
+	_left_panel_collapsed = not _left_panel_collapsed
+	_apply_panel_state()
+
+func _toggle_right_panel() -> void:
+	_right_panel_collapsed = not _right_panel_collapsed
+	_apply_panel_state()
+
+func _toggle_quest_drawer() -> void:
+	var drawer := get_node_or_null("UILayer/QuestDrawer")
+	if drawer:
+		drawer.visible = not drawer.visible
+
+func _is_quest_drawer_open() -> bool:
+	var drawer := get_node_or_null("UILayer/QuestDrawer")
+	return drawer != null and drawer.visible
+
+func _apply_panel_state() -> void:
+	var left_panel := get_node_or_null("UILayer/LeftPanel")
+	var left_tab := get_node_or_null("UILayer/LeftPanelTab")
+	if left_panel:
+		left_panel.visible = not _left_panel_collapsed
+	if left_tab:
+		left_tab.visible = _left_panel_collapsed
+	var right_panel := get_node_or_null("UILayer/RightPanel")
+	var right_tab := get_node_or_null("UILayer/RightPanelTab")
+	if right_panel:
+		right_panel.visible = (not _right_panel_collapsed) and (_selected_entity_kind != "")
+	if right_tab:
+		right_tab.visible = _right_panel_collapsed
+
+func _toggle_event_feed(expanded: Variant = null) -> void:
+	if expanded == null:
+		_event_feed_expanded = not _event_feed_expanded
+	else:
+		_event_feed_expanded = bool(expanded)
+	var panel := get_node_or_null("UILayer/EventLogPanel")
+	if panel:
+		panel.offset_top = -180.0 if _event_feed_expanded else -84.0
+		panel.offset_right = 520.0 if _event_feed_expanded else 420.0
+	var button := get_node_or_null("UILayer/EventLogPanel/VBox/Header/ExpandButton")
+	if button:
+		button.text = "Less" if _event_feed_expanded else "More"
+	var event_log := get_node_or_null("UILayer/EventLogPanel")
+	if event_log and event_log.has_method("set_compact_mode"):
+		event_log.set_compact_mode(not _event_feed_expanded)
+
+func _refresh_top_bar() -> void:
+	var summary := get_node_or_null("UILayer/TopBar/TopBarRow/HeroSummaryLabel")
+	if summary == null:
+		return
+	var active_expeditions := 0
+	for hero in GameState.heroes.values():
+		var state: String = hero.get("state", "")
+		if state in ["departing_quest", "on_quest", "returning"]:
+			active_expeditions += 1
+	summary.text = "Heroes: %d   Expeditions: %d   Speed: %.0fx" % [GameState.heroes.size(), active_expeditions, Engine.time_scale]
+
+func _set_time_scale(value: float) -> void:
+	Engine.time_scale = value
+	_refresh_top_bar()

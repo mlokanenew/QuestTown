@@ -78,177 +78,292 @@ script = ExtResource("6_bldpres")
 script = ExtResource("7_worldprops")
 
 [node name="UILayer" type="CanvasLayer" parent="."]
-
-[node name="UI" type="VBoxContainer" parent="UILayer"]
-anchor_right = 0.0
-anchor_bottom = 0.0
+[node name="TopBar" type="PanelContainer" parent="UILayer"]
+anchors_preset = 10
+anchor_right = 1.0
 offset_left = 12.0
 offset_top = 12.0
-offset_right = 260.0
-offset_bottom = 360.0
+offset_right = -12.0
+offset_bottom = 56.0
 
-[node name="GoldLabel" type="Label" parent="UILayer/UI"]
+[node name="TopBarRow" type="HBoxContainer" parent="UILayer/TopBar"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 10
+
+[node name="GoldLabel" type="Label" parent="UILayer/TopBar/TopBarRow"]
 text = "Gold: 100"
 
-[node name="BuildButton" type="Button" parent="UILayer/UI"]
+[node name="HeroSummaryLabel" type="Label" parent="UILayer/TopBar/TopBarRow"]
+size_flags_horizontal = 3
+text = "Heroes: 0   Expeditions: 0"
+
+[node name="QuestDrawerButton" type="Button" parent="UILayer/TopBar/TopBarRow"]
+text = "Quests  (K)"
+
+[node name="BuildPanelToggleButton" type="Button" parent="UILayer/TopBar/TopBarRow"]
+text = "Build  (B)"
+
+[node name="DetailsPanelToggleButton" type="Button" parent="UILayer/TopBar/TopBarRow"]
+text = "Details  (C)"
+
+[node name="Speed1Button" type="Button" parent="UILayer/TopBar/TopBarRow"]
+text = "1x"
+
+[node name="Speed2Button" type="Button" parent="UILayer/TopBar/TopBarRow"]
+text = "2x"
+
+[node name="Speed3Button" type="Button" parent="UILayer/TopBar/TopBarRow"]
+text = "3x"
+
+[node name="LeftPanel" type="PanelContainer" parent="UILayer"]
+anchors_preset = 9
+anchor_bottom = 1.0
+offset_left = 12.0
+offset_top = 68.0
+offset_right = 220.0
+offset_bottom = -88.0
+
+[node name="VBox" type="VBoxContainer" parent="UILayer/LeftPanel"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 8
+
+[node name="Header" type="HBoxContainer" parent="UILayer/LeftPanel/VBox"]
+
+[node name="TitleLabel" type="Label" parent="UILayer/LeftPanel/VBox/Header"]
+size_flags_horizontal = 3
+text = "Build"
+theme_override_font_sizes/font_size = 16
+
+[node name="CollapseButton" type="Button" parent="UILayer/LeftPanel/VBox/Header"]
+text = "<"
+
+[node name="BuildRail" type="VBoxContainer" parent="UILayer/LeftPanel/VBox"]
+theme_override_constants/separation = 6
+
+[node name="BuildButton" type="Button" parent="UILayer/LeftPanel/VBox/BuildRail"]
 text = "Build Tavern  (50g)"
 icon_alignment = 0
 
-[node name="BuildWeaponsShopButton" type="Button" parent="UILayer/UI"]
+[node name="BuildWeaponsShopButton" type="Button" parent="UILayer/LeftPanel/VBox/BuildRail"]
 text = "Build Weapons Shop  (80g)"
 icon_alignment = 0
 
-[node name="BuildTempleButton" type="Button" parent="UILayer/UI"]
+[node name="BuildTempleButton" type="Button" parent="UILayer/LeftPanel/VBox/BuildRail"]
 text = "Build Temple  (70g)"
 icon_alignment = 0
 
-[node name="UpgradeTavernButton" type="Button" parent="UILayer/UI"]
-text = "Upgrade Tavern"
+[node name="ContextUpgradeButton" type="Button" parent="UILayer/LeftPanel/VBox"]
+text = "Upgrade Selected"
+visible = false
 
-[node name="UpgradeWeaponsShopButton" type="Button" parent="UILayer/UI"]
-text = "Upgrade Weapons Shop"
+[node name="SaveLoadRow" type="HBoxContainer" parent="UILayer/LeftPanel/VBox"]
 
-[node name="UpgradeTempleButton" type="Button" parent="UILayer/UI"]
-text = "Upgrade Temple"
+[node name="SaveButton" type="Button" parent="UILayer/LeftPanel/VBox/SaveLoadRow"]
+text = "Save"
 
-[node name="SaveButton" type="Button" parent="UILayer/UI"]
-text = "Save Town  (F5)"
+[node name="LoadButton" type="Button" parent="UILayer/LeftPanel/VBox/SaveLoadRow"]
+text = "Load"
 
-[node name="LoadButton" type="Button" parent="UILayer/UI"]
-text = "Load Town  (F9)"
-
-[node name="StatusLabel" type="Label" parent="UILayer/UI"]
-text = "Right-click or Esc to cancel placement."
+[node name="StatusLabel" type="Label" parent="UILayer/LeftPanel/VBox"]
+size_flags_vertical = 3
+text = "LMB place/select  RMB rotate build  Q/E cycle  Del remove"
 autowrap_mode = 3
+
+[node name="LeftPanelTab" type="Button" parent="UILayer"]
+offset_left = 12.0
+offset_top = 92.0
+offset_right = 44.0
+offset_bottom = 136.0
+text = ">"
+visible = false
 
 [node name="EventLogPanel" type="PanelContainer" parent="UILayer"]
 anchor_left = 0.0
 anchor_top = 1.0
-anchor_right = 0.48
+anchor_right = 0.0
 anchor_bottom = 1.0
-offset_top = -160.0
+offset_left = 12.0
+offset_top = -84.0
 offset_right = 420.0
+offset_bottom = -12.0
 script = ExtResource("8_eventlog")
 
-[node name="EventLog" type="RichTextLabel" parent="UILayer/EventLogPanel"]
+[node name="VBox" type="VBoxContainer" parent="UILayer/EventLogPanel"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Header" type="HBoxContainer" parent="UILayer/EventLogPanel/VBox"]
+
+[node name="TitleLabel" type="Label" parent="UILayer/EventLogPanel/VBox/Header"]
+size_flags_horizontal = 3
+text = "Town Feed"
+
+[node name="ExpandButton" type="Button" parent="UILayer/EventLogPanel/VBox/Header"]
+text = "More"
+
+[node name="EventLog" type="RichTextLabel" parent="UILayer/EventLogPanel/VBox"]
 anchor_right = 1.0
 anchor_bottom = 1.0
 scroll_following = true
 
-[node name="HeroPanel" type="PanelContainer" parent="UILayer"]
+[node name="RightPanel" type="PanelContainer" parent="UILayer"]
 anchor_left = 1.0
 anchor_top = 0.0
 anchor_right = 1.0
-anchor_bottom = 0.0
-offset_left = -360.0
-offset_top = 12.0
+anchor_bottom = 1.0
+offset_left = -324.0
+offset_top = 68.0
 offset_right = -12.0
-offset_bottom = 300.0
+offset_bottom = -88.0
 visible = false
 
-[node name="VBox" type="VBoxContainer" parent="UILayer/HeroPanel"]
+[node name="VBox" type="VBoxContainer" parent="UILayer/RightPanel"]
+anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 8
 
-[node name="NameLabel" type="Label" parent="UILayer/HeroPanel/VBox"]
+[node name="Header" type="HBoxContainer" parent="UILayer/RightPanel/VBox"]
+
+[node name="EntityTitle" type="Label" parent="UILayer/RightPanel/VBox/Header"]
+size_flags_horizontal = 3
+text = "Details"
+theme_override_font_sizes/font_size = 16
+
+[node name="CollapseButton" type="Button" parent="UILayer/RightPanel/VBox/Header"]
+text = ">"
+
+[node name="NameLabel" type="Label" parent="UILayer/RightPanel/VBox"]
 text = "Hero Name"
 theme_override_font_sizes/font_size = 16
 
-[node name="CareerLabel" type="Label" parent="UILayer/HeroPanel/VBox"]
+[node name="CareerLabel" type="Label" parent="UILayer/RightPanel/VBox"]
 text = "Career"
 
-[node name="StateLabel" type="Label" parent="UILayer/HeroPanel/VBox"]
+[node name="StateLabel" type="Label" parent="UILayer/RightPanel/VBox"]
 text = "State"
 
-[node name="LevelLabel" type="Label" parent="UILayer/HeroPanel/VBox"]
+[node name="LevelLabel" type="Label" parent="UILayer/RightPanel/VBox"]
 text = "Level"
 
-[node name="HealthLabel" type="Label" parent="UILayer/HeroPanel/VBox"]
+[node name="HealthLabel" type="Label" parent="UILayer/RightPanel/VBox"]
 text = "Health"
 
-[node name="HeroGoldLabel" type="Label" parent="UILayer/HeroPanel/VBox"]
+[node name="HeroGoldLabel" type="Label" parent="UILayer/RightPanel/VBox"]
 text = "Gold"
 
-[node name="BiasLabel" type="Label" parent="UILayer/HeroPanel/VBox"]
+[node name="BiasLabel" type="Label" parent="UILayer/RightPanel/VBox"]
 text = "Bias"
 autowrap_mode = 3
 
-[node name="StatsLabel" type="Label" parent="UILayer/HeroPanel/VBox"]
+[node name="StatsLabel" type="Label" parent="UILayer/RightPanel/VBox"]
 text = "Stats"
 autowrap_mode = 3
 
-[node name="SkillsLabel" type="Label" parent="UILayer/HeroPanel/VBox"]
+[node name="SkillsLabel" type="Label" parent="UILayer/RightPanel/VBox"]
 text = "Skills"
 autowrap_mode = 3
 
-[node name="TagsLabel" type="Label" parent="UILayer/HeroPanel/VBox"]
+[node name="TagsLabel" type="Label" parent="UILayer/RightPanel/VBox"]
 text = "Tags"
 autowrap_mode = 3
 
-[node name="CurrentQuestLabel" type="Label" parent="UILayer/HeroPanel/VBox"]
+[node name="CurrentQuestLabel" type="Label" parent="UILayer/RightPanel/VBox"]
 text = "Current Quest"
 autowrap_mode = 3
 
-[node name="DescriptionLabel" type="Label" parent="UILayer/HeroPanel/VBox"]
+[node name="DescriptionLabel" type="Label" parent="UILayer/RightPanel/VBox"]
 text = "Description"
 autowrap_mode = 3
 
-[node name="QuestPanel" type="PanelContainer" parent="UILayer"]
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 280.0
-offset_top = 12.0
-offset_right = 620.0
-offset_bottom = 300.0
+[node name="RightPanelTab" type="Button" parent="UILayer"]
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -44.0
+offset_top = 92.0
+offset_right = -12.0
+offset_bottom = 136.0
+text = "<"
+visible = true
 
-[node name="QuestVBox" type="VBoxContainer" parent="UILayer/QuestPanel"]
+[node name="QuestDrawer" type="PanelContainer" parent="UILayer"]
+anchor_left = 1.0
+anchor_top = 0.0
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = -420.0
+offset_top = 68.0
+offset_right = -12.0
+offset_bottom = -88.0
+visible = false
 
-[node name="QuestTitle" type="Label" parent="UILayer/QuestPanel/QuestVBox"]
+[node name="QuestVBox" type="VBoxContainer" parent="UILayer/QuestDrawer"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="QuestHeader" type="HBoxContainer" parent="UILayer/QuestDrawer/QuestVBox"]
+
+[node name="QuestTitle" type="Label" parent="UILayer/QuestDrawer/QuestVBox/QuestHeader"]
+size_flags_horizontal = 3
 text = "Quest Menu"
 theme_override_font_sizes/font_size = 16
 
-[node name="QuestHelp" type="Label" parent="UILayer/QuestPanel/QuestVBox"]
+[node name="QuestCloseButton" type="Button" parent="UILayer/QuestDrawer/QuestVBox/QuestHeader"]
+text = "X"
+
+[node name="QuestHelp" type="Label" parent="UILayer/QuestDrawer/QuestVBox"]
 text = "Select which quest templates can appear and watch active expeditions."
 autowrap_mode = 3
 
-[node name="QuestFilterSummaryLabel" type="Label" parent="UILayer/QuestPanel/QuestVBox"]
+[node name="QuestFilterSummaryLabel" type="Label" parent="UILayer/QuestDrawer/QuestVBox"]
 text = "Enabled Templates: 0/0"
 
-[node name="QuestFilterControls" type="HBoxContainer" parent="UILayer/QuestPanel/QuestVBox"]
+[node name="QuestFilterControls" type="HBoxContainer" parent="UILayer/QuestDrawer/QuestVBox"]
 
-[node name="EnableAllQuestsButton" type="Button" parent="UILayer/QuestPanel/QuestVBox/QuestFilterControls"]
+[node name="EnableAllQuestsButton" type="Button" parent="UILayer/QuestDrawer/QuestVBox/QuestFilterControls"]
 text = "Enable All"
 
-[node name="DisableAllQuestsButton" type="Button" parent="UILayer/QuestPanel/QuestVBox/QuestFilterControls"]
+[node name="DisableAllQuestsButton" type="Button" parent="UILayer/QuestDrawer/QuestVBox/QuestFilterControls"]
 text = "Disable All"
 
-[node name="QuestFilterList" type="VBoxContainer" parent="UILayer/QuestPanel/QuestVBox"]
+[node name="QuestFilterList" type="VBoxContainer" parent="UILayer/QuestDrawer/QuestVBox"]
 
-[node name="QuestOffersTitle" type="Label" parent="UILayer/QuestPanel/QuestVBox"]
+[node name="QuestOffersTitle" type="Label" parent="UILayer/QuestDrawer/QuestVBox"]
 text = "Available Offers"
 
-[node name="QuestOffersLabel" type="Label" parent="UILayer/QuestPanel/QuestVBox"]
+[node name="QuestOffersLabel" type="Label" parent="UILayer/QuestDrawer/QuestVBox"]
 text = "No quests yet."
 autowrap_mode = 3
 
-[node name="ActiveQuestTitle" type="Label" parent="UILayer/QuestPanel/QuestVBox"]
+[node name="ActiveQuestTitle" type="Label" parent="UILayer/QuestDrawer/QuestVBox"]
 text = "Active Expeditions"
 
-[node name="ActiveQuestSummaryLabel" type="Label" parent="UILayer/QuestPanel/QuestVBox"]
+[node name="ActiveQuestSummaryLabel" type="Label" parent="UILayer/QuestDrawer/QuestVBox"]
 text = "No heroes are out on quests."
 autowrap_mode = 3
 
-[node name="ActiveQuestListLabel" type="Label" parent="UILayer/QuestPanel/QuestVBox"]
+[node name="ActiveQuestListLabel" type="Label" parent="UILayer/QuestDrawer/QuestVBox"]
 text = "No active expeditions."
 autowrap_mode = 3
 
-[node name="CompletedQuestTitle" type="Label" parent="UILayer/QuestPanel/QuestVBox"]
+[node name="CompletedQuestTitle" type="Label" parent="UILayer/QuestDrawer/QuestVBox"]
 text = "Recent Completed Quests"
 
-[node name="CompletedQuestListLabel" type="Label" parent="UILayer/QuestPanel/QuestVBox"]
+[node name="CompletedQuestListLabel" type="Label" parent="UILayer/QuestDrawer/QuestVBox"]
 text = "No quests have been completed yet."
 autowrap_mode = 3
