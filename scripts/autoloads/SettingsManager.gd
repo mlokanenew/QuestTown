@@ -3,10 +3,11 @@ extends Node
 
 const CONFIG_PATH := "user://settings.cfg"
 const SECTION := "display"
-const UI_SCALE_VERSION := 2
+const UI_SCALE_VERSION := 3
+const DEFAULT_WINDOW_SIZE := Vector2i(1600, 900)
 
 var window_mode: String = "windowed"
-var ui_scale: float = 1.5
+var ui_scale: float = 1.0
 
 func _ready() -> void:
 	load_settings()
@@ -20,7 +21,7 @@ func load_settings() -> void:
 	ui_scale = float(config.get_value(SECTION, "ui_scale", ui_scale))
 	var stored_scale_version: int = int(config.get_value(SECTION, "ui_scale_version", 1))
 	if stored_scale_version < UI_SCALE_VERSION:
-		ui_scale = 1.5
+		ui_scale = 1.0
 		save_settings()
 
 func save_settings() -> void:
@@ -35,6 +36,9 @@ func apply_settings() -> void:
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
 	else:
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+		var current_size := DisplayServer.window_get_size()
+		if current_size.x < DEFAULT_WINDOW_SIZE.x or current_size.y < DEFAULT_WINDOW_SIZE.y:
+			DisplayServer.window_set_size(DEFAULT_WINDOW_SIZE)
 	get_tree().root.content_scale_factor = clamp(ui_scale, 0.8, 1.5)
 
 func toggle_window_mode() -> void:
