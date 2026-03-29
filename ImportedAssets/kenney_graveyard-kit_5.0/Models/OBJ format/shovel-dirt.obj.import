@@ -1,0 +1,25 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://d1yd5q20awv84"
+path="res://.godot/imported/shovel-dirt.obj-c7bf4a8015d7fdb3f84a9f33de778a5e.mesh"
+
+[deps]
+
+files=["res://.godot/imported/shovel-dirt.obj-c7bf4a8015d7fdb3f84a9f33de778a5e.mesh"]
+
+source_file="res://ImportedAssets/kenney_graveyard-kit_5.0/Models/OBJ format/shovel-dirt.obj"
+dest_files=["res://.godot/imported/shovel-dirt.obj-c7bf4a8015d7fdb3f84a9f33de778a5e.mesh", "res://.godot/imported/shovel-dirt.obj-c7bf4a8015d7fdb3f84a9f33de778a5e.mesh"]
+
+[params]
+
+generate_tangents=true
+generate_lods=true
+generate_shadow_mesh=true
+generate_lightmap_uv2=false
+generate_lightmap_uv2_texel_size=0.2
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+force_disable_mesh_compression=false

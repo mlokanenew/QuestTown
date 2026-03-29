@@ -1,0 +1,16 @@
+{
+  "name": "Phase 1 insufficient gold blocks placement and upgrade",
+  "goal": "Spend most of the starting gold, then verify later place and upgrade actions fail without mutating state.",
+  "seed": 42,
+  "max_ticks": 0,
+  "commands": [
+    {"cmd": "place_building", "type": "weapons_shop", "x": 3, "z": 0},
+    {"cmd": "upgrade_building", "type": "weapons_shop"},
+    {"cmd": "place_building", "type": "temple", "x": -3, "z": 0}
+  ],
+  "assertions": [
+    {"assert": "building_exists", "type": "weapons_shop"},
+    {"assert": "building_level_eq", "type": "weapons_shop", "value": 1},
+    {"assert": "gold_eq", "value": 20}
+  ]
+}

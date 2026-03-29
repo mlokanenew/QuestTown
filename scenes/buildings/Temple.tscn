@@ -1,0 +1,57 @@
+[gd_scene load_steps=7 format=3 uid="uid://temple"]
+
+[ext_resource type="ArrayMesh" path="res://ImportedAssets/Buildings/OBJ/Bell_Tower.obj" id="1_tower_mesh"]
+
+[sub_resource type="CylinderMesh" id="pillar_mesh"]
+top_radius = 0.18
+bottom_radius = 0.18
+height = 2.6
+
+[sub_resource type="StandardMaterial3D" id="pillar_mat"]
+albedo_color = Color(0.84, 0.82, 0.72, 1)
+roughness = 0.95
+
+[sub_resource type="BoxMesh" id="altar_mesh"]
+size = Vector3(0.8, 1.0, 0.8)
+
+[sub_resource type="StandardMaterial3D" id="altar_mat"]
+albedo_color = Color(0.9, 0.82, 0.45, 1)
+emission_enabled = true
+emission = Color(0.4, 0.32, 0.08, 1)
+emission_energy_multiplier = 0.3
+
+[sub_resource type="BoxMesh" id="sign_mesh"]
+size = Vector3(1.1, 0.4, 0.08)
+
+[node name="Temple" type="Node3D"]
+
+[node name="BellTowerModel" type="MeshInstance3D" parent="."]
+scale = Vector3(1.35, 1, 1.35)
+mesh = ExtResource("1_tower_mesh")
+
+[node name="PillarLeft" type="MeshInstance3D" parent="."]
+position = Vector3(-1.2, 1.3, 2.0)
+mesh = SubResource("pillar_mesh")
+surface_material_override/0 = SubResource("pillar_mat")
+
+[node name="PillarRight" type="MeshInstance3D" parent="."]
+position = Vector3(1.2, 1.3, 2.0)
+mesh = SubResource("pillar_mesh")
+surface_material_override/0 = SubResource("pillar_mat")
+
+[node name="Altar" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.5, -0.8)
+mesh = SubResource("altar_mesh")
+surface_material_override/0 = SubResource("altar_mat")
+
+[node name="Sign" type="MeshInstance3D" parent="."]
+position = Vector3(0, 2.2, 1.85)
+mesh = SubResource("sign_mesh")
+surface_material_override/0 = SubResource("pillar_mat")
+
+[node name="SignLabel" type="Label3D" parent="."]
+position = Vector3(0, 2.2, 1.91)
+pixel_size = 0.006
+text = "TEMPLE"
+font_size = 32
+modulate = Color(0.95, 0.9, 0.55, 1)

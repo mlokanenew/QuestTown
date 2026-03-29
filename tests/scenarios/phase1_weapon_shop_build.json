@@ -1,0 +1,14 @@
+{
+  "name": "Phase 1 weapon shop build succeeds",
+  "goal": "Place the weapon shop on a free cell and confirm it starts at level 1.",
+  "seed": 42,
+  "max_ticks": 0,
+  "commands": [
+    {"cmd": "place_building", "type": "weapons_shop", "x": 3, "z": 0}
+  ],
+  "assertions": [
+    {"assert": "building_exists", "type": "weapons_shop"},
+    {"assert": "building_level_eq", "type": "weapons_shop", "value": 1},
+    {"assert": "gold_eq", "value": 20}
+  ]
+}

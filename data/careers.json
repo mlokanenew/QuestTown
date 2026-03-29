@@ -1,8 +1,102 @@
 [
-  {"id": "rat_catcher",    "name": "Rat Catcher",    "tier": 1, "description": "Scrapes a living in the sewers and alleyways."},
-  {"id": "soldier",        "name": "Soldier",         "tier": 1, "description": "Trained for war, looking for work."},
-  {"id": "camp_follower",  "name": "Camp Follower",   "tier": 1, "description": "Survived armies, knows how to get by."},
-  {"id": "mercenary",      "name": "Mercenary",       "tier": 1, "description": "Fights for coin, no questions asked."},
-  {"id": "riverfolk",      "name": "Riverfolk",       "tier": 1, "description": "Travelled the rivers of the Empire."},
-  {"id": "peasant",        "name": "Peasant",         "tier": 1, "description": "Driven from the fields by misfortune."}
+  {
+    "id": "mercenary",
+    "name": "Mercenary",
+    "archetype": "martial",
+    "quest_bias": "combat",
+    "service_bias": "weapons_shop",
+    "trait_tags": ["frontline", "professional", "paid_steel"],
+    "skill_ids": ["animal_care", "dodge_blow", "gossip", "perception"],
+    "description": "A hardened sell-sword who travels wherever coin and danger are found."
+  },
+  {
+    "id": "hunter",
+    "name": "Hunter",
+    "archetype": "scout",
+    "quest_bias": "beast",
+    "service_bias": "weapons_shop",
+    "trait_tags": ["ranged", "wilderness", "tracker"],
+    "skill_ids": ["concealment", "follow_trail", "outdoor_survival", "perception", "search", "set_trap"],
+    "description": "A wilderness stalker comfortable with traps, trails, and dangerous game."
+  },
+  {
+    "id": "thief",
+    "name": "Thief",
+    "archetype": "rogue",
+    "quest_bias": "risky",
+    "service_bias": "tavern",
+    "trait_tags": ["agile", "opportunist", "urban"],
+    "skill_ids": ["charm", "concealment", "gamble", "perception", "pick_lock"],
+    "description": "A quick-handed schemer who excels at risk, stealth, and dirty opportunity."
+  },
+  {
+    "id": "initiate",
+    "name": "Initiate",
+    "archetype": "faith",
+    "quest_bias": "spiritual",
+    "service_bias": "temple",
+    "trait_tags": ["devout", "scholarly", "healer"],
+    "skill_ids": ["academic_theology", "charm", "heal", "perception", "read_write"],
+    "description": "A novice of the temple trained in doctrine, first aid, and disciplined service."
+  },
+  {
+    "id": "soldier",
+    "name": "Soldier",
+    "archetype": "martial",
+    "quest_bias": "combat",
+    "service_bias": "weapons_shop",
+    "trait_tags": ["disciplined", "garrison", "frontline"],
+    "skill_ids": ["dodge_blow", "gossip", "intimidate", "perception"],
+    "description": "A trained professional from the ranks of the army, used to patrols and hard fighting."
+  },
+  {
+    "id": "rat_catcher",
+    "name": "Rat Catcher",
+    "archetype": "survivor",
+    "quest_bias": "beast",
+    "service_bias": "tavern",
+    "trait_tags": ["gritty", "vermin_hunter", "underdog"],
+    "skill_ids": ["animal_care", "concealment", "perception", "search", "set_trap"],
+    "description": "A filthy but stubborn vermin hunter who survives where others refuse to tread."
+  },
+  {
+    "id": "camp_follower",
+    "name": "Camp Follower",
+    "archetype": "survivor",
+    "quest_bias": "support",
+    "service_bias": "tavern",
+    "trait_tags": ["resourceful", "trader", "resilient"],
+    "skill_ids": ["animal_care", "charm", "evaluate", "gossip", "haggle", "search"],
+    "description": "A resourceful hanger-on of marching armies, always looking for the next edge."
+  },
+  {
+    "id": "roadwarden",
+    "name": "Roadwarden",
+    "archetype": "warden",
+    "quest_bias": "escort",
+    "service_bias": "weapons_shop",
+    "trait_tags": ["mounted", "patrol", "lawkeeper"],
+    "skill_ids": ["animal_care", "drive", "follow_trail", "navigation", "outdoor_survival"],
+    "description": "A mounted patrol officer who keeps roads open and travellers alive."
+  },
+  {
+    "id": "messenger",
+    "name": "Messenger",
+    "archetype": "runner",
+    "quest_bias": "escort",
+    "service_bias": "tavern",
+    "trait_tags": ["swift", "reliable", "traveller"],
+    "skill_ids": ["animal_care", "gossip", "navigation", "outdoor_survival", "perception"],
+    "description": "A fast rider trusted to cross dangerous roads carrying news and orders."
+  },
+  {
+    "id": "peasant",
+    "name": "Peasant",
+    "archetype": "commoner",
+    "quest_bias": "local",
+    "service_bias": "tavern",
+    "trait_tags": ["humble", "rural", "hardy"],
+    "skill_ids": ["animal_care", "charm", "concealment", "drive", "gamble"],
+    "description": "A rural labourer pushed into adventure by hardship, hunger, or simple bad luck."
+  }
 ]

@@ -1,0 +1,254 @@
+{
+  "definitions": [
+    {
+      "id": "weapon_skill",
+      "abbr": "WS",
+      "name": "Weapon Skill",
+      "group": "main",
+      "type": "percentile",
+      "description": "Represents hand-to-hand combat ability."
+    },
+    {
+      "id": "ballistic_skill",
+      "abbr": "BS",
+      "name": "Ballistic Skill",
+      "group": "main",
+      "type": "percentile",
+      "description": "Represents accuracy with ranged attacks."
+    },
+    {
+      "id": "strength",
+      "abbr": "S",
+      "name": "Strength",
+      "group": "main",
+      "type": "percentile",
+      "description": "Represents raw physical power."
+    },
+    {
+      "id": "toughness",
+      "abbr": "T",
+      "name": "Toughness",
+      "group": "main",
+      "type": "percentile",
+      "description": "Represents resilience against injury, disease, and poison."
+    },
+    {
+      "id": "agility",
+      "abbr": "Ag",
+      "name": "Agility",
+      "group": "main",
+      "type": "percentile",
+      "description": "Represents speed, dexterity, and coordination."
+    },
+    {
+      "id": "intelligence",
+      "abbr": "Int",
+      "name": "Intelligence",
+      "group": "main",
+      "type": "percentile",
+      "description": "Represents reasoning and knowledge."
+    },
+    {
+      "id": "will_power",
+      "abbr": "WP",
+      "name": "Will Power",
+      "group": "main",
+      "type": "percentile",
+      "description": "Represents mental resolve and discipline."
+    },
+    {
+      "id": "fellowship",
+      "abbr": "Fel",
+      "name": "Fellowship",
+      "group": "main",
+      "type": "percentile",
+      "description": "Represents charisma and social ability."
+    },
+    {
+      "id": "attacks",
+      "abbr": "A",
+      "name": "Attacks",
+      "group": "secondary",
+      "type": "integer",
+      "description": "Maximum number of attacks per combat round."
+    },
+    {
+      "id": "wounds",
+      "abbr": "W",
+      "name": "Wounds",
+      "group": "secondary",
+      "type": "integer",
+      "description": "How much damage can be suffered before critical injury."
+    },
+    {
+      "id": "strength_bonus",
+      "abbr": "SB",
+      "name": "Strength Bonus",
+      "group": "secondary",
+      "type": "derived",
+      "description": "Derived from Strength and used for melee damage."
+    },
+    {
+      "id": "toughness_bonus",
+      "abbr": "TB",
+      "name": "Toughness Bonus",
+      "group": "secondary",
+      "type": "derived",
+      "description": "Derived from Toughness and used to resist damage."
+    },
+    {
+      "id": "movement",
+      "abbr": "M",
+      "name": "Movement",
+      "group": "secondary",
+      "type": "integer",
+      "description": "Base tactical movement rate."
+    },
+    {
+      "id": "magic",
+      "abbr": "Mag",
+      "name": "Magic",
+      "group": "secondary",
+      "type": "integer",
+      "description": "Magical power level."
+    },
+    {
+      "id": "insanity_points",
+      "abbr": "IP",
+      "name": "Insanity Points",
+      "group": "secondary",
+      "type": "integer",
+      "description": "Long-term mental trauma score."
+    },
+    {
+      "id": "fate_points",
+      "abbr": "FP",
+      "name": "Fate Points",
+      "group": "secondary",
+      "type": "integer",
+      "description": "Represents a character's supernatural luck and destiny."
+    }
+  ],
+  "racial_generation": {
+    "Dwarf": {
+      "WS": "30+2d10",
+      "BS": "20+2d10",
+      "S": "20+2d10",
+      "T": "30+2d10",
+      "Ag": "10+2d10",
+      "Int": "20+2d10",
+      "WP": "20+2d10",
+      "Fel": "10+2d10",
+      "A": "1",
+      "W": "roll on table 2-2",
+      "SB": "first digit of S",
+      "TB": "first digit of T",
+      "M": "3",
+      "Mag": "0",
+      "IP": "0",
+      "FP": "roll on table 2-3"
+    },
+    "Elf": {
+      "WS": "20+2d10",
+      "BS": "30+2d10",
+      "S": "20+2d10",
+      "T": "20+2d10",
+      "Ag": "30+2d10",
+      "Int": "20+2d10",
+      "WP": "20+2d10",
+      "Fel": "20+2d10",
+      "A": "1",
+      "W": "roll on table 2-2",
+      "SB": "first digit of S",
+      "TB": "first digit of T",
+      "M": "5",
+      "Mag": "0",
+      "IP": "0",
+      "FP": "roll on table 2-3"
+    },
+    "Halfling": {
+      "WS": "10+2d10",
+      "BS": "30+2d10",
+      "S": "10+2d10",
+      "T": "10+2d10",
+      "Ag": "30+2d10",
+      "Int": "20+2d10",
+      "WP": "20+2d10",
+      "Fel": "30+2d10",
+      "A": "1",
+      "W": "roll on table 2-2",
+      "SB": "first digit of S",
+      "TB": "first digit of T",
+      "M": "4",
+      "Mag": "0",
+      "IP": "0",
+      "FP": "roll on table 2-3"
+    },
+    "Human": {
+      "WS": "20+2d10",
+      "BS": "20+2d10",
+      "S": "20+2d10",
+      "T": "20+2d10",
+      "Ag": "20+2d10",
+      "Int": "20+2d10",
+      "WP": "20+2d10",
+      "Fel": "20+2d10",
+      "A": "1",
+      "W": "roll on table 2-2",
+      "SB": "first digit of S",
+      "TB": "first digit of T",
+      "M": "4",
+      "Mag": "0",
+      "IP": "0",
+      "FP": "roll on table 2-3"
+    }
+  },
+  "starting_wounds": {
+    "Dwarf": {
+      "1-3": 11,
+      "4-6": 12,
+      "7-9": 13,
+      "10": 14
+    },
+    "Elf": {
+      "1-3": 8,
+      "4-6": 9,
+      "7-9": 10,
+      "10": 11
+    },
+    "Halfling": {
+      "1-3": 7,
+      "4-6": 8,
+      "7-9": 9,
+      "10": 10
+    },
+    "Human": {
+      "1-3": 10,
+      "4-6": 11,
+      "7-9": 12,
+      "10": 13
+    }
+  },
+  "starting_fate_points": {
+    "Dwarf": {
+      "1-4": 1,
+      "5-7": 2,
+      "8-10": 3
+    },
+    "Elf": {
+      "1-4": 1,
+      "5-7": 2,
+      "8-10": 2
+    },
+    "Halfling": {
+      "1-4": 2,
+      "5-7": 3,
+      "8-10": 3
+    },
+    "Human": {
+      "1-4": 2,
+      "5-7": 3,
+      "8-10": 3
+    }
+  }
+}

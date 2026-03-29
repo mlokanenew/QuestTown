@@ -4,21 +4,31 @@ extends Node
 
 var careers: Array = []
 var buildings: Array = []
+var quests: Array = []
+var skills: Array = []
 var hero_names: Dictionary = {"first": [], "last": []}
 
 # Indexed lookups
 var careers_by_id: Dictionary = {}
 var buildings_by_id: Dictionary = {}
+var quests_by_id: Dictionary = {}
+var skills_by_id: Dictionary = {}
 
 func _ready() -> void:
 	careers = _load_json("res://data/careers.json")
 	buildings = _load_json("res://data/buildings.json")
+	quests = _load_json("res://data/quests.json")
+	skills = _load_json("res://data/skills.json")
 	hero_names = _load_json("res://data/hero_names.json")
 
 	for c in careers:
 		careers_by_id[c["id"]] = c
 	for b in buildings:
 		buildings_by_id[b["id"]] = b
+	for q in quests:
+		quests_by_id[q["id"]] = q
+	for s in skills:
+		skills_by_id[s["id"]] = s
 
 func _load_json(path: String) -> Variant:
 	var file := FileAccess.open(path, FileAccess.READ)
@@ -43,5 +53,13 @@ func random_hero_name(rng: RandomNumberGenerator) -> String:
 
 func random_career(rng: RandomNumberGenerator) -> Dictionary:
 	if careers.is_empty():
-		return {"id": "mercenary", "name": "Mercenary", "tier": 1}
+		return {"id": "mercenary", "name": "Mercenary", "archetype": "martial"}
 	return careers[rng.randi() % careers.size()]
+
+func get_skill_names(skill_ids: Array) -> Array:
+	var names := []
+	for skill_id in skill_ids:
+		var skill: Dictionary = skills_by_id.get(skill_id, {})
+		if not skill.is_empty():
+			names.append(skill.get("name", skill_id))
+	return names

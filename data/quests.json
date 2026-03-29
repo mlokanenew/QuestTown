@@ -1,0 +1,67 @@
+[
+  {
+    "id": "clear_wolves",
+    "name": "Clear Wolves from the Road",
+    "type": "beast",
+    "difficulty": 1,
+    "duration_ticks": 420,
+    "gold_reward": 12,
+    "xp_reward": 6,
+    "risk_level": 1,
+    "min_tavern_level": 1,
+    "min_weapons_shop_level": 0,
+    "min_temple_level": 0
+  },
+  {
+    "id": "escort_merchant_cart",
+    "name": "Escort Merchant Cart",
+    "type": "escort",
+    "difficulty": 1,
+    "duration_ticks": 480,
+    "gold_reward": 14,
+    "xp_reward": 6,
+    "risk_level": 1,
+    "min_tavern_level": 1,
+    "min_weapons_shop_level": 0,
+    "min_temple_level": 0
+  },
+  {
+    "id": "hunt_forest_beast",
+    "name": "Hunt Forest Beast",
+    "type": "beast",
+    "difficulty": 2,
+    "duration_ticks": 600,
+    "gold_reward": 18,
+    "xp_reward": 8,
+    "risk_level": 2,
+    "min_tavern_level": 2,
+    "min_weapons_shop_level": 1,
+    "min_temple_level": 0
+  },
+  {
+    "id": "investigate_old_shrine",
+    "name": "Investigate Old Shrine",
+    "type": "spiritual",
+    "difficulty": 2,
+    "duration_ticks": 540,
+    "gold_reward": 16,
+    "xp_reward": 8,
+    "risk_level": 2,
+    "min_tavern_level": 1,
+    "min_weapons_shop_level": 0,
+    "min_temple_level": 1
+  },
+  {
+    "id": "drive_off_bandits",
+    "name": "Drive Off Bandits",
+    "type": "combat",
+    "difficulty": 2,
+    "duration_ticks": 660,
+    "gold_reward": 20,
+    "xp_reward": 10,
+    "risk_level": 2,
+    "min_tavern_level": 2,
+    "min_weapons_shop_level": 2,
+    "min_temple_level": 0
+  }
+]

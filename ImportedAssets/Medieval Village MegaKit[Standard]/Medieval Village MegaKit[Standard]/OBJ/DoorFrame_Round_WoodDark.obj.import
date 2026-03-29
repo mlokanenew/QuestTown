@@ -1,0 +1,25 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://cxg5d8qvl4ubw"
+path="res://.godot/imported/DoorFrame_Round_WoodDark.obj-bd2e4d6492189c3e704b72a0ef66d706.mesh"
+
+[deps]
+
+files=["res://.godot/imported/DoorFrame_Round_WoodDark.obj-bd2e4d6492189c3e704b72a0ef66d706.mesh"]
+
+source_file="res://ImportedAssets/Medieval Village MegaKit[Standard]/Medieval Village MegaKit[Standard]/OBJ/DoorFrame_Round_WoodDark.obj"
+dest_files=["res://.godot/imported/DoorFrame_Round_WoodDark.obj-bd2e4d6492189c3e704b72a0ef66d706.mesh", "res://.godot/imported/DoorFrame_Round_WoodDark.obj-bd2e4d6492189c3e704b72a0ef66d706.mesh"]
+
+[params]
+
+generate_tangents=true
+generate_lods=true
+generate_shadow_mesh=true
+generate_lightmap_uv2=false
+generate_lightmap_uv2_texel_size=0.2
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+force_disable_mesh_compression=false

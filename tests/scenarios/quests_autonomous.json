@@ -1,0 +1,14 @@
+{
+  "name": "Autonomous quests start running",
+  "goal": "Place a tavern, let adventurers arrive, and verify quests are generated and taken automatically.",
+  "seed": 42,
+  "max_ticks": 1800,
+  "commands": [
+    {"cmd": "place_building", "type": "tavern", "x": 0, "z": 0}
+  ],
+  "assertions": [
+    {"assert": "hero_count_gte", "value": 1},
+    {"assert": "quest_count_gte", "value": 1},
+    {"assert": "event_type_seen", "value": "hero_started_quest"}
+  ]
+}

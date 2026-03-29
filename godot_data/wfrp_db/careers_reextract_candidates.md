@@ -1,0 +1,59 @@
+# Careers Needing OCR Re-Extraction
+
+Total flagged careers: 55
+
+- Jailer: description missing or still OCR-damaged; talents missing; career exits missing
+- Kislevite Kossar: description missing or still OCR-damaged; skills still OCR-damaged; talents missing; trappings still OCR-damaged; career entries missing; career exits missing
+- Noble: description missing or still OCR-damaged; skills still OCR-damaged; talents missing; career exits missing
+- Peasant: description missing or still OCR-damaged; skills still OCR-damaged; talents missing; trappings still OCR-damaged; career entries missing; career exits missing
+- Pit Fighter: description missing or still OCR-damaged; talents still OCR-damaged; trappings still OCR-damaged; career entries missing; career exits missing
+- Roadwarden: description missing or still OCR-damaged; skills still OCR-damaged; talents still OCR-damaged; trappings still OCR-damaged; career entries missing
+- Rogue: description missing or still OCR-damaged; skills still OCR-damaged; talents missing; trappings still OCR-damaged; career entries missing; career exits missing
+- Shieldbreaker: description missing or still OCR-damaged; skills still OCR-damaged; talents still OCR-damaged; trappings still OCR-damaged; career entries missing
+- Smuggler: description missing or still OCR-damaged; skills still OCR-damaged; talents still OCR-damaged; trappings still OCR-damaged; career entries missing
+- Soldier: description missing or still OCR-damaged; skills still OCR-damaged; talents still OCR-damaged; career entries missing
+- Thug: description missing or still OCR-damaged; talents still OCR-damaged
+- Toll Keeper: description missing or still OCR-damaged; skills still OCR-damaged; talents still OCR-damaged
+- Tomb Robber: description missing or still OCR-damaged; skills still OCR-damaged; talents still OCR-damaged; trappings missing
+- Tradesman: description missing or still OCR-damaged; skills still OCR-damaged; talents still OCR-damaged; trappings missing; career entries missing
+- Vagabond: description missing or still OCR-damaged; skills still OCR-damaged; talents missing
+- Watchman: description missing or still OCR-damaged; skills still OCR-damaged; talents missing; trappings still OCR-damaged
+- Assassin: description missing or still OCR-damaged; skills still OCR-damaged; talents still OCR-damaged; trappings missing; career entries missing
+- Captain: description missing or still OCR-damaged; skills still OCR-damaged; talents still OCR-damaged; trappings still OCR-damaged; career entries still OCR-damaged; career exits missing
+- Courtier: description missing or still OCR-damaged; skills still OCR-damaged; talents still OCR-damaged; trappings still OCR-damaged
+- Crime Lord: description missing or still OCR-damaged; skills still OCR-damaged; talents missing; trappings still OCR-damaged
+- Daemon Slayer: description missing or still OCR-damaged; skills still OCR-damaged; career exits missing
+- Demagogue: description missing or still OCR-damaged; skills still OCR-damaged; talents missing; trappings still OCR-damaged; career entries missing
+- Duellist: description missing or still OCR-damaged; skills still OCR-damaged; talents still OCR-damaged; trappings still OCR-damaged; career entries missing
+- Engineer: description missing or still OCR-damaged; skills still OCR-damaged; talents missing; trappings still OCR-damaged; career exits missing
+- Explorer: description missing or still OCR-damaged; skills still OCR-damaged; talents still OCR-damaged; trappings still OCR-damaged
+- Flagellant: description missing or still OCR-damaged; trappings still OCR-damaged; career exits missing
+- Ghost Strider: description missing or still OCR-damaged
+- Guild Master: description missing or still OCR-damaged; skills still OCR-damaged; career entries missing
+- Herald: description missing or still OCR-damaged; skills still OCR-damaged; talents still OCR-damaged; trappings missing
+- Highwayman: description missing or still OCR-damaged; trappings still OCR-damaged
+- Judicial Champion: description missing or still OCR-damaged; talents still OCR-damaged; trappings still OCR-damaged; career exits missing
+- Knight: description missing or still OCR-damaged; skills still OCR-damaged; trappings still OCR-damaged; career entries missing; career exits still OCR-damaged
+- Knight Of The Inner Circle: description missing or still OCR-damaged; skills still OCR-damaged; talents still OCR-damaged; trappings still OCR-damaged
+- Master Thief: description missing or still OCR-damaged; skills still OCR-damaged; talents still OCR-damaged; trappings still OCR-damaged; career entries missing
+- Master Wizard: description missing or still OCR-damaged; skills still OCR-damaged; talents still OCR-damaged; trappings missing
+- Mate: description missing or still OCR-damaged; talents still OCR-damaged
+- Merchant: description missing or still OCR-damaged; talents still OCR-damaged
+- Minstrel: description missing or still OCR-damaged; skills still OCR-damaged; talents missing; trappings still OCR-damaged; career exits missing
+- Navigator: description missing or still OCR-damaged; career exits missing
+- Noble Lord: description missing or still OCR-damaged; skills still OCR-damaged; talents missing; trappings still OCR-damaged; career entries missing
+- Outlaw Chief: description missing or still OCR-damaged; skills still OCR-damaged; talents missing; trappings still OCR-damaged
+- Physician: description missing or still OCR-damaged; talents missing; trappings still OCR-damaged; career entries missing; career exits missing
+- Pistolier: description missing or still OCR-damaged; trappings still OCR-damaged; career exits missing
+- Priest: description missing or still OCR-damaged; skills still OCR-damaged; talents still OCR-damaged
+- Racketeer: description missing or still OCR-damaged; talents missing
+- Scholar: description missing or still OCR-damaged; skills still OCR-damaged; career exits missing
+- Scout: description missing or still OCR-damaged; talents still OCR-damaged; trappings still OCR-damaged; career exits missing
+- Sea Captain: description missing or still OCR-damaged; skills still OCR-damaged; talents still OCR-damaged
+- Sergeant: description missing or still OCR-damaged; skills still OCR-damaged; talents missing
+- Spy: description missing or still OCR-damaged; skills still OCR-damaged
+- Targeteer: description missing or still OCR-damaged; skills still OCR-damaged; talents still OCR-damaged; trappings still OCR-damaged
+- Vampire Hunter: description missing or still OCR-damaged; skills still OCR-damaged; talents still OCR-damaged; career entries missing; career exits missing
+- Veteran: description missing or still OCR-damaged; skills still OCR-damaged; talents still OCR-damaged; trappings still OCR-damaged
+- Witch Hunter: description missing or still OCR-damaged; talents still OCR-damaged; trappings still OCR-damaged; career exits missing
+- Wizard Lord: description missing or still OCR-damaged; skills still OCR-damaged; talents still OCR-damaged

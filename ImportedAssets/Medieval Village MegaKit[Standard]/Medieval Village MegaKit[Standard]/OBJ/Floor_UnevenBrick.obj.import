@@ -1,0 +1,25 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://cibspvgruwwrn"
+path="res://.godot/imported/Floor_UnevenBrick.obj-53a5b1163388d619a4cce0ecf48eaeb8.mesh"
+
+[deps]
+
+files=["res://.godot/imported/Floor_UnevenBrick.obj-53a5b1163388d619a4cce0ecf48eaeb8.mesh"]
+
+source_file="res://ImportedAssets/Medieval Village MegaKit[Standard]/Medieval Village MegaKit[Standard]/OBJ/Floor_UnevenBrick.obj"
+dest_files=["res://.godot/imported/Floor_UnevenBrick.obj-53a5b1163388d619a4cce0ecf48eaeb8.mesh", "res://.godot/imported/Floor_UnevenBrick.obj-53a5b1163388d619a4cce0ecf48eaeb8.mesh"]
+
+[params]
+
+generate_tangents=true
+generate_lods=true
+generate_shadow_mesh=true
+generate_lightmap_uv2=false
+generate_lightmap_uv2_texel_size=0.2
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+force_disable_mesh_compression=false

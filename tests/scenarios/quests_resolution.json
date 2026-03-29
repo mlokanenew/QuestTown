@@ -1,0 +1,13 @@
+{
+  "name": "Quest resolution returns rewards",
+  "goal": "Place a tavern, let the sim run, and verify at least one quest finishes.",
+  "seed": 42,
+  "max_ticks": 3200,
+  "commands": [
+    {"cmd": "place_building", "type": "tavern", "x": 0, "z": 0}
+  ],
+  "assertions": [
+    {"assert": "hero_count_gte", "value": 1},
+    {"assert": "event_type_seen", "value": "hero_completed_quest"}
+  ]
+}

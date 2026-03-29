@@ -1,0 +1,10 @@
+{
+  "source_file": "C:\\Users\\mloka\\Documents\\WFRP\\warhammer_out\\combined_book.md",
+  "system": "Warhammer Fantasy Roleplay 2nd Edition",
+  "format_version": 1,
+  "notes": [
+    "Generated from OCR markdown.",
+    "Fields ending in _raw preserve OCR text where reliable tokenization was not possible.",
+    "Entries with ocr_review_required=true should be manually reviewed before final in-game balancing or UI polish."
+  ]
+}

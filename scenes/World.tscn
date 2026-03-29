@@ -84,22 +84,47 @@ anchor_right = 0.0
 anchor_bottom = 0.0
 offset_left = 12.0
 offset_top = 12.0
-offset_right = 220.0
-offset_bottom = 200.0
+offset_right = 260.0
+offset_bottom = 360.0
 
 [node name="GoldLabel" type="Label" parent="UILayer/UI"]
 text = "Gold: 100"
 
 [node name="BuildButton" type="Button" parent="UILayer/UI"]
 text = "Build Tavern  (50g)"
+icon_alignment = 0
 
 [node name="BuildWeaponsShopButton" type="Button" parent="UILayer/UI"]
 text = "Build Weapons Shop  (80g)"
+icon_alignment = 0
+
+[node name="BuildTempleButton" type="Button" parent="UILayer/UI"]
+text = "Build Temple  (70g)"
+icon_alignment = 0
+
+[node name="UpgradeTavernButton" type="Button" parent="UILayer/UI"]
+text = "Upgrade Tavern"
+
+[node name="UpgradeWeaponsShopButton" type="Button" parent="UILayer/UI"]
+text = "Upgrade Weapons Shop"
+
+[node name="UpgradeTempleButton" type="Button" parent="UILayer/UI"]
+text = "Upgrade Temple"
+
+[node name="SaveButton" type="Button" parent="UILayer/UI"]
+text = "Save Town  (F5)"
+
+[node name="LoadButton" type="Button" parent="UILayer/UI"]
+text = "Load Town  (F9)"
+
+[node name="StatusLabel" type="Label" parent="UILayer/UI"]
+text = "Right-click or Esc to cancel placement."
+autowrap_mode = 3
 
 [node name="EventLogPanel" type="PanelContainer" parent="UILayer"]
 anchor_left = 0.0
 anchor_top = 1.0
-anchor_right = 0.5
+anchor_right = 0.48
 anchor_bottom = 1.0
 offset_top = -160.0
 offset_right = 420.0
@@ -115,10 +140,10 @@ anchor_left = 1.0
 anchor_top = 0.0
 anchor_right = 1.0
 anchor_bottom = 0.0
-offset_left = -220.0
+offset_left = -360.0
 offset_top = 12.0
 offset_right = -12.0
-offset_bottom = 130.0
+offset_bottom = 300.0
 visible = false
 
 [node name="VBox" type="VBoxContainer" parent="UILayer/HeroPanel"]
@@ -134,3 +159,67 @@ text = "Career"
 
 [node name="StateLabel" type="Label" parent="UILayer/HeroPanel/VBox"]
 text = "State"
+
+[node name="LevelLabel" type="Label" parent="UILayer/HeroPanel/VBox"]
+text = "Level"
+
+[node name="HealthLabel" type="Label" parent="UILayer/HeroPanel/VBox"]
+text = "Health"
+
+[node name="HeroGoldLabel" type="Label" parent="UILayer/HeroPanel/VBox"]
+text = "Gold"
+
+[node name="BiasLabel" type="Label" parent="UILayer/HeroPanel/VBox"]
+text = "Bias"
+autowrap_mode = 3
+
+[node name="StatsLabel" type="Label" parent="UILayer/HeroPanel/VBox"]
+text = "Stats"
+autowrap_mode = 3
+
+[node name="SkillsLabel" type="Label" parent="UILayer/HeroPanel/VBox"]
+text = "Skills"
+autowrap_mode = 3
+
+[node name="TagsLabel" type="Label" parent="UILayer/HeroPanel/VBox"]
+text = "Tags"
+autowrap_mode = 3
+
+[node name="CurrentQuestLabel" type="Label" parent="UILayer/HeroPanel/VBox"]
+text = "Current Quest"
+autowrap_mode = 3
+
+[node name="DescriptionLabel" type="Label" parent="UILayer/HeroPanel/VBox"]
+text = "Description"
+autowrap_mode = 3
+
+[node name="QuestPanel" type="PanelContainer" parent="UILayer"]
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 280.0
+offset_top = 12.0
+offset_right = 620.0
+offset_bottom = 300.0
+
+[node name="QuestVBox" type="VBoxContainer" parent="UILayer/QuestPanel"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="QuestTitle" type="Label" parent="UILayer/QuestPanel/QuestVBox"]
+text = "Quest Menu"
+theme_override_font_sizes/font_size = 16
+
+[node name="QuestHelp" type="Label" parent="UILayer/QuestPanel/QuestVBox"]
+text = "Select which quest templates can appear."
+autowrap_mode = 3
+
+[node name="QuestFilterList" type="VBoxContainer" parent="UILayer/QuestPanel/QuestVBox"]
+
+[node name="QuestOffersTitle" type="Label" parent="UILayer/QuestPanel/QuestVBox"]
+text = "Available Offers"
+
+[node name="QuestOffersLabel" type="Label" parent="UILayer/QuestPanel/QuestVBox"]
+text = "No quests yet."
+autowrap_mode = 3

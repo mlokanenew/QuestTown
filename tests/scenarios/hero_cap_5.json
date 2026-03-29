@@ -1,0 +1,13 @@
+{
+  "name": "Hero cap stays at five",
+  "goal": "Place a tavern, wait long enough for repeated arrivals, and verify the active hero count never exceeds five.",
+  "seed": 42,
+  "max_ticks": 2400,
+  "commands": [
+    {"cmd": "place_building", "type": "tavern", "x": 0, "z": 0}
+  ],
+  "assertions": [
+    {"assert": "hero_count_gte", "value": 1},
+    {"assert": "hero_count_lte", "value": 5}
+  ]
+}

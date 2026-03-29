@@ -1,0 +1,810 @@
+We are building the first basic playable version of a Godot 4 game.
+
+Game concept:
+A small fantasy town attracts autonomous adventurers. The player does NOT directly control the adventurers. Instead, the player develops a few key town buildings. Those buildings influence what quests are available, what services adventurers can use, and how the town grows.
+
+For this first playable, keep everything extremely small and simple.
+
+==================================================
+DESIGN GOAL
+==================================================
+
+Build the smallest playable loop with these steps:
+
+1. Player places and upgrades a few town buildings
+2. Adventurers arrive at the town
+3. Quests are generated based on the town state
+4. Adventurers choose quests automatically
+5. Adventurers leave town and go on quests autonomously
+6. Adventurers return with money, experience, and sometimes items/injuries
+7. Adventurers spend their money in the town
+8. The town earns money ONLY from adventurers staying there and buying goods/services
+9. Player uses town income to improve buildings
+10. Improved buildings unlock better quests and better adventurer support
+
+This should be a very simple playable, not a deep sim.
+
+==================================================
+STRICT MVP CONSTRAINTS
+==================================================
+
+For this version:
+
+- Only 3 buildings total
+- Very small upgrade/build paths for each building
+- No social identity system
+- No factions
+- No politics
+- No direct control of adventurers
+- No tactical combat
+- No complicated inventory system
+- No complicated town staffing system
+- No big world map UI
+- No large tech tree
+- No more than a small number of adventurers active at once
+
+This version should feel like:
+"a tiny autonomous fantasy town that starts producing quests and adventurer traffic"
+
+==================================================
+CORE LOOP
+==================================================
+
+The core loop must be:
+
+- Build / upgrade town services
+- Attract adventurers
+- Generate quests
+- Adventurers pick quests on their own
+- Adventurers leave and resolve quests off-screen / in simulation
+- Adventurers return
+- Adventurers spend money in town
+- Town earns income
+- Player upgrades buildings
+- Better buildings unlock better quest generation and better adventurer outcomes
+
+Important:
+The town should NOT generate money passively by itself.
+The town earns money only when adventurers:
+- rent rooms
+- buy gear
+- buy healing/services
+
+==================================================
+FIRST PLAYABLE BUILDINGS
+==================================================
+
+Only implement these 3 buildings:
+
+1. Tavern
+2. Weapon Shop
+3. Temple
+
+These are the only player buildings in the first playable.
+
+--------------------------------------------------
+1. Tavern
+--------------------------------------------------
+
+Purpose:
+- Attract adventurers
+- Give them somewhere to stay
+- Generate / reveal basic quest opportunities
+
+Base function:
+- Adventurers can arrive only if there is a Tavern
+- Adventurers can pay to stay there
+- Tavern contributes to quest generation
+
+Very small build path:
+- Level 1: Common Room
+- Level 2: Guest Rooms
+- Level 3: Notice Board
+
+Effects by level:
+- Common Room:
+  - enables adventurer arrival
+  - allows adventurers to stay and spend small money
+- Guest Rooms:
+  - increases max adventurers supported slightly
+  - increases lodging income
+- Notice Board:
+  - improves quest generation frequency/quality slightly
+
+--------------------------------------------------
+2. Weapon Shop
+--------------------------------------------------
+
+Purpose:
+- Sell equipment/services to adventurers
+- Improve adventurer quest readiness
+- Unlock slightly harder martial quests
+
+Base function:
+- Adventurers can spend money here before quests / after returning
+- Weapon Shop affects quest success slightly
+
+Very small build path:
+- Level 1: Basic Forge
+- Level 2: Better Blades
+- Level 3: Armour Rack
+
+Effects by level:
+- Basic Forge:
+  - allows adventurers to spend on weapons
+  - provides small quest success bonus
+- Better Blades:
+  - increases shop income
+  - unlocks slightly harder combat-oriented quests
+- Armour Rack:
+  - increases success/survival slightly more
+  - increases adventurer equipment spending
+
+--------------------------------------------------
+3. Temple
+--------------------------------------------------
+
+Purpose:
+- Provide healing and blessings
+- Help adventurers recover
+- Unlock undead/relic/pilgrimage style quests later in the small quest pool
+
+Base function:
+- Adventurers can spend money on healing/blessing
+- Temple reduces time injured adventurers stay unavailable
+
+Very small build path:
+- Level 1: Shrine
+- Level 2: Healer's Room
+- Level 3: Blessed Altar
+
+Effects by level:
+- Shrine:
+  - enables healing service spending
+  - small injury recovery improvement
+- Healer's Room:
+  - improves recovery speed
+  - increases temple spending
+- Blessed Altar:
+  - adds small survival bonus
+  - unlocks slightly more dangerous spiritual/undead quests
+
+==================================================
+MAXIMUM ADVENTURERS
+==================================================
+
+Keep the number of adventurers very small.
+
+Initial target:
+- max active adventurers in town/world = 4
+
+Possible expansion rule:
+- Tavern upgrades may increase cap slightly, but keep hard cap low for now
+- absolute cap for first playable = 6
+
+Reason:
+- easier to simulate
+- easier to make each adventurer feel distinct
+- easier to debug
+
+==================================================
+ADVENTURERS
+==================================================
+
+Adventurers are autonomous.
+
+They should have only a few properties at first:
+- id
+- name
+- class/career
+- level
+- experience
+- gold
+- status
+- health state
+
+Suggested starting careers:
+- Mercenary
+- Hunter
+- Thief
+- Initiate
+
+Statuses:
+- InTown
+- OnQuest
+- Recovering
+
+Simple rules:
+- Adventurers arrive automatically if Tavern exists and capacity allows
+- Adventurers stay in town for some time
+- Adventurers spend money if useful services are available
+- Adventurers choose from available quests automatically
+- Adventurers return after quest duration
+- Adventurers may return healthy, injured, richer, dead is optional for later but not required in first basic playable
+
+For the very first playable:
+- avoid permanent death if it complicates the loop too much
+- injuries are enough
+
+==================================================
+QUEST SYSTEM
+==================================================
+
+Quests must be generated automatically by the town state.
+
+The player does NOT assign adventurers manually in this first basic playable.
+Instead:
+- the town generates available quests
+- eligible adventurers choose quests autonomously
+
+Keep the quest system very small.
+
+Quest properties:
+- id
+- name
+- type
+- difficulty
+- duration
+- gold_reward
+- xp_reward
+- risk_level
+
+Small starter quest pool:
+- Clear Wolves from the Road
+- Escort Merchant Cart
+- Hunt Forest Beast
+- Investigate Old Shrine
+- Drive Off Bandits
+
+Quest availability rules:
+- Tavern level influences general quest generation
+- Weapon Shop level influences martial quest availability
+- Temple level influences shrine/undead/spiritual quest availability
+
+Examples:
+- Tavern L1: only simple local quests
+- Tavern L3 Notice Board: more quests appear and slightly better rewards
+- Weapon Shop L2+: more combat quests appear
+- Temple L3+: spiritual/relic/undead quests can appear
+
+Keep this lightweight:
+- no huge quest chains
+- no world map
+- no branching quest decisions yet
+
+==================================================
+QUEST AUTONOMY RULES
+==================================================
+
+Adventurers should choose quests by simple AI logic.
+
+Suggested simple decision factors:
+- prefer quests within ability range
+- prefer quests with better reward
+- avoid quests if recovering
+- maybe class/career slightly biases choices
+
+Example:
+- Mercenary prefers combat quests
+- Hunter prefers beast quests
+- Initiate slightly prefers shrine/spiritual quests
+- Thief slightly prefers risky/high-reward quests
+
+Keep this very simple and readable.
+
+==================================================
+QUEST RESOLUTION
+==================================================
+
+Resolve quests in simulation, not combat.
+
+Inputs:
+- adventurer class
+- level
+- building support bonuses
+- quest difficulty
+- random roll
+
+Outputs:
+- gold gained
+- xp gained
+- injury chance
+- success/failure
+
+On return:
+- adventurer status changes back to InTown or Recovering
+- adventurer gold increases
+- adventurer XP increases
+- adventurer may level up
+
+==================================================
+TOWN ECONOMY
+==================================================
+
+Critical rule:
+The town ONLY earns money when adventurers spend money in the town.
+
+Do NOT add passive tax income, farms, citizen production, etc.
+
+Town income sources for first playable:
+- Tavern lodging
+- Weapon Shop purchases
+- Temple healing/blessings
+
+Simple spending behaviour:
+- before quest: adventurer may buy gear/blessing
+- after quest: adventurer may pay for lodging, gear upgrades, healing
+- adventurers spending transfers money from adventurer gold to town gold
+
+This is the heart of the first playable economy.
+
+==================================================
+PLAYER DECISIONS
+==================================================
+
+For this first playable, the player's decisions are only:
+
+1. Which of the 3 buildings to place first/next
+2. Which building to upgrade
+3. In what order to improve the buildings
+
+That is enough for now.
+
+No policies.
+No social identity.
+No direct quest assignment.
+No direct hero control.
+
+The gameplay question should be:
+"How do I build the town so autonomous adventurers can thrive here and spend more money here?"
+
+==================================================
+MINIMUM BUILD ORDER / PROGRESSION FEEL
+==================================================
+
+Desired first-playable flow:
+
+- Start with enough money to place Tavern
+- Tavern causes first adventurers to arrive
+- Adventurers use Tavern and generate a little income
+- Player chooses whether to build Weapon Shop or Temple next
+- Quest pool begins small and basic
+- Adventurers start taking quests
+- Returned adventurers spend money in town
+- Town income slowly grows
+- Player upgrades buildings
+- Upgrades improve quest generation and adventurer support
+- Adventurers level up over time
+- Town supports slightly stronger quests
+
+==================================================
+SIMPLIFIED BALANCE TARGET
+==================================================
+
+Keep numbers very simple and tune later.
+
+Suggested first-pass targets:
+- starting town gold: enough for Tavern + one more small building after some income
+- adventurer arrival interval: slow but steady
+- max 4 adventurers initially
+- 2–4 quest offers visible at once
+- quest durations short enough that the loop feels active
+- adventurers should return often enough that spending/reinvestment is visible quickly
+
+The prototype should feel alive within a few minutes.
+
+==================================================
+FIRST PLAYABLE SUCCESS CRITERIA
+==================================================
+
+The first playable is successful if:
+
+- player can place Tavern
+- adventurers arrive automatically
+- quests are generated automatically
+- adventurers choose quests automatically
+- adventurers leave and return
+- adventurers gain gold and XP
+- adventurers spend gold in the town
+- town gold increases from adventurer spending only
+- player can build and upgrade Tavern, Weapon Shop, and Temple
+- building upgrades influence quest generation and adventurer support
+- the loop is playable for 10–15 minutes without falling apart
+
+==================================================
+DATA / ARCHITECTURE REQUIREMENTS
+==================================================
+
+Keep this codebase assistant-friendly and simulation-friendly.
+
+Requirements:
+- simulation state should be separate from UI/presentation
+- buildings should be data-driven where practical
+- quest definitions should be data-driven where practical
+- adventurer state should be serialisable
+- headless simulation/testing should still be supported
+
+Suggested systems:
+- TownState
+- BuildingSystem
+- AdventurerSystem
+- QuestSystem
+- EconomySystem
+- WorldSnapshot
+
+==================================================
+IMPORTED DATA STATUS
+==================================================
+
+We now have two layers of game data:
+
+1. Live gameplay data currently used by the QuestTown prototype
+2. Source/reference data imported under `godot_data/wfrp_db`
+
+Current source tables available in `godot_data/wfrp_db`:
+- `careers.json`
+  - 113 career records
+  - includes `id`, `name`, `tier`, description, profile advances, parsed arrays, and OCR-preserved raw fields
+- `skills.json`
+  - 47 skill records
+  - includes skill type, linked characteristic, description, and OCR review flags
+- `characteristics.json`
+  - characteristic definitions plus generation/reference rules
+- `equipment.json`
+  - table-first equipment export including weapons, armour, transport, services, and related rules
+- `wfrp_database_manifest.json`
+  - source metadata and import notes
+
+Important note:
+- The `godot_data` tables are source/reference tables, not yet the canonical runtime format for QuestTown
+- Some records are marked `ocr_review_required=true`
+- `equipment.json` is explicitly not yet in a clean gameplay-ready item schema
+
+==================================================
+CURRENT LIVE INTEGRATION STATUS
+==================================================
+
+What has already been brought into the playable game:
+- a curated subset of careers in `data/careers.json`
+- a compact QuestTown-friendly `data/skills.json`
+- career-linked hero metadata such as:
+  - `career_id`
+  - `career`
+  - `career_archetype`
+  - `quest_bias`
+  - `service_bias`
+  - `career_tags`
+  - `skill_ids`
+  - `skill_names`
+
+What has NOT yet been fully integrated:
+- the full 113-career table
+- the full 47-skill table as the single runtime source of truth
+- characteristics as a runtime stat generation/balance source
+- equipment as structured purchasable gameplay items
+- OCR review metadata and source provenance
+
+This means the game is already using the imported data directionally, but only through a reduced hand-shaped subset.
+
+==================================================
+DATA INTEGRATION GOAL
+==================================================
+
+The goal is now to move from:
+- "small manually curated MVP tables"
+
+to:
+- "full data-driven QuestTown tables derived from `godot_data` with a stable transformation layer"
+
+Do NOT load raw WFRP OCR tables directly into runtime gameplay without a transformation layer.
+
+The correct approach is:
+1. keep `godot_data/wfrp_db` as source/reference input
+2. add transformation scripts or importer code that convert source tables into QuestTown runtime tables
+3. keep runtime gameplay data in `data/`
+4. make systems consume normalized QuestTown runtime tables only
+
+==================================================
+CANONICAL DATA LAYERS
+==================================================
+
+Use three clear layers:
+
+1. Source layer
+- `godot_data/wfrp_db/*.json`
+- preserves imported data and OCR review status
+- never hand-edit casually during gameplay work
+
+2. Transform layer
+- scripts/tools that normalize, map, filter, and enrich source records
+- responsible for generating QuestTown-specific runtime tables
+
+3. Runtime layer
+- `data/*.json`
+- small, stable, simulation-friendly formats used directly by Godot systems
+
+This separation is important so we can re-import or improve the WFRP source tables later without breaking game code.
+
+==================================================
+TARGET TABLES FOR FULL INTEGRATION
+==================================================
+
+We want to bring all imported tables into the game, but in a controlled order.
+
+Target runtime tables:
+- `data/careers.json`
+  - full career list derived from source careers
+  - QuestTown-specific fields should remain present:
+    - `id`
+    - `name`
+    - `archetype`
+    - `quest_bias`
+    - `service_bias`
+    - `trait_tags`
+    - `skill_ids`
+    - `description`
+    - optional `tier`
+    - optional `profile_advances`
+    - optional `ocr_review_required`
+- `data/skills.json`
+  - full skill list with stable IDs and readable descriptions
+- `data/characteristics.json`
+  - normalized characteristic definitions used for stat generation and later progression
+- `data/equipment_items.json`
+  - canonical item records derived from `equipment.json`
+- `data/equipment_services.json`
+  - canonical service records for tavern, weapon shop, and temple pricing/effects
+- `data/equipment_rules.json`
+  - optional extracted rules data if needed for item or quest simulation
+
+Do not keep `equipment.json` as the final runtime schema.
+It should be split into tables the simulation can query simply.
+
+==================================================
+QUESTTOWN MAPPING RULES
+==================================================
+
+The imported WFRP data is richer than the MVP.
+We need a QuestTown mapping layer that compresses it into simple sim-friendly concepts.
+
+Career mapping rules:
+- every imported career gets a stable runtime `id`
+- every career maps to one simple gameplay archetype
+  - examples: `martial`, `scout`, `rogue`, `faith`, `survivor`, `warden`, `runner`, `commoner`
+- every career maps to one simple `quest_bias`
+  - examples: `combat`, `beast`, `escort`, `spiritual`, `risky`, `local`, `support`
+- every career maps to one simple `service_bias`
+  - examples: `tavern`, `weapons_shop`, `temple`
+- profile-advance fields remain data, but MVP systems should only consume lightweight summaries at first
+
+Skill mapping rules:
+- keep imported skill IDs stable where possible
+- normalize descriptions and characteristic links
+- support later hero display and simple quest scoring
+
+Characteristic mapping rules:
+- characteristics should become the source for stat naming and future stat generation
+- do not immediately replace current compact stat block unless the migration remains simple
+- phase in gradually so the current playable loop is not destabilized
+
+Equipment mapping rules:
+- split source equipment into:
+  - items heroes can notionally own or buy
+  - services buildings can sell
+  - optional rules text/reference entries
+- for MVP gameplay, services matter first:
+  - tavern lodging/food
+  - weapon shop gear purchase
+  - temple healing/blessing
+- full item ownership can be lightweight at first:
+  - optional tags and quality tiers instead of deep inventories
+
+OCR handling rules:
+- preserve `ocr_review_required`
+- do not block import of the full table if a record is mildly dirty
+- mark risky records so UI/debug tools can surface them later
+- only block records that are structurally unusable
+
+==================================================
+INTEGRATION PHASES FOR IMPORTED TABLES
+==================================================
+
+DATA PHASE A: FULL CAREERS + SKILLS
+- Replace the reduced career subset with the full source-derived career table
+- Replace the reduced skill subset with the full source-derived skills table
+- Add a transform step that maps raw WFRP careers to QuestTown archetypes/biases/tags
+- Keep the current hero systems consuming the same runtime fields so behavior stays stable
+
+Success criteria:
+- every hero can spawn from the full runtime career table
+- hero panels still display career/skills correctly
+- existing quest autonomy still works
+- headless tests still pass
+
+DATA PHASE B: CHARACTERISTICS AS RUNTIME REFERENCE
+- Introduce normalized `data/characteristics.json`
+- Use it as the reference for stat names, descriptions, and future generation rules
+- Optionally migrate hero stat generation to derive from imported characteristic definitions
+
+Success criteria:
+- characteristic definitions load through `DataLoader`
+- hero generation remains deterministic and balanced
+- no UI regressions for hero stat display
+
+DATA PHASE C: EQUIPMENT SERVICES
+- Transform source `equipment.json` into service-oriented runtime records
+- Make tavern/shop/temple spending use data-driven service tables instead of hardcoded values
+- Add item/service tags such as:
+  - `lodging`
+  - `gear`
+  - `healing`
+  - `blessing`
+  - optional `martial`
+  - optional `spiritual`
+
+Success criteria:
+- town economy values are loaded from data
+- building spending behavior remains readable and easy to tune
+- headless economy tests still pass
+
+DATA PHASE D: EQUIPMENT ITEMS
+- Introduce simplified purchasable item records
+- Let heroes optionally carry lightweight owned item tags or item IDs
+- Feed quest success/survival from item quality or category bonuses if useful
+
+Success criteria:
+- no deep inventory UI required
+- heroes can reference items in snapshots/debug state
+- item data improves simulation without creating a management burden
+
+DATA PHASE E: FULL SOURCE COVERAGE + REVIEW PASS
+- import all remaining source records into runtime-friendly tables
+- retain source IDs and review flags
+- add validation reports for malformed or OCR-damaged records
+- decide which records are excluded temporarily and why
+
+Success criteria:
+- all source tables are represented in runtime data or explicitly deferred
+- no silent drops
+- import process is reproducible
+
+==================================================
+IMPLEMENTATION PLAN TO BRING THEM ALL IN
+==================================================
+
+Concrete implementation plan:
+
+1. Add importer/transform scripts under `tools/` or `scripts/data/`
+- source in: `godot_data/wfrp_db/*.json`
+- runtime out: `data/*.json`
+- scripts should be re-runnable and deterministic
+
+2. Keep `DataLoader.gd` consuming runtime tables only
+- do not make gameplay systems parse raw source tables directly
+
+3. Expand `DataLoader.gd` in this order:
+- full careers
+- full skills
+- characteristics
+- equipment services
+- equipment items
+
+4. Add validation output
+- duplicate IDs
+- missing referenced skills
+- unknown archetype mapping
+- malformed equipment/service records
+- count of `ocr_review_required` records by table
+
+5. Keep runtime formats gameplay-shaped
+- avoid carrying every WFRP field into active gameplay state if unused
+- preserve extra imported data as optional metadata where helpful
+
+6. Add headless tests after each phase
+- full-career loading test
+- skill-reference integrity test
+- characteristics loading test
+- service-table economy test
+- equipment item integrity test
+
+7. Only after data is stable, deepen behavior
+- richer quest scoring from skills/characteristics
+- more specific shopping logic from equipment/service data
+- later injuries/items/traits expansion
+
+==================================================
+RISKS AND CONSTRAINTS FOR FULL IMPORT
+==================================================
+
+Main risks:
+- OCR damage causing unstable fields
+- importing source richness directly into runtime and overcomplicating the MVP
+- breaking current headless tests by changing schema too abruptly
+- turning `equipment.json` into ad hoc special cases instead of canonical runtime tables
+
+Guard rails:
+- preserve the current playable loop first
+- transform source data into smaller runtime schemas
+- maintain stable runtime IDs
+- treat OCR review flags as metadata, not as a reason to stop all integration
+- keep game systems reading simple tables
+
+==================================================
+NEXT DATA TASKS
+==================================================
+
+Recommended immediate next tasks:
+
+1. Build the full career transform pipeline
+- source: `godot_data/wfrp_db/careers.json`
+- output: expanded `data/careers.json`
+
+2. Build the full skill transform pipeline
+- source: `godot_data/wfrp_db/skills.json`
+- output: expanded `data/skills.json`
+
+3. Add `data/characteristics.json`
+- derived from `godot_data/wfrp_db/characteristics.json`
+
+4. Design the canonical service schema
+- derive from `godot_data/wfrp_db/equipment.json`
+- cover tavern/shop/temple spending first
+
+5. Add a validation report command
+- prints table counts, unresolved references, and OCR review totals
+
+==================================================
+UPDATED IMPLEMENTATION INTENT
+==================================================
+
+We are no longer only building the smallest loop.
+We are now also building the data pipeline that lets QuestTown absorb the full imported WFRP reference set safely.
+
+The correct outcome is:
+- the game remains a simple autonomous town sim
+- the runtime tables become much richer
+- the source/reference data in `godot_data` can be fully brought in over time
+- gameplay code stays clean because it reads normalized QuestTown tables rather than raw OCR exports
+
+==================================================
+IMPLEMENTATION PHASES
+==================================================
+
+Build this in very small phases.
+
+PHASE 1
+- Add town gold
+- Add the 3 building definitions
+- Support place + upgrade for Tavern, Weapon Shop, Temple
+
+PHASE 2
+- Add autonomous adventurer arrivals
+- Add simple adventurer data/state
+- Add spending at Tavern
+
+PHASE 3
+- Add automatic quest generation
+- Add simple quest choice logic for adventurers
+- Add quest departure / return loop
+
+PHASE 4
+- Add quest resolution
+- Add XP and leveling
+- Add injury/recovery basic loop
+
+PHASE 5
+- Add spending at Weapon Shop and Temple
+- Make town gold come only from adventurer spending
+- Tune progression so upgrade order matters
+
+==================================================
+IMPLEMENTATION TASK FOR NOW
+==================================================
+
+Please do the following now:
+
+1. Restate this first playable design in a concise technical summary
+2. Review the current project and identify what already exists vs what is missing
+3. Produce a concrete task breakdown for PHASE 1 only
+4. Start implementing PHASE 1 cleanly
+5. Keep the solution simple and avoid features beyond this scope

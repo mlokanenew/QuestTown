@@ -1,0 +1,142 @@
+[
+  {
+    "id": "academic_theology",
+    "name": "Academic Knowledge (Theology)",
+    "skill_type": "advanced",
+    "characteristic": "Intelligence",
+    "description": "Formal knowledge of scriptures, doctrine, and religious history."
+  },
+  {
+    "id": "animal_care",
+    "name": "Animal Care",
+    "skill_type": "basic",
+    "characteristic": "Intelligence",
+    "description": "Looking after domestic animals, livestock, and mounts."
+  },
+  {
+    "id": "charm",
+    "name": "Charm",
+    "skill_type": "basic",
+    "characteristic": "Fellowship",
+    "description": "Winning people over with persuasion, tact, and smooth talk."
+  },
+  {
+    "id": "concealment",
+    "name": "Concealment",
+    "skill_type": "basic",
+    "characteristic": "Agility",
+    "description": "Hiding from enemies or slipping out of sight."
+  },
+  {
+    "id": "dodge_blow",
+    "name": "Dodge Blow",
+    "skill_type": "basic",
+    "characteristic": "Agility",
+    "description": "Avoiding strikes in close combat."
+  },
+  {
+    "id": "drive",
+    "name": "Drive",
+    "skill_type": "basic",
+    "characteristic": "Strength",
+    "description": "Handling carts, wagons, and other draft vehicles."
+  },
+  {
+    "id": "evaluate",
+    "name": "Evaluate",
+    "skill_type": "advanced",
+    "characteristic": "Intelligence",
+    "description": "Judging an item's quality, worth, and trade value."
+  },
+  {
+    "id": "follow_trail",
+    "name": "Follow Trail",
+    "skill_type": "advanced",
+    "characteristic": "Intelligence",
+    "description": "Tracking prey, travellers, and signs of movement."
+  },
+  {
+    "id": "gamble",
+    "name": "Gamble",
+    "skill_type": "basic",
+    "characteristic": "Intelligence",
+    "description": "Reading luck, odds, and gaming tables."
+  },
+  {
+    "id": "gossip",
+    "name": "Gossip",
+    "skill_type": "basic",
+    "characteristic": "Fellowship",
+    "description": "Gathering rumours, tavern talk, and local news."
+  },
+  {
+    "id": "haggle",
+    "name": "Haggle",
+    "skill_type": "basic",
+    "characteristic": "Fellowship",
+    "description": "Negotiating prices and working a better deal."
+  },
+  {
+    "id": "heal",
+    "name": "Heal",
+    "skill_type": "advanced",
+    "characteristic": "Intelligence",
+    "description": "Treating wounds, bandaging injuries, and basic medical care."
+  },
+  {
+    "id": "intimidate",
+    "name": "Intimidate",
+    "skill_type": "basic",
+    "characteristic": "Strength",
+    "description": "Applying menace, threat, and physical presence."
+  },
+  {
+    "id": "navigation",
+    "name": "Navigation",
+    "skill_type": "advanced",
+    "characteristic": "Intelligence",
+    "description": "Finding routes, staying on course, and judging travel lines."
+  },
+  {
+    "id": "outdoor_survival",
+    "name": "Outdoor Survival",
+    "skill_type": "basic",
+    "characteristic": "Intelligence",
+    "description": "Living off the land, making camp, and enduring the wild."
+  },
+  {
+    "id": "perception",
+    "name": "Perception",
+    "skill_type": "basic",
+    "characteristic": "Intelligence",
+    "description": "Spotting danger, clues, and small details others miss."
+  },
+  {
+    "id": "pick_lock",
+    "name": "Pick Lock",
+    "skill_type": "advanced",
+    "characteristic": "Agility",
+    "description": "Opening locked containers and doors without a key."
+  },
+  {
+    "id": "read_write",
+    "name": "Read/Write",
+    "skill_type": "advanced",
+    "characteristic": "Intelligence",
+    "description": "Reading records and producing legible written text."
+  },
+  {
+    "id": "search",
+    "name": "Search",
+    "skill_type": "basic",
+    "characteristic": "Intelligence",
+    "description": "Searching rooms, packs, and hidden corners for something useful."
+  },
+  {
+    "id": "set_trap",
+    "name": "Set Trap",
+    "skill_type": "advanced",
+    "characteristic": "Agility",
+    "description": "Preparing snares and baited traps to catch prey."
+  }
+]

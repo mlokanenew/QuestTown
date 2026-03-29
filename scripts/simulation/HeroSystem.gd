@@ -21,7 +21,7 @@ func _step_hero(id: int, delta: float, building_system: Object) -> void:
 	var h: Dictionary = GameState.heroes[id]
 	var state: String = h["state"]
 	var pos := Vector3(h["position"]["x"], h["position"]["y"], h["position"]["z"])
-	var target := Vector3(h["target"]["x"], h["target"]["y"], h["target"]["z"])
+	var target: Vector3 = Vector3(h["target"]["x"], h["target"]["y"], h["target"]["z"])
 
 	match state:
 		"arriving":
@@ -33,6 +33,8 @@ func _step_hero(id: int, delta: float, building_system: Object) -> void:
 			_set_position(id, pos)
 			if pos.distance_to(target) < 2.5:
 				h["idle_ticks_remaining"] = IDLE_TICKS
+				h["needs_lodging"] = true
+				h["service_cooldown_ticks"] = 30
 				GameState.set_hero_state(id, "idling")
 
 		"walking_to_tavern":
@@ -40,19 +42,31 @@ func _step_hero(id: int, delta: float, building_system: Object) -> void:
 			_set_position(id, pos)
 			if pos.distance_to(target) < 2.5:
 				h["idle_ticks_remaining"] = IDLE_TICKS
+				h["needs_lodging"] = true
+				h["service_cooldown_ticks"] = 30
 				GameState.set_hero_state(id, "idling")
 
 		"idling":
 			h["idle_ticks_remaining"] -= 1
 			if h["idle_ticks_remaining"] <= 0:
-				# Pick a leave target off the map edge
-				var leave_target := Vector3(
-					_rng.randf_range(-LEAVE_DISTANCE, LEAVE_DISTANCE),
-					0.0,
-					-LEAVE_DISTANCE
+				h["idle_ticks_remaining"] = 0
+
+		"departing_quest":
+			var quest_target: Vector3 = Vector3(0.0, 0.0, -LEAVE_DISTANCE)
+			var quest_destination: Variant = h.get("quest_destination", null)
+			if quest_destination is Dictionary:
+				quest_target = Vector3(
+					quest_destination.get("x", 0.0),
+					quest_destination.get("y", 0.0),
+					quest_destination.get("z", -LEAVE_DISTANCE)
 				)
-				_set_target(id, leave_target)
-				GameState.set_hero_state(id, "leaving")
+			elif quest_destination is Vector3:
+				quest_target = quest_destination
+			_set_target(id, quest_target)
+			pos = _move_toward(pos, quest_target, delta)
+			_set_position(id, pos)
+			if pos.distance_to(quest_target) < 1.0:
+				GameState.set_hero_state(id, "on_quest")
 
 		"leaving":
 			pos = _move_toward(pos, target, delta)
@@ -60,15 +74,62 @@ func _step_hero(id: int, delta: float, building_system: Object) -> void:
 			if pos.distance_to(target) < 1.0:
 				GameState.remove_hero(id)
 
+		"returning":
+			pos = _move_toward(pos, target, delta)
+			_set_position(id, pos)
+			if pos.distance_to(target) < 2.5:
+				_finish_return(id)
+
+		"recovering":
+			pass
+
+		"on_quest":
+			pass
+
 func spawn_hero() -> Dictionary:
 	var name := DataLoader.random_hero_name(_rng)
 	var career_data := DataLoader.random_career(_rng)
-	var h := GameState.add_hero(name, career_data["name"])
+	var h := GameState.add_hero(name, career_data, _build_profile(career_data))
 	# Start position: random edge of map
 	var spawn_x := _rng.randf_range(-8.0, 8.0)
 	var spawn_pos := Vector3(spawn_x, 0.0, 15.0)
 	_set_position(h["id"], spawn_pos)
 	return h
+
+func _build_profile(career_data: Dictionary) -> Dictionary:
+	var stats := _base_stats_for_archetype(career_data.get("archetype", "martial"))
+	for key in stats.keys():
+		stats[key] += _rng.randi_range(0, 1)
+
+	var max_health: int = 8 + int(stats.get("endurance", 0))
+	return {
+		"xp": 0,
+		"gold": _rng.randi_range(8, 18),
+		"health": max_health,
+		"max_health": max_health,
+		"stats": stats,
+	}
+
+func _base_stats_for_archetype(archetype: String) -> Dictionary:
+	match archetype:
+		"martial":
+			return {"might": 4, "agility": 2, "wits": 2, "spirit": 1, "endurance": 4}
+		"scout":
+			return {"might": 2, "agility": 4, "wits": 3, "spirit": 2, "endurance": 3}
+		"rogue":
+			return {"might": 2, "agility": 4, "wits": 3, "spirit": 1, "endurance": 2}
+		"faith":
+			return {"might": 2, "agility": 2, "wits": 3, "spirit": 4, "endurance": 3}
+		"survivor":
+			return {"might": 2, "agility": 3, "wits": 3, "spirit": 2, "endurance": 4}
+		"warden":
+			return {"might": 3, "agility": 3, "wits": 3, "spirit": 2, "endurance": 3}
+		"runner":
+			return {"might": 1, "agility": 4, "wits": 3, "spirit": 2, "endurance": 3}
+		"commoner":
+			return {"might": 2, "agility": 2, "wits": 2, "spirit": 2, "endurance": 4}
+		_:
+			return {"might": 2, "agility": 2, "wits": 2, "spirit": 2, "endurance": 2}
 
 func _move_toward(from: Vector3, to: Vector3, delta: float) -> Vector3:
 	var dir := (to - from)
@@ -83,3 +144,31 @@ func _set_position(id: int, pos: Vector3) -> void:
 func _set_target(id: int, target: Vector3) -> void:
 	if GameState.heroes.has(id):
 		GameState.heroes[id]["target"] = {"x": target.x, "y": target.y, "z": target.z}
+
+func _finish_return(id: int) -> void:
+	if not GameState.heroes.has(id):
+		return
+	var hero: Dictionary = GameState.heroes[id]
+	var next_state: String = hero.get("post_quest_state", "idling")
+	if next_state == "recovering":
+		GameState.set_hero_state(id, "recovering")
+		GameState.log_event("hero_recovering", {
+			"hero_id": id,
+			"hero_name": hero.get("name", "?")
+		})
+	else:
+		GameState.heroes[id]["idle_ticks_remaining"] = int(hero.get("return_idle_ticks", 180))
+		GameState.heroes[id]["needs_lodging"] = true
+		GameState.heroes[id]["service_cooldown_ticks"] = 30
+		GameState.set_hero_state(id, "idling")
+	GameState.log_event("hero_returned_from_quest", {
+		"hero_id": id,
+		"hero_name": hero.get("name", "?"),
+		"quest_name": hero.get("current_quest", {}).get("name", "?")
+	})
+	GameState.heroes[id].erase("current_quest")
+	GameState.heroes[id].erase("quest_ticks_remaining")
+	GameState.heroes[id].erase("quest_destination")
+	GameState.heroes[id].erase("quest_status")
+	GameState.heroes[id].erase("post_quest_state")
+	GameState.heroes[id].erase("return_idle_ticks")

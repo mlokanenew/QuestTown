@@ -1,0 +1,25 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://c4wc1u23bpg7a"
+path="res://.godot/imported/Prop_Vine5.obj-0963390d03c7e5bae91bc88c0c9b8abb.mesh"
+
+[deps]
+
+files=["res://.godot/imported/Prop_Vine5.obj-0963390d03c7e5bae91bc88c0c9b8abb.mesh"]
+
+source_file="res://ImportedAssets/Medieval Village MegaKit[Standard]/Medieval Village MegaKit[Standard]/OBJ/Prop_Vine5.obj"
+dest_files=["res://.godot/imported/Prop_Vine5.obj-0963390d03c7e5bae91bc88c0c9b8abb.mesh", "res://.godot/imported/Prop_Vine5.obj-0963390d03c7e5bae91bc88c0c9b8abb.mesh"]
+
+[params]
+
+generate_tangents=true
+generate_lods=true
+generate_shadow_mesh=true
+generate_lightmap_uv2=false
+generate_lightmap_uv2_texel_size=0.2
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+force_disable_mesh_compression=false

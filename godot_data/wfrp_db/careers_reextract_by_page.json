@@ -1,0 +1,906 @@
+[
+  {
+    "page_idx": 31,
+    "page_image": "ocr_target_pages/p031.png",
+    "deepseek_page_done": true,
+    "recommended_strategy": "crop_each_career_block",
+    "join_adjacent_pages_primary": false,
+    "careers": [
+      {
+        "career_id": "agitator",
+        "career_name": "Agitator",
+        "reasons": [
+          "description missing or still OCR-damaged",
+          "skills still OCR-damaged",
+          "trappings still OCR-damaged",
+          "career exits missing"
+        ]
+      },
+      {
+        "career_id": "herald",
+        "career_name": "Herald",
+        "reasons": [
+          "description missing or still OCR-damaged",
+          "skills still OCR-damaged",
+          "talents still OCR-damaged",
+          "trappings missing"
+        ]
+      },
+      {
+        "career_id": "peasant",
+        "career_name": "Peasant",
+        "reasons": [
+          "description missing or still OCR-damaged",
+          "skills still OCR-damaged",
+          "talents missing",
+          "trappings still OCR-damaged",
+          "career entries missing",
+          "career exits missing"
+        ]
+      },
+      {
+        "career_id": "scholar",
+        "career_name": "Scholar",
+        "reasons": [
+          "description missing or still OCR-damaged",
+          "skills still OCR-damaged",
+          "career exits missing"
+        ]
+      },
+      {
+        "career_id": "watchman",
+        "career_name": "Watchman",
+        "reasons": [
+          "description missing or still OCR-damaged",
+          "skills still OCR-damaged",
+          "talents missing",
+          "trappings still OCR-damaged"
+        ]
+      },
+      {
+        "career_id": "witch_hunter",
+        "career_name": "Witch Hunter",
+        "reasons": [
+          "description missing or still OCR-damaged",
+          "talents still OCR-damaged",
+          "trappings still OCR-damaged",
+          "career exits missing"
+        ]
+      }
+    ],
+    "notes": [
+      "This page uses the standard two-career layout.",
+      "Re-extract the top and bottom career blocks separately with overlap.",
+      "Adjacent-page spreads are optional fallback only if a line still truncates."
+    ]
+  },
+  {
+    "page_idx": 32,
+    "page_image": "ocr_target_pages/p032.png",
+    "deepseek_page_done": true,
+    "recommended_strategy": "crop_each_career_block",
+    "join_adjacent_pages_primary": false,
+    "careers": [
+      {
+        "career_id": "initiate",
+        "career_name": "Initiate",
+        "reasons": [
+          "description missing or still OCR-damaged",
+          "skills still OCR-damaged",
+          "talents missing",
+          "trappings missing",
+          "career exits missing"
+        ]
+      },
+      {
+        "career_id": "jailer",
+        "career_name": "Jailer",
+        "reasons": [
+          "description missing or still OCR-damaged",
+          "talents missing",
+          "career exits missing"
+        ]
+      },
+      {
+        "career_id": "noble",
+        "career_name": "Noble",
+        "reasons": [
+          "description missing or still OCR-damaged",
+          "skills still OCR-damaged",
+          "talents missing",
+          "career exits missing"
+        ]
+      },
+      {
+        "career_id": "noble_lord",
+        "career_name": "Noble Lord",
+        "reasons": [
+          "description missing or still OCR-damaged",
+          "skills still OCR-damaged",
+          "talents missing",
+          "trappings still OCR-damaged",
+          "career entries missing"
+        ]
+      },
+      {
+        "career_id": "physician",
+        "career_name": "Physician",
+        "reasons": [
+          "description missing or still OCR-damaged",
+          "talents missing",
+          "trappings still OCR-damaged",
+          "career entries missing",
+          "career exits missing"
+        ]
+      },
+      {
+        "career_id": "smuggler",
+        "career_name": "Smuggler",
+        "reasons": [
+          "description missing or still OCR-damaged",
+          "skills still OCR-damaged",
+          "talents still OCR-damaged",
+          "trappings still OCR-damaged",
+          "career entries missing"
+        ]
+      },
+      {
+        "career_id": "toll_keeper",
+        "career_name": "Toll Keeper",
+        "reasons": [
+          "description missing or still OCR-damaged",
+          "skills still OCR-damaged",
+          "talents still OCR-damaged"
+        ]
+      },
+      {
+        "career_id": "tradesman",
+        "career_name": "Tradesman",
+        "reasons": [
+          "description missing or still OCR-damaged",
+          "skills still OCR-damaged",
+          "talents still OCR-damaged",
+          "trappings missing",
+          "career entries missing"
+        ]
+      },
+      {
+        "career_id": "vagabond",
+        "career_name": "Vagabond",
+        "reasons": [
+          "description missing or still OCR-damaged",
+          "skills still OCR-damaged",
+          "talents missing"
+        ]
+      }
+    ],
+    "notes": [
+      "This page uses the standard two-career layout.",
+      "Re-extract the top and bottom career blocks separately with overlap.",
+      "Adjacent-page spreads are optional fallback only if a line still truncates."
+    ]
+  },
+  {
+    "page_idx": 33,
+    "page_image": "ocr_target_pages/p033.png",
+    "deepseek_page_done": true,
+    "recommended_strategy": "crop_each_career_block",
+    "join_adjacent_pages_primary": false,
+    "careers": [
+      {
+        "career_id": "merchant",
+        "career_name": "Merchant",
+        "reasons": [
+          "description missing or still OCR-damaged",
+          "talents still OCR-damaged"
+        ]
+      },
+      {
+        "career_id": "racketeer",
+        "career_name": "Racketeer",
+        "reasons": [
+          "description missing or still OCR-damaged",
+          "talents missing"
+        ]
+      },
+      {
+        "career_id": "thug",
+        "career_name": "Thug",
+        "reasons": [
+          "description missing or still OCR-damaged",
+          "talents still OCR-damaged"
+        ]
+      }
+    ],
+    "notes": [
+      "This page uses the standard two-career layout.",
+      "Re-extract the top and bottom career blocks separately with overlap.",
+      "Adjacent-page spreads are optional fallback only if a line still truncates."
+    ]
+  },
+  {
+    "page_idx": 34,
+    "page_image": "ocr_target_pages/p034.png",
+    "deepseek_page_done": true,
+    "recommended_strategy": "crop_each_career_block",
+    "join_adjacent_pages_primary": false,
+    "careers": [
+      {
+        "career_id": "kislevite_kossar",
+        "career_name": "Kislevite Kossar",
+        "reasons": [
+          "description missing or still OCR-damaged",
+          "skills still OCR-damaged",
+          "talents missing",
+          "trappings still OCR-damaged",
+          "career entries missing",
+          "career exits missing"
+        ]
+      },
+      {
+        "career_id": "pit_fighter",
+        "career_name": "Pit Fighter",
+        "reasons": [
+          "description missing or still OCR-damaged",
+          "talents still OCR-damaged",
+          "trappings still OCR-damaged",
+          "career entries missing",
+          "career exits missing"
+        ]
+      },
+      {
+        "career_id": "vampire_hunter",
+        "career_name": "Vampire Hunter",
+        "reasons": [
+          "description missing or still OCR-damaged",
+          "skills still OCR-damaged",
+          "talents still OCR-damaged",
+          "career entries missing",
+          "career exits missing"
+        ]
+      }
+    ],
+    "notes": [
+      "This page uses the standard two-career layout.",
+      "Re-extract the top and bottom career blocks separately with overlap.",
+      "Adjacent-page spreads are optional fallback only if a line still truncates."
+    ]
+  },
+  {
+    "page_idx": 35,
+    "page_image": "ocr_target_pages/p035.png",
+    "deepseek_page_done": true,
+    "recommended_strategy": "crop_each_career_block",
+    "join_adjacent_pages_primary": false,
+    "careers": [
+      {
+        "career_id": "militiaman",
+        "career_name": "Militiaman",
+        "reasons": [
+          "description missing or still OCR-damaged",
+          "skills still OCR-damaged",
+          "trappings still OCR-damaged",
+          "career entries missing"
+        ]
+      },
+      {
+        "career_id": "spy",
+        "career_name": "Spy",
+        "reasons": [
+          "description missing or still OCR-damaged",
+          "skills still OCR-damaged"
+        ]
+      }
+    ],
+    "notes": [
+      "This page uses the standard two-career layout.",
+      "Re-extract the top and bottom career blocks separately with overlap.",
+      "Adjacent-page spreads are optional fallback only if a line still truncates."
+    ]
+  },
+  {
+    "page_idx": 36,
+    "page_image": "ocr_target_pages/p036.png",
+    "deepseek_page_done": true,
+    "recommended_strategy": "crop_each_career_block",
+    "join_adjacent_pages_primary": false,
+    "careers": [
+      {
+        "career_id": "scout",
+        "career_name": "Scout",
+        "reasons": [
+          "description missing or still OCR-damaged",
+          "talents still OCR-damaged",
+          "trappings still OCR-damaged",
+          "career exits missing"
+        ]
+      }
+    ],
+    "notes": [
+      "This page uses the standard two-career layout.",
+      "Re-extract the top and bottom career blocks separately with overlap.",
+      "Adjacent-page spreads are optional fallback only if a line still truncates."
+    ]
+  },
+  {
+    "page_idx": 37,
+    "page_image": "ocr_target_pages/p037.png",
+    "deepseek_page_done": true,
+    "recommended_strategy": "crop_each_career_block",
+    "join_adjacent_pages_primary": false,
+    "careers": [
+      {
+        "career_id": "charlatan",
+        "career_name": "Charlatan",
+        "reasons": [
+          "description missing or still OCR-damaged",
+          "skills still OCR-damaged",
+          "talents missing",
+          "trappings still OCR-damaged",
+          "career exits missing"
+        ]
+      },
+      {
+        "career_id": "minstrel",
+        "career_name": "Minstrel",
+        "reasons": [
+          "description missing or still OCR-damaged",
+          "skills still OCR-damaged",
+          "talents missing",
+          "trappings still OCR-damaged",
+          "career exits missing"
+        ]
+      },
+      {
+        "career_id": "rogue",
+        "career_name": "Rogue",
+        "reasons": [
+          "description missing or still OCR-damaged",
+          "skills still OCR-damaged",
+          "talents missing",
+          "trappings still OCR-damaged",
+          "career entries missing",
+          "career exits missing"
+        ]
+      }
+    ],
+    "notes": [
+      "This page uses the standard two-career layout.",
+      "Re-extract the top and bottom career blocks separately with overlap.",
+      "Adjacent-page spreads are optional fallback only if a line still truncates."
+    ]
+  },
+  {
+    "page_idx": 38,
+    "page_image": "ocr_target_pages/p038.png",
+    "deepseek_page_done": true,
+    "recommended_strategy": "crop_each_career_block",
+    "join_adjacent_pages_primary": false,
+    "careers": [
+      {
+        "career_id": "duellist",
+        "career_name": "Duellist",
+        "reasons": [
+          "description missing or still OCR-damaged",
+          "skills still OCR-damaged",
+          "talents still OCR-damaged",
+          "trappings still OCR-damaged",
+          "career entries missing"
+        ]
+      },
+      {
+        "career_id": "highwayman",
+        "career_name": "Highwayman",
+        "reasons": [
+          "description missing or still OCR-damaged",
+          "trappings still OCR-damaged"
+        ]
+      }
+    ],
+    "notes": [
+      "This page uses the standard two-career layout.",
+      "Re-extract the top and bottom career blocks separately with overlap.",
+      "Adjacent-page spreads are optional fallback only if a line still truncates."
+    ]
+  },
+  {
+    "page_idx": 39,
+    "page_image": "ocr_target_pages/p039.png",
+    "deepseek_page_done": true,
+    "recommended_strategy": "crop_each_career_block",
+    "join_adjacent_pages_primary": false,
+    "careers": [
+      {
+        "career_id": "mate",
+        "career_name": "Mate",
+        "reasons": [
+          "description missing or still OCR-damaged",
+          "talents still OCR-damaged"
+        ]
+      },
+      {
+        "career_id": "navigator",
+        "career_name": "Navigator",
+        "reasons": [
+          "description missing or still OCR-damaged",
+          "career exits missing"
+        ]
+      }
+    ],
+    "notes": [
+      "This page uses the standard two-career layout.",
+      "Re-extract the top and bottom career blocks separately with overlap.",
+      "Adjacent-page spreads are optional fallback only if a line still truncates."
+    ]
+  },
+  {
+    "page_idx": 40,
+    "page_image": "ocr_target_pages/p040.png",
+    "deepseek_page_done": true,
+    "recommended_strategy": "crop_each_career_block",
+    "join_adjacent_pages_primary": false,
+    "careers": [
+      {
+        "career_id": "priest",
+        "career_name": "Priest",
+        "reasons": [
+          "description missing or still OCR-damaged",
+          "skills still OCR-damaged",
+          "talents still OCR-damaged"
+        ]
+      }
+    ],
+    "notes": [
+      "This page uses the standard two-career layout.",
+      "Re-extract the top and bottom career blocks separately with overlap.",
+      "Adjacent-page spreads are optional fallback only if a line still truncates."
+    ]
+  },
+  {
+    "page_idx": 41,
+    "page_image": "ocr_target_pages/p041.png",
+    "deepseek_page_done": true,
+    "recommended_strategy": "crop_each_career_block",
+    "join_adjacent_pages_primary": false,
+    "careers": [
+      {
+        "career_id": "knight",
+        "career_name": "Knight",
+        "reasons": [
+          "description missing or still OCR-damaged",
+          "skills still OCR-damaged",
+          "trappings still OCR-damaged",
+          "career entries missing",
+          "career exits still OCR-damaged"
+        ]
+      },
+      {
+        "career_id": "soldier",
+        "career_name": "Soldier",
+        "reasons": [
+          "description missing or still OCR-damaged",
+          "skills still OCR-damaged",
+          "talents still OCR-damaged",
+          "career entries missing"
+        ]
+      },
+      {
+        "career_id": "targeteer",
+        "career_name": "Targeteer",
+        "reasons": [
+          "description missing or still OCR-damaged",
+          "skills still OCR-damaged",
+          "talents still OCR-damaged",
+          "trappings still OCR-damaged"
+        ]
+      }
+    ],
+    "notes": [
+      "This page uses the standard two-career layout.",
+      "Re-extract the top and bottom career blocks separately with overlap.",
+      "Adjacent-page spreads are optional fallback only if a line still truncates."
+    ]
+  },
+  {
+    "page_idx": 43,
+    "page_image": "ocr_target_pages/p043.png",
+    "deepseek_page_done": true,
+    "recommended_strategy": "crop_each_career_block",
+    "join_adjacent_pages_primary": false,
+    "careers": [
+      {
+        "career_id": "sergeant",
+        "career_name": "Sergeant",
+        "reasons": [
+          "description missing or still OCR-damaged",
+          "skills still OCR-damaged",
+          "talents missing"
+        ]
+      },
+      {
+        "career_id": "veteran",
+        "career_name": "Veteran",
+        "reasons": [
+          "description missing or still OCR-damaged",
+          "skills still OCR-damaged",
+          "talents still OCR-damaged",
+          "trappings still OCR-damaged"
+        ]
+      }
+    ],
+    "notes": [
+      "This page uses the standard two-career layout.",
+      "Re-extract the top and bottom career blocks separately with overlap.",
+      "Adjacent-page spreads are optional fallback only if a line still truncates."
+    ]
+  },
+  {
+    "page_idx": 44,
+    "page_image": "ocr_target_pages/p044.png",
+    "deepseek_page_done": true,
+    "recommended_strategy": "crop_each_career_block",
+    "join_adjacent_pages_primary": false,
+    "careers": [
+      {
+        "career_id": "roadwarden",
+        "career_name": "Roadwarden",
+        "reasons": [
+          "description missing or still OCR-damaged",
+          "skills still OCR-damaged",
+          "talents still OCR-damaged",
+          "trappings still OCR-damaged",
+          "career entries missing"
+        ]
+      },
+      {
+        "career_id": "shieldbreaker",
+        "career_name": "Shieldbreaker",
+        "reasons": [
+          "description missing or still OCR-damaged",
+          "skills still OCR-damaged",
+          "talents still OCR-damaged",
+          "trappings still OCR-damaged",
+          "career entries missing"
+        ]
+      }
+    ],
+    "notes": [
+      "This page uses the standard two-career layout.",
+      "Re-extract the top and bottom career blocks separately with overlap.",
+      "Adjacent-page spreads are optional fallback only if a line still truncates."
+    ]
+  },
+  {
+    "page_idx": 45,
+    "page_image": "ocr_target_pages/p045.png",
+    "deepseek_page_done": true,
+    "recommended_strategy": "crop_each_career_block",
+    "join_adjacent_pages_primary": false,
+    "careers": [
+      {
+        "career_id": "captain",
+        "career_name": "Captain",
+        "reasons": [
+          "description missing or still OCR-damaged",
+          "skills still OCR-damaged",
+          "talents still OCR-damaged",
+          "trappings still OCR-damaged",
+          "career entries still OCR-damaged",
+          "career exits missing"
+        ]
+      }
+    ],
+    "notes": [
+      "This page uses the standard two-career layout.",
+      "Re-extract the top and bottom career blocks separately with overlap.",
+      "Adjacent-page spreads are optional fallback only if a line still truncates."
+    ]
+  },
+  {
+    "page_idx": 47,
+    "page_image": "ocr_target_pages/p047.png",
+    "deepseek_page_done": true,
+    "recommended_strategy": "crop_each_career_block",
+    "join_adjacent_pages_primary": false,
+    "careers": [
+      {
+        "career_id": "champion",
+        "career_name": "Champion",
+        "reasons": [
+          "description missing or still OCR-damaged",
+          "talents still OCR-damaged",
+          "trappings still OCR-damaged",
+          "career entries still OCR-damaged"
+        ]
+      }
+    ],
+    "notes": [
+      "This page uses the standard two-career layout.",
+      "Re-extract the top and bottom career blocks separately with overlap.",
+      "Adjacent-page spreads are optional fallback only if a line still truncates."
+    ]
+  },
+  {
+    "page_idx": 49,
+    "page_image": "ocr_target_pages/p049.png",
+    "deepseek_page_done": true,
+    "recommended_strategy": "crop_each_career_block",
+    "join_adjacent_pages_primary": false,
+    "careers": [
+      {
+        "career_id": "assassin",
+        "career_name": "Assassin",
+        "reasons": [
+          "description missing or still OCR-damaged",
+          "skills still OCR-damaged",
+          "talents still OCR-damaged",
+          "trappings missing",
+          "career entries missing"
+        ]
+      }
+    ],
+    "notes": [
+      "This page uses the standard two-career layout.",
+      "Re-extract the top and bottom career blocks separately with overlap.",
+      "Adjacent-page spreads are optional fallback only if a line still truncates."
+    ]
+  },
+  {
+    "page_idx": 51,
+    "page_image": "ocr_target_pages/p051.png",
+    "deepseek_page_done": true,
+    "recommended_strategy": "crop_each_career_block",
+    "join_adjacent_pages_primary": false,
+    "careers": [
+      {
+        "career_id": "tomb_robber",
+        "career_name": "Tomb Robber",
+        "reasons": [
+          "description missing or still OCR-damaged",
+          "skills still OCR-damaged",
+          "talents still OCR-damaged",
+          "trappings missing"
+        ]
+      }
+    ],
+    "notes": [
+      "This page uses the standard two-career layout.",
+      "Re-extract the top and bottom career blocks separately with overlap.",
+      "Adjacent-page spreads are optional fallback only if a line still truncates."
+    ]
+  },
+  {
+    "page_idx": 52,
+    "page_image": "ocr_target_pages/p052.png",
+    "deepseek_page_done": true,
+    "recommended_strategy": "crop_each_career_block",
+    "join_adjacent_pages_primary": false,
+    "careers": [
+      {
+        "career_id": "guild_master",
+        "career_name": "Guild Master",
+        "reasons": [
+          "description missing or still OCR-damaged",
+          "skills still OCR-damaged",
+          "career entries missing"
+        ]
+      }
+    ],
+    "notes": [
+      "This page uses the standard two-career layout.",
+      "Re-extract the top and bottom career blocks separately with overlap.",
+      "Adjacent-page spreads are optional fallback only if a line still truncates."
+    ]
+  },
+  {
+    "page_idx": 55,
+    "page_image": "ocr_target_pages/p055.png",
+    "deepseek_page_done": true,
+    "recommended_strategy": "crop_each_career_block",
+    "join_adjacent_pages_primary": false,
+    "careers": [
+      {
+        "career_id": "engineer",
+        "career_name": "Engineer",
+        "reasons": [
+          "description missing or still OCR-damaged",
+          "skills still OCR-damaged",
+          "talents missing",
+          "trappings still OCR-damaged",
+          "career exits missing"
+        ]
+      }
+    ],
+    "notes": [
+      "This page uses the standard two-career layout.",
+      "Re-extract the top and bottom career blocks separately with overlap.",
+      "Adjacent-page spreads are optional fallback only if a line still truncates."
+    ]
+  },
+  {
+    "page_idx": 60,
+    "page_image": "ocr_target_pages/p060.png",
+    "deepseek_page_done": true,
+    "recommended_strategy": "crop_each_career_block",
+    "join_adjacent_pages_primary": false,
+    "careers": [
+      {
+        "career_id": "flagellant",
+        "career_name": "Flagellant",
+        "reasons": [
+          "description missing or still OCR-damaged",
+          "trappings still OCR-damaged",
+          "career exits missing"
+        ]
+      }
+    ],
+    "notes": [
+      "This page uses the standard two-career layout.",
+      "Re-extract the top and bottom career blocks separately with overlap.",
+      "Adjacent-page spreads are optional fallback only if a line still truncates."
+    ]
+  },
+  {
+    "page_idx": 61,
+    "page_image": "ocr_target_pages/p061.png",
+    "deepseek_page_done": true,
+    "recommended_strategy": "crop_bottom_career_block",
+    "join_adjacent_pages_primary": false,
+    "careers": [
+      {
+        "career_id": "courtier",
+        "career_name": "Courtier",
+        "reasons": [
+          "description missing or still OCR-damaged",
+          "skills still OCR-damaged",
+          "talents still OCR-damaged",
+          "trappings still OCR-damaged"
+        ]
+      },
+      {
+        "career_id": "crime_lord",
+        "career_name": "Crime Lord",
+        "reasons": [
+          "description missing or still OCR-damaged",
+          "skills still OCR-damaged",
+          "talents missing",
+          "trappings still OCR-damaged"
+        ]
+      },
+      {
+        "career_id": "daemon_slayer",
+        "career_name": "Daemon Slayer",
+        "reasons": [
+          "description missing or still OCR-damaged",
+          "skills still OCR-damaged",
+          "career exits missing"
+        ]
+      },
+      {
+        "career_id": "demagogue",
+        "career_name": "Demagogue",
+        "reasons": [
+          "description missing or still OCR-damaged",
+          "skills still OCR-damaged",
+          "talents missing",
+          "trappings still OCR-damaged",
+          "career entries missing"
+        ]
+      },
+      {
+        "career_id": "explorer",
+        "career_name": "Explorer",
+        "reasons": [
+          "description missing or still OCR-damaged",
+          "skills still OCR-damaged",
+          "talents still OCR-damaged",
+          "trappings still OCR-damaged"
+        ]
+      },
+      {
+        "career_id": "ghost_strider",
+        "career_name": "Ghost Strider",
+        "reasons": [
+          "description missing or still OCR-damaged"
+        ]
+      },
+      {
+        "career_id": "knight_of_the_inner_circle",
+        "career_name": "Knight Of The Inner Circle",
+        "reasons": [
+          "description missing or still OCR-damaged",
+          "skills still OCR-damaged",
+          "talents still OCR-damaged",
+          "trappings still OCR-damaged"
+        ]
+      },
+      {
+        "career_id": "master_thief",
+        "career_name": "Master Thief",
+        "reasons": [
+          "description missing or still OCR-damaged",
+          "skills still OCR-damaged",
+          "talents still OCR-damaged",
+          "trappings still OCR-damaged",
+          "career entries missing"
+        ]
+      },
+      {
+        "career_id": "master_wizard",
+        "career_name": "Master Wizard",
+        "reasons": [
+          "description missing or still OCR-damaged",
+          "skills still OCR-damaged",
+          "talents still OCR-damaged",
+          "trappings missing"
+        ]
+      },
+      {
+        "career_id": "outlaw_chief",
+        "career_name": "Outlaw Chief",
+        "reasons": [
+          "description missing or still OCR-damaged",
+          "skills still OCR-damaged",
+          "talents missing",
+          "trappings still OCR-damaged"
+        ]
+      },
+      {
+        "career_id": "pistolier",
+        "career_name": "Pistolier",
+        "reasons": [
+          "description missing or still OCR-damaged",
+          "trappings still OCR-damaged",
+          "career exits missing"
+        ]
+      },
+      {
+        "career_id": "sea_captain",
+        "career_name": "Sea Captain",
+        "reasons": [
+          "description missing or still OCR-damaged",
+          "skills still OCR-damaged",
+          "talents still OCR-damaged"
+        ]
+      },
+      {
+        "career_id": "wizard_lord",
+        "career_name": "Wizard Lord",
+        "reasons": [
+          "description missing or still OCR-damaged",
+          "skills still OCR-damaged",
+          "talents still OCR-damaged"
+        ]
+      }
+    ],
+    "notes": [
+      "This page mixes the Advanced Careers table and a single career block.",
+      "Use a bottom-half crop for the career itself; full-page OCR is secondary.",
+      "Adjacent-page spreads are optional, not primary."
+    ]
+  },
+  {
+    "page_idx": 64,
+    "page_image": "ocr_target_pages/p064.png",
+    "deepseek_page_done": true,
+    "recommended_strategy": "crop_each_career_block",
+    "join_adjacent_pages_primary": false,
+    "careers": [
+      {
+        "career_id": "judicial_champion",
+        "career_name": "Judicial Champion",
+        "reasons": [
+          "description missing or still OCR-damaged",
+          "talents still OCR-damaged",
+          "trappings still OCR-damaged",
+          "career exits missing"
+        ]
+      }
+    ],
+    "notes": [
+      "This page uses the standard two-career layout.",
+      "Re-extract the top and bottom career blocks separately with overlap.",
+      "Adjacent-page spreads are optional fallback only if a line still truncates."
+    ]
+  }
+]

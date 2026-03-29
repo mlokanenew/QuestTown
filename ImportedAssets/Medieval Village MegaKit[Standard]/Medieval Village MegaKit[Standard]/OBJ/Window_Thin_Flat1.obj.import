@@ -1,0 +1,25 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://cbflwmo0soc57"
+path="res://.godot/imported/Window_Thin_Flat1.obj-ebe9130d1014ba7217d09473a65e9eb6.mesh"
+
+[deps]
+
+files=["res://.godot/imported/Window_Thin_Flat1.obj-ebe9130d1014ba7217d09473a65e9eb6.mesh"]
+
+source_file="res://ImportedAssets/Medieval Village MegaKit[Standard]/Medieval Village MegaKit[Standard]/OBJ/Window_Thin_Flat1.obj"
+dest_files=["res://.godot/imported/Window_Thin_Flat1.obj-ebe9130d1014ba7217d09473a65e9eb6.mesh", "res://.godot/imported/Window_Thin_Flat1.obj-ebe9130d1014ba7217d09473a65e9eb6.mesh"]
+
+[params]
+
+generate_tangents=true
+generate_lods=true
+generate_shadow_mesh=true
+generate_lightmap_uv2=false
+generate_lightmap_uv2_texel_size=0.2
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+force_disable_mesh_compression=false

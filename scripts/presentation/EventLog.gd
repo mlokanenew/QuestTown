@@ -9,6 +9,7 @@ func _ready() -> void:
 	if RuntimeConfig.is_headless():
 		return
 	GameState.event_logged.connect(_on_event)
+	GameState.state_reloaded.connect(_rebuild_from_state)
 
 func _on_event(event: Dictionary) -> void:
 	var msg := _format(event)
@@ -34,6 +35,71 @@ func _format(event: Dictionary) -> String:
 			var id: int = event.get("hero_id", 0)
 			if GameState.heroes.has(id):
 				return "[%d] %s enters the tavern." % [event.get("tick", 0), GameState.heroes[id]["name"]]
+		"hero_started_quest":
+			return "[%d] %s takes quest: %s." % [
+				event.get("tick", 0),
+				event.get("hero_name", "?"),
+				event.get("quest_name", "?")
+			]
+		"hero_completed_quest":
+			var outcome := "completed" if event.get("success", false) else "barely survived"
+			return "[%d] %s %s %s (+%dg, +%dxp)." % [
+				event.get("tick", 0),
+				event.get("hero_name", "?"),
+				outcome,
+				event.get("quest_name", "?"),
+				event.get("gold_reward", 0),
+				event.get("xp_reward", 0)
+			]
+		"hero_returned_from_quest":
+			return "[%d] %s returns from %s." % [
+				event.get("tick", 0),
+				event.get("hero_name", "?"),
+				event.get("quest_name", "?")
+			]
+		"hero_spent_at_tavern":
+			return "[%d] %s spends %dg at the tavern for %s." % [
+				event.get("tick", 0),
+				event.get("hero_name", "?"),
+				event.get("amount", 0),
+				event.get("service", "service")
+			]
+		"hero_spent_at_weapons_shop":
+			return "[%d] %s spends %dg at the weapon shop." % [
+				event.get("tick", 0),
+				event.get("hero_name", "?"),
+				event.get("amount", 0)
+			]
+		"hero_spent_at_temple":
+			return "[%d] %s spends %dg at the temple for %s." % [
+				event.get("tick", 0),
+				event.get("hero_name", "?"),
+				event.get("amount", 0),
+				event.get("service", "service")
+			]
+		"hero_recovering":
+			return "[%d] %s is recovering from injuries." % [
+				event.get("tick", 0),
+				event.get("hero_name", "?")
+			]
+		"hero_ready_again":
+			return "[%d] %s is ready for work again." % [
+				event.get("tick", 0),
+				event.get("hero_name", "?")
+			]
+		"hero_leveled_up":
+			return "[%d] %s reached level %d." % [
+				event.get("tick", 0),
+				event.get("hero_name", "?"),
+				event.get("level", 1)
+			]
 		_:
 			return ""
 	return ""
+
+func _rebuild_from_state() -> void:
+	label.clear()
+	for event in GameState.get_recent_events(max_lines):
+		var msg := _format(event)
+		if msg != "":
+			label.append_text(msg + "\n")

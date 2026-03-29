@@ -27,8 +27,18 @@ func run_scenario(sim: Node, scenario_path: String) -> void:
 	for cmd in commands:
 		_execute_command(sim, cmd)
 
-	# Run until any assertion might be satisfied
-	sim.run_until("hero_arrived_at_tavern", max_ticks)
+	var should_wait_for_hero := false
+	for assertion in assertions:
+		if assertion.get("assert", "") == "hero_count_gte" or assertion.get("assert", "") == "any_hero_state":
+			should_wait_for_hero = true
+			break
+
+	if should_wait_for_hero:
+		sim.run_until("hero_arrived_at_tavern", max_ticks)
+		if max_ticks > 0:
+			sim.step_ticks(max_ticks)
+	elif max_ticks > 0:
+		sim.step_ticks(max_ticks)
 
 	# Check assertions
 	var state: Variant = sim.get_world_state()
@@ -62,8 +72,20 @@ func _execute_command(sim: Node, cmd: Dictionary) -> void:
 				float(cmd.get("z", 0))
 			)
 			sim.place_building(cmd.get("type", ""), pos)
+		"upgrade_building":
+			var building_id: int = int(cmd.get("id", -1))
+			if building_id < 0:
+				var building: Dictionary = sim.get_building_of_type(cmd.get("type", ""))
+				building_id = int(building.get("id", -1))
+			sim.upgrade_building(building_id)
 		"step_ticks":
 			sim.step_ticks(cmd.get("n", 1))
+		"set_quest_enabled":
+			GameState.set_quest_enabled(cmd.get("id", ""), bool(cmd.get("enabled", true)))
+		"save_world":
+			sim.save_world(cmd.get("path", ""))
+		"load_world":
+			sim.load_world(cmd.get("path", ""))
 		"reset_world":
 			sim.reset_world(cmd.get("seed", 0))
 
@@ -72,6 +94,8 @@ func _check(assertion: Dictionary, state: Dictionary) -> bool:
 	match kind:
 		"hero_count_gte":
 			return state["heroes"].size() >= int(assertion.get("value", 1))
+		"hero_count_lte":
+			return state["heroes"].size() <= int(assertion.get("value", 1))
 		"any_hero_state":
 			var target_state: String = assertion.get("value", "")
 			for h in state["heroes"]:
@@ -80,6 +104,27 @@ func _check(assertion: Dictionary, state: Dictionary) -> bool:
 			return false
 		"building_count_gte":
 			return state["buildings"].size() >= int(assertion.get("value", 1))
+		"quest_count_gte":
+			return state.get("quests", []).size() >= int(assertion.get("value", 1))
+		"building_exists":
+			for b in state["buildings"]:
+				if b["type"] == assertion.get("type", ""):
+					return true
+			return false
+		"building_level_eq":
+			for b in state["buildings"]:
+				if b["type"] == assertion.get("type", ""):
+					return int(b.get("level", 1)) == int(assertion.get("value", 1))
+			return false
+		"gold_eq":
+			return int(state.get("gold", -1)) == int(assertion.get("value", -1))
+		"gold_gte":
+			return int(state.get("gold", -1)) >= int(assertion.get("value", 0))
+		"event_type_seen":
+			for event in state.get("events", []):
+				if event.get("type", "") == assertion.get("value", ""):
+					return true
+			return false
 	push_warning("ScenarioRunner: unknown assertion type '%s'" % kind)
 	return false
 

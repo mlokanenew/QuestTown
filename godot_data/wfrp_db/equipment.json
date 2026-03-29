@@ -1,0 +1,1280 @@
+{
+  "tables": [
+    {
+      "id": "table_5_missile_weapons",
+      "caption": "Table 5-: Missile Weapons",
+      "rows": [
+        [
+          "Name blunderbuss",
+          "Cost",
+          "Enc",
+          "Group",
+          "Damage",
+          "Ranget Reload",
+          "Qualities",
+          "Availability"
+        ],
+        [
+          "70 gc",
+          "50",
+          "Gunpowder",
+          "",
+          "32/- 3 Full",
+          "",
+          "Shrapnel",
+          "Very Rare"
+        ],
+        [
+          "bola 7s",
+          "20",
+          "Entangling",
+          "",
+          "8/16",
+          "Half",
+          "Snare",
+          "Scarce"
+        ],
+        [
+          "bow* 10 gc",
+          "80",
+          "Ordinary",
+          "",
+          "24/48",
+          "Half",
+          "None",
+          "Common"
+        ],
+        [
+          "Crossbow* 25 gc",
+          "120",
+          "Ordinary",
+          "",
+          "30/60",
+          "Full",
+          "None",
+          "Average"
+        ],
+        [
+          "Crossbow Pistol 35 gc",
+          "",
+          "Crossbow",
+          "",
+          "8/16",
+          "Full",
+          "None Armour Piercing",
+          "Rare"
+        ],
+        [
+          "lfbow* irearm*",
+          "S 70 gc 300 gc",
+          "Longbow Gunpowder",
+          "%",
+          "36/72 24/48",
+          "Half 2 Full",
+          "Impact, Unreliable",
+          "Very Rare Very Rare"
+        ],
+        [
+          "Hochland Long Rifle",
+          "450 gc",
+          "Engineer",
+          "4",
+          "48/96",
+          "2 Full",
+          "Impact, Unreliable",
+          "Very Rare"
+        ],
+        [
+          "mprovised avelin",
+          "2$",
+          "Ordinary",
+          "SB-4",
+          "61-",
+          "Half",
+          "None",
+          ""
+        ],
+        [
+          "asso*",
+          "30",
+          "Ordinary",
+          "SB-1",
+          "8/16",
+          "Half",
+          "None",
+          "Average"
+        ],
+        [
+          "ongbow*",
+          "1 gc 10",
+          "Entangling",
+          "n/a",
+          "8/-",
+          "Half",
+          "Snare Armour Piercing",
+          "Plentiful"
+        ],
+        [
+          "Tet",
+          "15 gc 90",
+          "Longbow Entangling",
+          "3",
+          "30/60 4/8",
+          "Half Full",
+          "Snare",
+          "Average"
+        ],
+        [
+          "istol",
+          "3 gc 620",
+          "Gunpowder",
+          "n/a",
+          "8/16",
+          "2 Full",
+          "Impact, Unreliable",
+          "Plentiful"
+        ],
+        [
+          "epeater Crossbow*",
+          "200 gc 150",
+          "Crossbow",
+          "",
+          "16/32",
+          "Free",
+          "Special",
+          "Very Rare"
+        ],
+        [
+          "epeater Firearm*",
+          "100 gc 600 gc 30",
+          "Engineer",
+          "",
+          "24/48",
+          "Free",
+          "Experimental, Special",
+          "Very Rare"
+        ],
+        [
+          "epeater Pistol",
+          "",
+          "Engineer",
+          "",
+          "8/16",
+          "Free",
+          "Experimental, Special",
+          "Very Rare"
+        ],
+        [
+          "hortbow*",
+          "400 gc 75 7 gc",
+          "Ordinary",
+          "",
+          "16/32",
+          "Half",
+          "None",
+          "Very Rare"
+        ],
+        [
+          "ling",
+          "4 gc",
+          "Sling",
+          "",
+          "16/32",
+          "Half",
+          "None",
+          "Common Common"
+        ],
+        [
+          "pear",
+          "10 0 10 gc",
+          "Ordinary",
+          "",
+          "8/-",
+          "Half",
+          "None",
+          ""
+        ],
+        [
+          "taff Sling*",
+          "6 gc",
+          "50 Sling",
+          "4",
+          "24/48",
+          "Full",
+          "None",
+          "Common Rare"
+        ],
+        [
+          "hrowing Axe/Hammer",
+          "5 gc",
+          "40",
+          "Throwing SB-2",
+          "8/-",
+          "Half",
+          "None",
+          "Average"
+        ],
+        [
+          "hrowing Dagger/Star",
+          "3 gc",
+          "10",
+          "Throwing SB-3",
+          "6/12",
+          "Half",
+          "None",
+          "Common"
+        ],
+        [
+          "7hip",
+          "2 gc",
+          "40",
+          "Entangling SB-4",
+          "61-",
+          "Half",
+          "Fast, Snare",
+          "Average"
+        ]
+      ],
+      "ocr_review_required": false
+    },
+    {
+      "id": "table_5_6_advanced_armour",
+      "caption": "Table 5-6: Advanced Armour",
+      "rows": [
+        [
+          "Cost",
+          "Enc",
+          "",
+          "Location(s) Covered",
+          "",
+          "AP",
+          "",
+          "Availability"
+        ],
+        [
+          "3g",
+          "",
+          "",
+          "Head",
+          "",
+          "",
+          "",
+          "Common"
+        ],
+        [
+          "12 gc",
+          "",
+          "",
+          "Body Body, Arms",
+          "",
+          "",
+          "",
+          "Common"
+        ],
+        [
+          "10 gc",
+          "",
+          "",
+          "Legs",
+          "",
+          "1",
+          "",
+          "Common"
+        ],
+        [
+          "25 gc",
+          "",
+          "1A",
+          "All",
+          "",
+          "1",
+          "",
+          "Common"
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          "1",
+          "",
+          "Average"
+        ],
+        [
+          "20 gc",
+          "",
+          "888",
+          "Head",
+          "",
+          "",
+          "",
+          "Average"
+        ],
+        [
+          "60 gc",
+          "",
+          "",
+          "Body",
+          "",
+          "",
+          "",
+          "Average"
+        ],
+        [
+          "95 gc",
+          "",
+          "",
+          "Body, Arms",
+          "",
+          "",
+          "",
+          "Average"
+        ],
+        [
+          "75 gc",
+          "",
+          "80",
+          "Body, Legs",
+          "",
+          "",
+          "",
+          "Average"
+        ],
+        [
+          "130 gc",
+          "",
+          "100",
+          "Body, Arms, Legs",
+          "",
+          "",
+          "",
+          "Average"
+        ],
+        [
+          "20 gc",
+          "",
+          "40",
+          "Legs",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "170 gc",
+          "",
+          "210",
+          "All",
+          "",
+          "NNNNNNN",
+          "",
+          "Scarce Scarce"
+        ],
+        [
+          "30 gc 70 gc",
+          "",
+          "10c",
+          "Head",
+          "",
+          "NNNNN",
+          "",
+          "Scarce"
+        ],
+        [
+          "",
+          "",
+          "",
+          "Body",
+          "",
+          "",
+          "",
+          "Scarce"
+        ],
+        [
+          "60 gc",
+          "",
+          "",
+          "Arms",
+          "",
+          "",
+          "",
+          "Scarce"
+        ],
+        [
+          "70 gc",
+          "",
+          "",
+          "Legs",
+          "",
+          "",
+          "",
+          "Scarce"
+        ],
+        [
+          "400 gc",
+          "",
+          "395",
+          "All",
+          "",
+          "",
+          "",
+          "Rare"
+        ]
+      ],
+      "ocr_review_required": false
+    },
+    {
+      "id": "table_5_7_clothing",
+      "caption": "Table 5-7: Clothing",
+      "rows": [
+        [
+          "Attire",
+          "Cost",
+          "Enc",
+          "Availability"
+        ],
+        [
+          "Rags",
+          "1p",
+          "$10",
+          "Abundant"
+        ],
+        [
+          "Poor",
+          "10s",
+          "",
+          "Abundant"
+        ],
+        [
+          "Common",
+          "3",
+          "",
+          "Plentiful"
+        ],
+        [
+          "Good Best",
+          "",
+          "",
+          "Common"
+        ],
+        [
+          "Robes",
+          "10 gc",
+          "",
+          "Average"
+        ],
+        [
+          "Costume/Entertainer",
+          "15 gc 5 gc",
+          "",
+          "Average Average"
+        ],
+        [
+          "Uniform",
+          "15 gc",
+          "",
+          "Scarce"
+        ],
+        [
+          "Noble's Garb",
+          "50 gc",
+          "",
+          "Rare"
+        ],
+        [
+          "Royal Garb",
+          "100 gc",
+          "",
+          "Very Rare"
+        ],
+        [
+          "Cloak",
+          "5 gc",
+          "",
+          "Plentiful"
+        ],
+        [
+          "Overcoat",
+          "10 gc",
+          "",
+          "Plentiful"
+        ],
+        [
+          "Hat, simple",
+          "10s",
+          "\\a2}$",
+          "Plentiful"
+        ],
+        [
+          "Hat, wide-brimmed",
+          "1 gc",
+          "",
+          "Plentiful"
+        ],
+        [
+          "Hood or Mask",
+          "10+5",
+          "",
+          "Common"
+        ]
+      ],
+      "ocr_review_required": false
+    },
+    {
+      "id": "table_5_8_food_drink",
+      "caption": "Table 5-8: Food & Drink",
+      "rows": [
+        [
+          "Food & Drink Ale",
+          "Cost 2p",
+          "Enc % C",
+          "Availability Plentiful"
+        ],
+        [
+          "Beer Keg of Ale or Beer",
+          "1p",
+          "",
+          "Abundant"
+        ],
+        [
+          "Fodder per Day",
+          "18 p/3 s",
+          "",
+          "Abundant"
+        ],
+        [
+          "Food per Day (Poor)",
+          "5p",
+          "",
+          "Plentiful"
+        ],
+        [
+          "Food per day (Average)",
+          "5+p",
+          "",
+          "Plentiful Common"
+        ],
+        [
+          "Food per Day (Good)",
+          "10+p 18+p",
+          "",
+          "Average"
+        ],
+        [
+          "Rations (per Week)",
+          "6+5",
+          "",
+          "Common"
+        ],
+        [
+          "Cheap Pie",
+          "1-3p",
+          "",
+          "Common"
+        ],
+        [
+          "Loaf of Bread",
+          "2p",
+          "",
+          "Abundant"
+        ],
+        [
+          "Side of Meat",
+          "1s",
+          "",
+          "Average"
+        ],
+        [
+          "Delicacy",
+          "3+5",
+          "varies",
+          "scarce"
+        ],
+        [
+          "Spirits, Bottle",
+          "1s",
+          "5",
+          "Average"
+        ],
+        [
+          "Wine, Common",
+          "1s",
+          "5",
+          "Common"
+        ],
+        [
+          "",
+          "",
+          "5",
+          ""
+        ],
+        [
+          "Wine, Quality",
+          "10s",
+          "",
+          "Average"
+        ]
+      ],
+      "ocr_review_required": false
+    },
+    {
+      "id": "table_5_9_carrying_equipment",
+      "caption": "Table 5-9: Carrying Equipment",
+      "rows": [
+        [
+          "Container",
+          "Cost Enc",
+          "Availability"
+        ],
+        [
+          "Backpack 30 s",
+          "20",
+          "Plentiful"
+        ],
+        [
+          "1 gc Case, map or scroll",
+          "",
+          "Scarce"
+        ],
+        [
+          "Chest",
+          "$2f0rac$",
+          "Average"
+        ],
+        [
+          "5 gc Flask, leather 15s",
+          "",
+          "Average"
+        ],
+        [
+          "Flask, metal",
+          "$\\fs ac }$",
+          "Scarce"
+        ],
+        [
+          "Jug",
+          "10",
+          "Plentiful"
+        ],
+        [
+          "Pouch",
+          "",
+          "Plentiful"
+        ],
+        [
+          "Purse",
+          "",
+          "Plentiful"
+        ],
+        [
+          "Sack",
+          "%%",
+          "Plentiful"
+        ],
+        [
+          "Saddlebag",
+          "",
+          "Average"
+        ],
+        [
+          "Slingbag",
+          "2 gc",
+          "Average"
+        ],
+        [
+          "Water Skin",
+          "1/100",
+          "Plentiful"
+        ]
+      ],
+      "ocr_review_required": false
+    },
+    {
+      "id": "table_5_io_lighting",
+      "caption": "Table 5-Io: Lighting",
+      "rows": [
+        [
+          "Light source",
+          "Cost",
+          "Enc",
+          "Availability"
+        ],
+        [
+          "Candle, tallow",
+          "",
+          "",
+          "Plentiful"
+        ],
+        [
+          "Candle, wax",
+          "3s",
+          "",
+          ""
+        ],
+        [
+          "",
+          "6s",
+          "",
+          "Average"
+        ],
+        [
+          "Firewood",
+          "2s",
+          "",
+          "Plentiful"
+        ],
+        [
+          "Oil, lamp",
+          "",
+          "",
+          "Plentiful"
+        ],
+        [
+          "Lamp",
+          "$\\frac}$",
+          "",
+          "Plentiful"
+        ],
+        [
+          "Lantern",
+          "5 gc",
+          "%",
+          "Average"
+        ],
+        [
+          "Lantern, Storm",
+          "12 gc",
+          "3\\0r}$",
+          "Scarce"
+        ],
+        [
+          "Match Torch",
+          "1p 5p",
+          "",
+          "Average Plentiful"
+        ]
+      ],
+      "ocr_review_required": false
+    },
+    {
+      "id": "table_5_ii_miscellanea",
+      "caption": "Table 5-Ii: Miscellanea",
+      "rows": [
+        [
+          "Item",
+          "Cost",
+          "Enc",
+          "Availability"
+        ],
+        [
+          "Blanket Cooking Pot",
+          "25s",
+          "120 0",
+          "Plentiful"
+        ],
+        [
+          "Cutlery, wooden",
+          "1 gc 5s",
+          "",
+          "Plentiful Plentiful"
+        ],
+        [
+          "Cutlery, metal",
+          "3 gc",
+          "",
+          "Common"
+        ],
+        [
+          "Cutlery, silver",
+          "15",
+          "",
+          "Scarce"
+        ],
+        [
+          "Deck of cards",
+          "1 gc",
+          "",
+          "Plentiful"
+        ],
+        [
+          "Dice (bone)",
+          "6s",
+          "",
+          "Plentiful"
+        ],
+        [
+          "Instrument Kettle",
+          "5 gc",
+          "C",
+          "Common"
+        ],
+        [
+          "Ladder",
+          "30 s",
+          "",
+          "Plentiful"
+        ],
+        [
+          "Lock, average",
+          "10 s",
+          "",
+          "Common"
+        ],
+        [
+          "Lock, quality",
+          "1 gc",
+          "",
+          "Common"
+        ],
+        [
+          "Mirror",
+          "10 gc 10 gc",
+          "%A",
+          "Scarce"
+        ],
+        [
+          "Paper",
+          "55",
+          "",
+          "Rare"
+        ],
+        [
+          "Parchment",
+          "1s",
+          "",
+          "Very Rare"
+        ],
+        [
+          "Perfume or Cologne",
+          "",
+          "",
+          "Rare"
+        ],
+        [
+          "Religious Symbol",
+          "1 gc 1 gc",
+          "",
+          "Common"
+        ],
+        [
+          "Rope, 20 yards",
+          "",
+          "",
+          "Common"
+        ],
+        [
+          "",
+          "1 gc",
+          "",
+          "Common"
+        ],
+        [
+          "Tankard, pewter",
+          "1 gc",
+          "",
+          "Plentiful"
+        ],
+        [
+          "Tankard, wooden",
+          "10 s",
+          "",
+          "Plentiful"
+        ],
+        [
+          "Telescope",
+          "100 gc",
+          "A",
+          "Rare"
+        ],
+        [
+          "Tent",
+          "15s",
+          "",
+          "Common"
+        ],
+        [
+          "Tinderbox",
+          "30 s",
+          "5",
+          "Plentiful"
+        ]
+      ],
+      "ocr_review_required": false
+    },
+    {
+      "id": "table_5_12_tools",
+      "caption": "Table 5-12: Tools",
+      "rows": [
+        [
+          "Vehicle",
+          "M",
+          "TB",
+          "",
+          "W"
+        ],
+        [
+          "River Boat",
+          "$\\fra}$",
+          "$4f$",
+          "",
+          "R"
+        ],
+        [
+          "Row Boat",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "Ship",
+          "",
+          "10",
+          "",
+          "150"
+        ]
+      ],
+      "ocr_review_required": false
+    },
+    {
+      "id": "table_5_14_mounts",
+      "caption": "Table 5-14: Mounts",
+      "rows": [
+        [
+          "Mount",
+          "Cost",
+          "Enc",
+          "Availability"
+        ],
+        [
+          "Destrier",
+          "500 gc",
+          "",
+          "Scarce"
+        ],
+        [
+          "Light Warhorse",
+          "300 gc",
+          "",
+          "Common"
+        ],
+        [
+          "Pony",
+          "50 gc",
+          "",
+          "Common"
+        ],
+        [
+          "Riding Horse",
+          "80 gc",
+          "",
+          "Common Common"
+        ],
+        [
+          "Saddle Harness",
+          "5gc",
+          "520",
+          "Common"
+        ]
+      ],
+      "ocr_review_required": false
+    },
+    {
+      "id": "table_5_i5_livestock",
+      "caption": "Table 5-I5: Livestock",
+      "rows": [
+        [
+          "Livestock",
+          "",
+          "Cost",
+          "Enc",
+          "Availability"
+        ],
+        [
+          "Cat",
+          "",
+          "1s",
+          "",
+          "Plentiful"
+        ],
+        [
+          "Chicken",
+          "",
+          "5",
+          "",
+          "Plentiful"
+        ],
+        [
+          "Cow",
+          "",
+          "10 gc",
+          "",
+          "Plentiful"
+        ],
+        [
+          "Dog (pedigree)",
+          "",
+          "3 gc",
+          "",
+          "Plentiful"
+        ],
+        [
+          "Dog, War",
+          "30 gc",
+          "",
+          "",
+          "Rare"
+        ],
+        [
+          "",
+          "Goat",
+          "2c",
+          "",
+          "Plentiful"
+        ],
+        [
+          "Horse, nag, draft or Mule",
+          "Hawk",
+          "80 gc",
+          "",
+          "Rare"
+        ],
+        [
+          "",
+          "",
+          "25+gc",
+          "",
+          "Plentiful"
+        ],
+        [
+          "",
+          "Horse, pack",
+          "40 gc",
+          "",
+          "Plentiful"
+        ],
+        [
+          "",
+          "Ox",
+          "30 gc",
+          "",
+          "Plentiful"
+        ],
+        [
+          "",
+          "Pig",
+          "3 gc",
+          "",
+          "Plentiful"
+        ],
+        [
+          "",
+          "",
+          "1 gc",
+          "",
+          ""
+        ],
+        [
+          "",
+          "Pigeons, Homing",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          "Average"
+        ],
+        [
+          "",
+          "Sheep",
+          "2 gc",
+          "",
+          "Plentiful"
+        ]
+      ],
+      "ocr_review_required": false
+    },
+    {
+      "id": "table_5_16_travel_services",
+      "caption": "Table 5-16: Travel Services",
+      "rows": [
+        [
+          "Mode of Travel Cart or Wagon",
+          "Cost 1 p/15 p",
+          "Availability"
+        ],
+        [
+          "Cart with 2 horses",
+          "1 s/3 gc",
+          "Plentiful"
+        ],
+        [
+          "Coach",
+          "",
+          "Plentiful"
+        ],
+        [
+          "River Boat",
+          "1 gcl7 gc",
+          "Average"
+        ],
+        [
+          "Ship's Passage",
+          "1s/5s",
+          "Plentiful"
+        ],
+        [
+          "Wagon, 3 horses",
+          "1 gcl5 gc 10 s/4 gc",
+          "Common Common"
+        ]
+      ],
+      "ocr_review_required": false
+    },
+    {
+      "id": "table_5_18_services",
+      "caption": "Table 5-18: Services",
+      "rows": [
+        [
+          "Service",
+          "Cost per Day",
+          "Cost per Week",
+          "Availability"
+        ],
+        [
+          "Artisan",
+          "34p",
+          "17 s 14s",
+          "Common"
+        ],
+        [
+          "Entertainer",
+          "28 p 10 p",
+          "5s",
+          "Common"
+        ],
+        [
+          "Labourer Physician",
+          "6",
+          "30 s",
+          "Common Common"
+        ],
+        [
+          "Servant",
+          "12p",
+          "6s",
+          "Common"
+        ]
+      ],
+      "ocr_review_required": false
+    },
+    {
+      "id": "table_5_19_special_equipment",
+      "caption": "Table 5-19: Special Equipment",
+      "rows": [
+        [
+          "Draught",
+          "Cost",
+          "Enc",
+          "Availability"
+        ],
+        [
+          "Bugman's Ale",
+          "50 gc",
+          "5",
+          "Very Rare"
+        ],
+        [
+          "Greta's Boon",
+          "30 gc",
+          "",
+          "Very Rare"
+        ],
+        [
+          "Healing Draught",
+          "5 gc",
+          "",
+          "Average"
+        ]
+      ],
+      "ocr_review_required": false
+    }
+  ],
+  "weapon_qualities": [
+    {
+      "id": "armour_piercing",
+      "name": "Armour Piercing",
+      "description": "Weapons with this quality are particularly good at punching through armour. Attacks from Armour Piercing weapons ignore 1 Armour Point. If a target has no armour, this quality has no effect. You can gain both this bonus and that of the Sure Shot talent."
+    },
+    {
+      "id": "balanced",
+      "name": "Balanced",
+      "description": "Weapons with this quality are designed to be used in your secondary hand, usually in concert with a rapier or foil. When wielding a Balanced weapon in your secondary hand, you don't suffer the normal $- 2 0 \\%$ penalty to your Weapon Skill. ![](images/dd8a956a31466450ed28f8fd4de0b857a74aa9aa7afbceed86823a0f535eef11.jpg)"
+    },
+    {
+      "id": "defensive",
+      "name": "Defensive",
+      "description": "W al a $+ 1 0 \\%$ bonu n t hiiDeniv"
+    },
+    {
+      "id": "experimental",
+      "name": "Experimental",
+      "description": "W o and cannot be fre again until a successful Trade (Gunsmith) Skill Test Damag leel s."
+    },
+    {
+      "id": "fast",
+      "name": "Fast",
+      "description": "ble or lo nie $- 1 0 \\%$ dodge a Fast weapon. # Trappings and Changing Careers As you gain and spend xp to complete your career, you should think i havel the new career' tappngs.Yu may hav some these things from you various adventures, but some equipment may be too expensive to buy,frcig you to stel r search or ertai goods in the wilderness (both dangerous options). Most of the equipment presented in his chapter should bevailable to bu ny town ville, failing that, vailab from neocountless merhants and caftmen work in the stinking cites across the Old World.Some oods, however,my oeifflt quie, you av tisbzc"
+    },
+    {
+      "id": "impact",
+      "name": "Impact",
+      "description": "Weapons with this quality hit with tremendous force. If you hit with higher result."
+    },
+    {
+      "id": "precise",
+      "name": "Precise",
+      "description": "Weapons with this quality are deadly accurate. When using a Precise"
+    },
+    {
+      "id": "pummelling",
+      "name": "Pummelling",
+      "description": "Weapons with this quality an knock foes senseless. You gain a $+ 1 0 \\%$ ."
+    },
+    {
+      "id": "shrapnel",
+      "name": "Shrapnel",
+      "description": "Ws withs qualiy o, mel ailas, orother small projectiles. These are not marksman's weapons; they just spray out spinning death over a large area. Firing a Shrapnel weapon not equie Ballistic Skil Te hi.Smply measure utne long as the weapon's maximum range (32 yards/16 squares in the case of a blunderbuss) and 2 yards (1 square) wide. Anyone caught in this area must make sucessful Agiliy Tet r suffer he weapon' e."
+    },
+    {
+      "id": "slow",
+      "name": "Slow",
+      "description": "Weapons with this quality are heavy and awkward, making them easier to avoid. Enemies gain a $+ 1 0 \\%$ Slow weapon."
+    },
+    {
+      "id": "snare",
+      "name": "Snare",
+      "description": "Weapons with this quality are designed to entangle enemies. On a successful hit, the target is trapped unless a successful Agility Test is made. An entangled target can attempt no other actions except eaping the snare. He can ty o burst he bonds a Strength Test o wriggle ree anAiliy Tet;these re ull actons.Attack agaist a snared character receive a $+ 2 0 \\%$ WS or BS bonus (as appropriate)."
+    },
+    {
+      "id": "special",
+      "name": "Special",
+      "description": "ist Weapon Groups Specialist Weapons are further subdivided into smaller groups, each of which corresponds to a talent (See Chapter 4: Skills and Talents). The Specialist Weapon Groups and the weapons covered are: Cavalry (Demilance, Lance), Crossbow (Crossbow Pistol, Repeater Crossbow), Engineer (Hochland Long Rifle, Repeater Firearm, Repeater Pistol), Entangling (Bolo, Lasso, Net, Whip), Fencing (Foil, Rapier), Flail (Flail, Morning Star), Gunpowder (Blunderbuss, Firearm, Pistol), Longbow (Elfbow, Longbow), Parrying (Buckler, Main Gauche, Sword-breaker), Sling (Sling, Staff Sling), Throwing (Throwing Dagger/Star, Throwing Axe), and Two-handed (Great Weapon, Halberd). # WeaPoN QUAlitiES There are many weapons in the Old World, each with unique advantages and drawbacks. These attributes are known as Weapon Qualities. Some weapons have none, while others have several. The various Weapon Qualities are described in the following section. You can see which qualities apply to which weapons on Tables 5-3 and 5-4. # Armour Piercing Weapons with this quality are particularly good at punching through armour. Attacks from Armour Piercing weapons ignore 1 Armour Point. If a target has no armour, this quality has no effect. You can gain both this bonus and that of the Sure Shot talent. # Balanced Weapons with this quality are designed to be used in your secondary hand, usually in concert with a rapier or foil. When wielding a Balanced weapon in your secondary hand, you don't suffer the normal $- 2 0 \\%$ penalty to your Weapon Skill. ![](images/dd8a956a31466450ed28f8fd4de0b857a74aa9aa7afbceed86823a0f535eef11.jpg) # Defensive W al a $+ 1 0 \\%$ bonu n t hiiDeniv # Experimental W o and cannot be fre again until a successful Trade (Gunsmith) Skill Test Damag leel s. # Fast ble or lo nie $- 1 0 \\%$ dodge a Fast weapon. # Trappings and Changing Careers As you gain and spend xp to complete your career, you should think i havel the new career' tappngs.Yu may hav some these things from you various adventures, but some equipment may be too expensive to buy,frcig you to stel r search or ertai goods in the wilderness (both dangerous options). Most of the equipment presented in his chapter should bevailable to bu ny town ville, failing that, vailab from neocountless merhants and caftmen work in the stinking cites across the Old World.Some oods, however,my oeifflt quie, you av tisbzc # Impact Weapons with this quality hit with tremendous force. If you hit with higher result. # Precise Weapons with this quality are deadly accurate. When using a Precise # Pummelling Weapons with this quality an knock foes senseless. You gain a $+ 1 0 \\%$ . # Shrapnel Ws withs qualiy o, mel ailas, orother small projectiles. These are not marksman's weapons; they just spray out spinning death over a large area. Firing a Shrapnel weapon not equie Ballistic Skil Te hi.Smply measure utne long as the weapon's maximum range (32 yards/16 squares in the case of a blunderbuss) and 2 yards (1 square) wide. Anyone caught in this area must make sucessful Agiliy Tet r suffer he weapon' e. # Slow Weapons with this quality are heavy and awkward, making them easier to avoid. Enemies gain a $+ 1 0 \\%$ Slow weapon. # Snare Weapons with this quality are designed to entangle enemies. On a successful hit, the target is trapped unless a successful Agility Test is made. An entangled target can attempt no other actions except eaping the snare. He can ty o burst he bonds a Strength Test o wriggle ree anAiliy Tet;these re ull actons.Attack agaist a snared character receive a $+ 2 0 \\%$ WS or BS bonus (as appropriate). # Special See weapon description for additional special rules."
+    },
+    {
+      "id": "tiring",
+      "name": "Tiring",
+      "description": "thu p u"
+    },
+    {
+      "id": "unreliable",
+      "name": "Unreliable",
+      "description": "Weapons with this quality do not always function dependably. On an attack roll of 96-99, the weapon jams and cannot be fire again until a successful Trade (Gunsmith) Skill Test is made. On an attack roll of he weapon explodes,inflicting its normal damage on the wielder andeig inhe ."
+    }
+  ]
+}

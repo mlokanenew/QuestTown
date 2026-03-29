@@ -8,7 +8,11 @@ const CAREER_MODELS: Dictionary = {
 	"Soldier":       "res://assets/characters/Knight.glb",
 	"Camp Follower": "res://assets/characters/Barbarian.glb",
 	"Mercenary":     "res://assets/characters/Barbarian.glb",
-	"Riverfolk":     "res://assets/characters/Rogue.glb",
+	"Hunter":        "res://assets/characters/Rogue.glb",
+	"Thief":         "res://assets/characters/Rogue_Hooded.glb",
+	"Initiate":      "res://assets/characters/Mage.glb",
+	"Roadwarden":    "res://assets/characters/Knight.glb",
+	"Messenger":     "res://assets/characters/Rogue.glb",
 	"Peasant":       "res://assets/characters/Mage.glb",
 }
 const DEFAULT_MODEL := "res://assets/characters/Knight.glb"
@@ -30,6 +34,7 @@ func _ready() -> void:
 	GameState.hero_spawned.connect(_on_hero_spawned)
 	GameState.hero_removed.connect(_on_hero_removed)
 	GameState.hero_state_changed.connect(_on_hero_state_changed)
+	GameState.state_reloaded.connect(_rebuild_all)
 
 func _process(_delta: float) -> void:
 	if RuntimeConfig.is_headless():
@@ -146,3 +151,10 @@ func _make_hero_node(hero: Dictionary) -> Node3D:
 	var p: Dictionary = hero["position"]
 	root.global_position = Vector3(p["x"], p["y"], p["z"])
 	return root
+
+func _rebuild_all() -> void:
+	for node in _nodes.values():
+		node.queue_free()
+	_nodes.clear()
+	for hero: Dictionary in GameState.heroes.values():
+		_on_hero_spawned(hero)

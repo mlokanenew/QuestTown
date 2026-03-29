@@ -3,18 +3,124 @@
     "id": "tavern",
     "name": "Tavern",
     "description": "A warm hearth and cheap ale. Heroes find their way here.",
-    "cost": 50,
-    "hero_spawn_weight": 1,
     "footprint": [2, 2],
-    "scene": "res://scenes/buildings/Tavern.tscn"
+    "scene": "res://scenes/buildings/Tavern.tscn",
+    "base_cost": 50,
+    "max_instances": 1,
+    "levels": [
+      {
+        "level": 1,
+        "name": "Common Room",
+        "upgrade_cost": 20,
+        "effects": {
+          "adventurer_arrival": true,
+          "lodging_income": 1,
+          "quest_generation": 1
+        }
+      },
+      {
+        "level": 2,
+        "name": "Guest Rooms",
+        "upgrade_cost": 30,
+        "effects": {
+          "adventurer_capacity": 1,
+          "lodging_income": 2,
+          "quest_generation": 1
+        }
+      },
+      {
+        "level": 3,
+        "name": "Notice Board",
+        "upgrade_cost": 0,
+        "effects": {
+          "adventurer_capacity": 1,
+          "lodging_income": 2,
+          "quest_generation": 2
+        }
+      }
+    ]
   },
   {
     "id": "weapons_shop",
     "name": "Weapons Shop",
     "description": "Blades, bows, and bucklers. Fighters and mercenaries are drawn here.",
-    "cost": 80,
-    "hero_spawn_weight": 1,
     "footprint": [2, 2],
-    "scene": "res://scenes/buildings/WeaponsShop.tscn"
+    "scene": "res://scenes/buildings/WeaponsShop.tscn",
+    "base_cost": 80,
+    "max_instances": 1,
+    "levels": [
+      {
+        "level": 1,
+        "name": "Basic Forge",
+        "upgrade_cost": 25,
+        "effects": {
+          "gear_spending": 1,
+          "quest_success_bonus": 1,
+          "martial_quest_tier": 1
+        }
+      },
+      {
+        "level": 2,
+        "name": "Better Blades",
+        "upgrade_cost": 35,
+        "effects": {
+          "gear_spending": 2,
+          "quest_success_bonus": 1,
+          "martial_quest_tier": 2
+        }
+      },
+      {
+        "level": 3,
+        "name": "Armour Rack",
+        "upgrade_cost": 0,
+        "effects": {
+          "gear_spending": 3,
+          "quest_success_bonus": 2,
+          "martial_quest_tier": 2
+        }
+      }
+    ]
+  },
+  {
+    "id": "temple",
+    "name": "Temple",
+    "description": "A small sanctuary offering healing, blessings, and quiet recovery.",
+    "footprint": [2, 2],
+    "scene": "res://scenes/buildings/Temple.tscn",
+    "base_cost": 70,
+    "max_instances": 1,
+    "levels": [
+      {
+        "level": 1,
+        "name": "Shrine",
+        "upgrade_cost": 20,
+        "effects": {
+          "healing_service": true,
+          "recovery_bonus": 1,
+          "spiritual_quest_tier": 1
+        }
+      },
+      {
+        "level": 2,
+        "name": "Healer's Room",
+        "upgrade_cost": 30,
+        "effects": {
+          "healing_service": true,
+          "recovery_bonus": 2,
+          "spiritual_quest_tier": 1
+        }
+      },
+      {
+        "level": 3,
+        "name": "Blessed Altar",
+        "upgrade_cost": 0,
+        "effects": {
+          "healing_service": true,
+          "recovery_bonus": 2,
+          "survival_bonus": 1,
+          "spiritual_quest_tier": 2
+        }
+      }
+    ]
   }
 ]

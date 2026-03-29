@@ -1,0 +1,30 @@
+{
+  "name": "MVP full build and quest loop",
+  "goal": "Build and fully upgrade the three town buildings, let heroes arrive, go on quests off-screen, and return after completing them.",
+  "seed": 42,
+  "max_ticks": 3600,
+  "commands": [
+    {"cmd": "place_building", "type": "tavern", "x": 0, "z": 0},
+    {"cmd": "place_building", "type": "weapons_shop", "x": 3, "z": 0},
+    {"cmd": "place_building", "type": "temple", "x": -3, "z": 0},
+    {"cmd": "upgrade_building", "type": "tavern"},
+    {"cmd": "upgrade_building", "type": "tavern"},
+    {"cmd": "upgrade_building", "type": "weapons_shop"},
+    {"cmd": "upgrade_building", "type": "weapons_shop"},
+    {"cmd": "upgrade_building", "type": "temple"},
+    {"cmd": "upgrade_building", "type": "temple"}
+  ],
+  "assertions": [
+    {"assert": "building_exists", "type": "tavern"},
+    {"assert": "building_exists", "type": "weapons_shop"},
+    {"assert": "building_exists", "type": "temple"},
+    {"assert": "building_level_eq", "type": "tavern", "value": 3},
+    {"assert": "building_level_eq", "type": "weapons_shop", "value": 3},
+    {"assert": "building_level_eq", "type": "temple", "value": 3},
+    {"assert": "hero_count_gte", "value": 1},
+    {"assert": "hero_count_lte", "value": 5},
+    {"assert": "event_type_seen", "value": "hero_started_quest"},
+    {"assert": "event_type_seen", "value": "hero_completed_quest"},
+    {"assert": "event_type_seen", "value": "hero_returned_from_quest"}
+  ]
+}

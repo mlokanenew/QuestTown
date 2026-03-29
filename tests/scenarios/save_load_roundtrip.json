@@ -1,0 +1,20 @@
+{
+  "name": "Save and load roundtrip preserves town state",
+  "goal": "Build part of the town, save it, reset the world, load it back, and verify buildings and gold were preserved.",
+  "seed": 42,
+  "commands": [
+    {"cmd": "place_building", "type": "tavern", "x": 0, "z": 0},
+    {"cmd": "place_building", "type": "weapons_shop", "x": 3, "z": 0},
+    {"cmd": "upgrade_building", "type": "tavern"},
+    {"cmd": "save_world", "path": "user://test_roundtrip_save.json"},
+    {"cmd": "reset_world", "seed": 99},
+    {"cmd": "load_world", "path": "user://test_roundtrip_save.json"}
+  ],
+  "assertions": [
+    {"assert": "building_exists", "type": "tavern"},
+    {"assert": "building_exists", "type": "weapons_shop"},
+    {"assert": "building_level_eq", "type": "tavern", "value": 2},
+    {"assert": "building_level_eq", "type": "weapons_shop", "value": 1},
+    {"assert": "gold_eq", "value": 340}
+  ]
+}

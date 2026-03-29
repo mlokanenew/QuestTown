@@ -1,0 +1,14 @@
+{
+  "name": "Phase 1 tavern build starts at level one",
+  "goal": "Place a tavern and confirm it is stored as a level 1 building with the correct gold spend.",
+  "seed": 42,
+  "max_ticks": 0,
+  "commands": [
+    {"cmd": "place_building", "type": "tavern", "x": 0, "z": 0}
+  ],
+  "assertions": [
+    {"assert": "building_exists", "type": "tavern"},
+    {"assert": "building_level_eq", "type": "tavern", "value": 1},
+    {"assert": "gold_eq", "value": 50}
+  ]
+}

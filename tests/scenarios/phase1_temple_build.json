@@ -1,0 +1,14 @@
+{
+  "name": "Phase 1 temple build succeeds",
+  "goal": "Place the temple on a free cell and confirm it starts at level 1.",
+  "seed": 42,
+  "max_ticks": 0,
+  "commands": [
+    {"cmd": "place_building", "type": "temple", "x": -3, "z": 0}
+  ],
+  "assertions": [
+    {"assert": "building_exists", "type": "temple"},
+    {"assert": "building_level_eq", "type": "temple", "value": 1},
+    {"assert": "gold_eq", "value": 30}
+  ]
+}

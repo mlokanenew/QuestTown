@@ -81,12 +81,33 @@ func _handle(cmd: Dictionary) -> void:
 			else:
 				_respond({"ok": true, "result": result})
 
+		"upgrade_building":
+			var building_id: int = int(cmd.get("id", -1))
+			if building_id < 0 and cmd.has("type"):
+				var building: Dictionary = _sim.get_building_of_type(cmd.get("type", ""))
+				building_id = int(building.get("id", -1))
+			var upgrade_result: Variant = _sim.upgrade_building(building_id)
+			if upgrade_result.is_empty():
+				_respond({"ok": false, "error": "upgrade failed"})
+			else:
+				_respond({"ok": true, "result": upgrade_result})
+
 		"step_ticks":
 			_sim.step_ticks(cmd.get("n", 1))
 			_respond({"ok": true, "tick": GameState.tick})
 
 		"get_world_state":
 			_respond({"ok": true, "result": _sim.get_world_state()})
+
+		"set_quest_enabled":
+			GameState.set_quest_enabled(cmd.get("id", ""), bool(cmd.get("enabled", true)))
+			_respond({"ok": true})
+
+		"save_world":
+			_respond({"ok": _sim.save_world(cmd.get("path", ""))})
+
+		"load_world":
+			_respond({"ok": _sim.load_world(cmd.get("path", ""))})
 
 		"get_heroes":
 			_respond({"ok": true, "result": _sim.get_heroes()})
