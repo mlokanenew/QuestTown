@@ -48,10 +48,15 @@ func _handle_lodging(hero_id: int, building_system: Object) -> bool:
 	var tavern: Dictionary = building_system.get_building_of_type("tavern")
 	if tavern.is_empty():
 		return false
-	var cost: int = max(1, _building_effect(building_system, "tavern", "lodging_income"))
+	var service: Dictionary = DataLoader.get_service("tavern_lodging")
+	var cost: int = max(
+		1,
+		int(service.get("base_cost", 1)) + _building_effect(building_system, "tavern", "lodging_income") - 1
+	)
 	return _transfer_gold(hero_id, cost, "hero_spent_at_tavern", {
 		"building_type": "tavern",
-		"service": "lodging"
+		"service": "lodging",
+		"service_id": service.get("id", "tavern_lodging")
 	}, func() -> void:
 		GameState.heroes[hero_id]["needs_lodging"] = false
 		GameState.heroes[hero_id]["service_cooldown_ticks"] = 30
@@ -61,12 +66,15 @@ func _handle_gear_purchase(hero_id: int, building_system: Object) -> bool:
 	var shop: Dictionary = building_system.get_building_of_type("weapons_shop")
 	if shop.is_empty():
 		return false
-	var spend: int = max(1, _building_effect(building_system, "weapons_shop", "gear_spending"))
+	var gear_offer: Dictionary = DataLoader.get_best_gear_offer(int(shop.get("level", 1)))
+	var spend: int = max(1, int(gear_offer.get("cost", _building_effect(building_system, "weapons_shop", "gear_spending"))))
+	var gear_bonus: int = max(1, int(gear_offer.get("gear_bonus", spend)))
 	return _transfer_gold(hero_id, spend, "hero_spent_at_weapons_shop", {
 		"building_type": "weapons_shop",
-		"service": "gear"
+		"service": "gear",
+		"gear_id": gear_offer.get("id", "")
 	}, func() -> void:
-		GameState.heroes[hero_id]["gear_bonus"] = spend
+		GameState.heroes[hero_id]["gear_bonus"] = gear_bonus
 		GameState.heroes[hero_id]["service_cooldown_ticks"] = SERVICE_COOLDOWN_TICKS
 	)
 
@@ -77,10 +85,12 @@ func _handle_healing(hero_id: int, building_system: Object) -> bool:
 	if _building_effect(building_system, "temple", "healing_service") <= 0:
 		return false
 	var recovery_bonus: int = max(1, _building_effect(building_system, "temple", "recovery_bonus"))
-	var cost: int = recovery_bonus
+	var service: Dictionary = DataLoader.get_service("temple_healing")
+	var cost: int = max(1, int(service.get("base_cost", 1)) + recovery_bonus - 1)
 	return _transfer_gold(hero_id, cost, "hero_spent_at_temple", {
 		"building_type": "temple",
-		"service": "healing"
+		"service": "healing",
+		"service_id": service.get("id", "temple_healing")
 	}, func() -> void:
 		var max_health: int = int(GameState.heroes[hero_id].get("max_health", 0))
 		GameState.heroes[hero_id]["health"] = max_health
@@ -96,11 +106,13 @@ func _handle_blessing(hero_id: int, building_system: Object) -> bool:
 		return false
 	if _building_effect(building_system, "temple", "healing_service") <= 0:
 		return false
-	var spend: int = max(1, _building_effect(building_system, "temple", "recovery_bonus"))
+	var service: Dictionary = DataLoader.get_service("temple_blessing")
+	var spend: int = max(1, int(service.get("base_cost", 1)) + _building_effect(building_system, "temple", "recovery_bonus") - 1)
 	var survival_bonus: int = max(1, _building_effect(building_system, "temple", "survival_bonus") + 1)
 	return _transfer_gold(hero_id, spend, "hero_spent_at_temple", {
 		"building_type": "temple",
-		"service": "blessing"
+		"service": "blessing",
+		"service_id": service.get("id", "temple_blessing")
 	}, func() -> void:
 		GameState.heroes[hero_id]["blessing_bonus"] = survival_bonus
 		GameState.heroes[hero_id]["service_cooldown_ticks"] = SERVICE_COOLDOWN_TICKS

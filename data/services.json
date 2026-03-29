@@ -1,0 +1,42 @@
+[
+  {
+    "id": "tavern_lodging",
+    "name": "Lodging",
+    "building_type": "tavern",
+    "category": "hospitality",
+    "base_cost": 1,
+    "source_table": "table_5_18_services"
+  },
+  {
+    "id": "tavern_meal",
+    "name": "Meal and Ale",
+    "building_type": "tavern",
+    "category": "food",
+    "base_cost": 1,
+    "source_table": "table_5_8_food_drink"
+  },
+  {
+    "id": "temple_healing",
+    "name": "Temple Healing",
+    "building_type": "temple",
+    "category": "medical",
+    "base_cost": 2,
+    "source_table": "table_5_18_services"
+  },
+  {
+    "id": "temple_blessing",
+    "name": "Temple Blessing",
+    "building_type": "temple",
+    "category": "devotion",
+    "base_cost": 2,
+    "source_table": "table_5_19_special_equipment"
+  },
+  {
+    "id": "road_cart_passage",
+    "name": "Cart Passage",
+    "building_type": "stable",
+    "category": "travel",
+    "base_cost": 1,
+    "source_table": "table_5_16_travel_services"
+  }
+]

@@ -200,10 +200,23 @@ def transform_characteristics(source_characteristics: dict) -> list[dict]:
     return source_characteristics.get("definitions", [])
 
 
-def transform_careers(source_careers: list[dict], available_skill_ids: set[str]) -> list[dict]:
+def build_name_to_id(source_careers: list[dict]) -> dict[str, str]:
+    return {career.get("name", ""): career.get("id", "") for career in source_careers}
+
+
+def map_promotion_targets(career: dict, name_to_id: dict[str, str], allowed_ids: set[str]) -> list[str]:
+    targets = []
+    for name in career.get("career_exits", []):
+        target_id = name_to_id.get(name, "")
+        if target_id and target_id in allowed_ids and target_id not in targets:
+            targets.append(target_id)
+    return targets
+
+
+def transform_careers(source_careers: list[dict], available_skill_ids: set[str], tier: str, allowed_ids: set[str], name_to_id: dict[str, str]) -> list[dict]:
     runtime = []
     for career in source_careers:
-        if career.get("tier") != "basic":
+        if career.get("tier") != tier:
             continue
         skill_ids = extract_skill_ids(career, available_skill_ids)
         archetype = derive_archetype(career, skill_ids)
@@ -211,7 +224,7 @@ def transform_careers(source_careers: list[dict], available_skill_ids: set[str])
             {
                 "id": career.get("id", ""),
                 "name": career.get("name", ""),
-                "tier": "basic",
+                "tier": tier,
                 "archetype": archetype,
                 "quest_bias": derive_quest_bias(career, skill_ids, archetype),
                 "service_bias": derive_service_bias(archetype),
@@ -220,6 +233,7 @@ def transform_careers(source_careers: list[dict], available_skill_ids: set[str])
                 "description": career.get("description", ""),
                 "career_entries": career.get("career_entries", []),
                 "career_exits": career.get("career_exits", []),
+                "promotion_targets": map_promotion_targets(career, name_to_id, allowed_ids),
                 "ocr_review_required": career.get("ocr_review_required", False),
             }
         )
@@ -233,16 +247,22 @@ def main() -> None:
 
     runtime_skills = transform_skills(source_skills)
     runtime_characteristics = transform_characteristics(source_characteristics)
-    runtime_careers = transform_careers(source_careers, {skill["id"] for skill in runtime_skills})
+    name_to_id = build_name_to_id(source_careers)
+    basic_ids = {career.get("id", "") for career in source_careers if career.get("tier") == "basic"}
+    advanced_ids = {career.get("id", "") for career in source_careers if career.get("tier") == "advanced"}
+    runtime_careers = transform_careers(source_careers, {skill["id"] for skill in runtime_skills}, "basic", advanced_ids, name_to_id)
+    runtime_advanced_careers = transform_careers(source_careers, {skill["id"] for skill in runtime_skills}, "advanced", basic_ids, name_to_id)
 
     save_json(DATA_DIR / "skills.json", runtime_skills)
     save_json(DATA_DIR / "characteristics.json", runtime_characteristics)
     save_json(DATA_DIR / "careers.json", runtime_careers)
+    save_json(DATA_DIR / "advanced_careers.json", runtime_advanced_careers)
 
     print(
         json.dumps(
             {
                 "careers": len(runtime_careers),
+                "advanced_careers": len(runtime_advanced_careers),
                 "skills": len(runtime_skills),
                 "characteristics": len(runtime_characteristics),
             },

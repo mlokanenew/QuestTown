@@ -38,6 +38,11 @@
       "Rogue",
       "Zealot"
     ],
+    "promotion_targets": [
+      "charlatan",
+      "demagogue",
+      "politician"
+    ],
     "ocr_review_required": false
   },
   {
@@ -71,6 +76,10 @@
       "Journeyman Wizard",
       "Scholar",
       "Scribe"
+    ],
+    "promotion_targets": [
+      "journeyman_wizard",
+      "scholar"
     ],
     "ocr_review_required": false
   },
@@ -110,6 +119,10 @@
       "Smuggler",
       "Toll Keeper"
     ],
+    "promotion_targets": [
+      "politician",
+      "racketeer"
+    ],
     "ocr_review_required": false
   },
   {
@@ -145,6 +158,10 @@
       "Physician",
       "Tradesman",
       "Vagabond"
+    ],
+    "promotion_targets": [
+      "interrogator",
+      "physician"
     ],
     "ocr_review_required": false
   },
@@ -185,6 +202,9 @@
       "Seaman",
       "Smuggler"
     ],
+    "promotion_targets": [
+      "navigator"
+    ],
     "ocr_review_required": false
   },
   {
@@ -220,6 +240,10 @@
       "Mercenary",
       "Protagonist",
       "Racketeer"
+    ],
+    "promotion_targets": [
+      "interrogator",
+      "racketeer"
     ],
     "ocr_review_required": false
   },
@@ -257,6 +281,10 @@
       "Fence",
       "Grave Robber",
       "Smuggler"
+    ],
+    "promotion_targets": [
+      "cat_burglar",
+      "fence"
     ],
     "ocr_review_required": false
   },
@@ -296,6 +324,11 @@
       "Targeteer",
       "Vampire Hunter"
     ],
+    "promotion_targets": [
+      "scout",
+      "targeteer",
+      "vampire_hunter"
+    ],
     "ocr_review_required": false
   },
   {
@@ -333,6 +366,11 @@
       "Militiaman",
       "Tradesman",
       "Valet"
+    ],
+    "promotion_targets": [
+      "fence",
+      "innkeeper",
+      "merchant"
     ],
     "ocr_review_required": false
   },
@@ -374,6 +412,10 @@
       "Tradesman",
       "Vagabond"
     ],
+    "promotion_targets": [
+      "charlatan",
+      "spy"
+    ],
     "ocr_review_required": false
   },
   {
@@ -414,6 +456,9 @@
       "Vagabond",
       "Woodsman"
     ],
+    "promotion_targets": [
+      "scout"
+    ],
     "ocr_review_required": false
   },
   {
@@ -453,6 +498,10 @@
       "Scout",
       "Smuggler",
       "Toll Keeper"
+    ],
+    "promotion_targets": [
+      "highwayman",
+      "scout"
     ],
     "ocr_review_required": false
   },
@@ -499,6 +548,10 @@
       "Thief",
       "Vagabond"
     ],
+    "promotion_targets": [
+      "charlatan",
+      "minstrel"
+    ],
     "ocr_review_required": false
   },
   {
@@ -535,6 +588,10 @@
       "Student",
       "Vagabond"
     ],
+    "promotion_targets": [
+      "charlatan",
+      "merchant"
+    ],
     "ocr_review_required": false
   },
   {
@@ -562,6 +619,10 @@
       "Highwayman",
       "Protagonist",
       "Rogue"
+    ],
+    "promotion_targets": [
+      "duellist",
+      "highwayman"
     ],
     "ocr_review_required": false
   },
@@ -600,6 +661,9 @@
       "Seaman",
       "Smuggler"
     ],
+    "promotion_targets": [
+      "highwayman"
+    ],
     "ocr_review_required": false
   },
   {
@@ -634,6 +698,10 @@
       "Scout",
       "Vagabond",
       "Vampire Hunter"
+    ],
+    "promotion_targets": [
+      "scout",
+      "vampire_hunter"
     ],
     "ocr_review_required": false
   },
@@ -674,6 +742,10 @@
       "Navigator",
       "Seaman"
     ],
+    "promotion_targets": [
+      "merchant",
+      "navigator"
+    ],
     "ocr_review_required": false
   },
   {
@@ -710,6 +782,10 @@
       "Rat Catcher",
       "Student",
       "Thief"
+    ],
+    "promotion_targets": [
+      "cat_burglar",
+      "fence"
     ],
     "ocr_review_required": false
   },
@@ -749,6 +825,9 @@
       "Initiate",
       "Outlaw",
       "Vagabond"
+    ],
+    "promotion_targets": [
+      "charlatan"
     ],
     "ocr_review_required": false
   },
@@ -790,6 +869,10 @@
       "Soldier",
       "Targeteer"
     ],
+    "promotion_targets": [
+      "scout",
+      "targeteer"
+    ],
     "ocr_review_required": false
   },
   {
@@ -829,6 +912,11 @@
       "Scribe",
       "Zealot"
     ],
+    "promotion_targets": [
+      "demagogue",
+      "friar",
+      "priest"
+    ],
     "ocr_review_required": false
   },
   {
@@ -853,6 +941,7 @@
       "Watchman"
     ],
     "career_exits": [],
+    "promotion_targets": [],
     "ocr_review_required": true
   },
   {
@@ -872,6 +961,7 @@
     "description": "Orignally, the Kossars were an Ungol tribe that lived northeast of the Empire. A eastern people known as the Gospodars invaded this region, subjugated the Ungols, and founded the nation of Kislev. During this conflict, the Kossars sold their skills to the Gospodars as Mercenaries, fighting against her Ungol tribes.Their unique styleo fighting impressed the Gospodar nobility, and since that time Kossar regiments have served the Tzars of Kislev. These days the Kossars are no longer a tribe, but a tough military unit drawn from all over Kislev. They are armed with bows and great axes, making them quite flexible on the battlefield. Many Kossars, tired of the ceaseless warfare ot ative an travel the Empie to become Mercenaries or adventurers. you are from Kislev. - Kislevite Kossar Advance Scheme -",
     "career_entries": [],
     "career_exits": [],
+    "promotion_targets": [],
     "ocr_review_required": true
   },
   {
@@ -909,6 +999,10 @@
       "Vagabond",
       "Veteran"
     ],
+    "promotion_targets": [
+      "scout",
+      "veteran"
+    ],
     "ocr_review_required": false
   },
   {
@@ -944,6 +1038,10 @@
       "Sergeant",
       "Smuggler",
       "Thug"
+    ],
+    "promotion_targets": [
+      "mate",
+      "sergeant"
     ],
     "ocr_review_required": false
   },
@@ -998,6 +1096,10 @@
       "Shieldbreaker",
       "Veteran"
     ],
+    "promotion_targets": [
+      "sergeant",
+      "veteran"
+    ],
     "ocr_review_required": false
   },
   {
@@ -1034,6 +1136,9 @@
       "Coachman",
       "Herald",
       "Kithband"
+    ],
+    "promotion_targets": [
+      "herald"
     ],
     "ocr_review_required": false
   },
@@ -1082,6 +1187,10 @@
       "Sergeant",
       "Thief"
     ],
+    "promotion_targets": [
+      "artisan",
+      "sergeant"
+    ],
     "ocr_review_required": false
   },
   {
@@ -1121,6 +1230,10 @@
       "Shieldbreaker",
       "Smuggler"
     ],
+    "promotion_targets": [
+      "engineer",
+      "scout"
+    ],
     "ocr_review_required": false
   },
   {
@@ -1144,6 +1257,7 @@
       "Squire"
     ],
     "career_exits": [],
+    "promotion_targets": [],
     "ocr_review_required": true
   },
   {
@@ -1173,6 +1287,10 @@
       "Seaman",
       "Sergeant",
       "Veteran"
+    ],
+    "promotion_targets": [
+      "sergeant",
+      "veteran"
     ],
     "ocr_review_required": false
   },
@@ -1227,6 +1345,11 @@
       "Vagabond",
       "Veteran"
     ],
+    "promotion_targets": [
+      "demagogue",
+      "highwayman",
+      "veteran"
+    ],
     "ocr_review_required": false
   },
   {
@@ -1265,6 +1388,10 @@
       "Roadwarden",
       "Scout"
     ],
+    "promotion_targets": [
+      "highwayman",
+      "scout"
+    ],
     "ocr_review_required": false
   },
   {
@@ -1295,6 +1422,7 @@
     "description": "The peasantry makes up the preponderance of the Empire's population. While the Nobles rule and the Burghers trade, the Peasants toil. They are farmers, labourers, and herdsman. In times of war, they fight and die for the Empire. Many Peasants seek a betr life in the city, only t join the legion of beggars on the verge of starvation. The majority spends their whole lives in the village they were born in, surrounded by hostile country and only occasionally getting news of the outside world. While they are provincial and superstitious, the Peasants are the heart of the Empire. - Peasant Advance Scheme -",
     "career_entries": [],
     "career_exits": [],
+    "promotion_targets": [],
     "ocr_review_required": true
   },
   {
@@ -1316,6 +1444,7 @@
     "description": "It is said that the sport of pit fighting has its origins amongst the Ogres. It is easy enough to believe that a race as dim-witted as the Ogres would contribute fights to the death to the culture of the Old World. In years past most Pit Fighters were criminals or prisoners of war. They'd be thrown in a ring or a pit with a few weapons and only the winner would leave alive. These days there is a class of professional Pit Fighters in addition to the condemned. They seek excitement and glory in the pit, though most fight naught but a brutal death as the crowd howls for their blood. Successful Pit Fighters can become wealthy (from prize money and the rampant gambling that surou te sor) lowi slave fgters buy therem. -Pit Fighter Advance Scheme",
     "career_entries": [],
     "career_exits": [],
+    "promotion_targets": [],
     "ocr_review_required": true
   },
   {
@@ -1351,6 +1480,10 @@
       "Thief",
       "Thug"
     ],
+    "promotion_targets": [
+      "duellist",
+      "racketeer"
+    ],
     "ocr_review_required": false
   },
   {
@@ -1385,6 +1518,9 @@
       "Jailer",
       "Shieldbreaker",
       "Thief"
+    ],
+    "promotion_targets": [
+      "cat_burglar"
     ],
     "ocr_review_required": false
   },
@@ -1423,6 +1559,11 @@
       "Sergeant",
       "Toll Keeper"
     ],
+    "promotion_targets": [
+      "highwayman",
+      "scout",
+      "sergeant"
+    ],
     "ocr_review_required": true
   },
   {
@@ -1445,6 +1586,7 @@
     "description": "If Rogues have a creed, it is this: never do an honest day's work if you voith con men use their charm and luck to make their way in the world. Some work as bawds, professional guides to the dens of vice and inequity to be found in any city. Others are professional gamblers or raconteurs. All Rogues favour their wits over their swords, and they always have a ready story on their lips. While Rogues often have one city as home turf, some travel from place to place, profiting from elaborate schemes and then moving on. The most skill Rogues go undetected. Their lies are convincing that even those they hav swindled never realize it was a con. -Rogue Advance Scheme -",
     "career_entries": [],
     "career_exits": [],
+    "promotion_targets": [],
     "ocr_review_required": true
   },
   {
@@ -1478,6 +1620,10 @@
       "Tomb Robber",
       "Veteran"
     ],
+    "promotion_targets": [
+      "scout",
+      "veteran"
+    ],
     "ocr_review_required": false
   },
   {
@@ -1510,6 +1656,10 @@
       "Initiate",
       "Navigator",
       "Scholar"
+    ],
+    "promotion_targets": [
+      "navigator",
+      "scholar"
     ],
     "ocr_review_required": false
   },
@@ -1548,6 +1698,10 @@
       "Navigator",
       "Rogue",
       "Smuggler"
+    ],
+    "promotion_targets": [
+      "mate",
+      "navigator"
     ],
     "ocr_review_required": false
   },
@@ -1591,6 +1745,10 @@
       "Thief",
       "Valet"
     ],
+    "promotion_targets": [
+      "innkeeper",
+      "spy"
+    ],
     "ocr_review_required": false
   },
   {
@@ -1615,6 +1773,9 @@
       "Smuggler",
       "Tomb Robber",
       "Veteran"
+    ],
+    "promotion_targets": [
+      "veteran"
     ],
     "ocr_review_required": true
   },
@@ -1653,6 +1814,10 @@
       "Shieldbreaker",
       "Thief"
     ],
+    "promotion_targets": [
+      "charlatan",
+      "fence"
+    ],
     "ocr_review_required": true
   },
   {
@@ -1687,6 +1852,10 @@
       "Sergeant",
       "Veteran",
       "Watchman"
+    ],
+    "promotion_targets": [
+      "sergeant",
+      "veteran"
     ],
     "ocr_review_required": true
   },
@@ -1724,6 +1893,11 @@
       "Outlaw",
       "Sergeant",
       "Veteran"
+    ],
+    "promotion_targets": [
+      "knight",
+      "sergeant",
+      "veteran"
     ],
     "ocr_review_required": false
   },
@@ -1765,6 +1939,11 @@
       "Initiate",
       "Physician",
       "Scholar"
+    ],
+    "promotion_targets": [
+      "engineer",
+      "physician",
+      "scholar"
     ],
     "ocr_review_required": false
   },
@@ -1818,6 +1997,11 @@
       "Rogue",
       "Tomb Robber"
     ],
+    "promotion_targets": [
+      "cat_burglar",
+      "charlatan",
+      "fence"
+    ],
     "ocr_review_required": false
   },
   {
@@ -1848,6 +2032,10 @@
       "Mercenary",
       "Pit Fighter",
       "Racketeer"
+    ],
+    "promotion_targets": [
+      "interrogator",
+      "racketeer"
     ],
     "ocr_review_required": true
   },
@@ -1882,6 +2070,10 @@
       "Politician",
       "Thief"
     ],
+    "promotion_targets": [
+      "highwayman",
+      "politician"
+    ],
     "ocr_review_required": true
   },
   {
@@ -1913,6 +2105,10 @@
       "Shieldbreaker",
       "Thief",
       "Vampire Hunter"
+    ],
+    "promotion_targets": [
+      "fence",
+      "vampire_hunter"
     ],
     "ocr_review_required": true
   },
@@ -1947,6 +2143,9 @@
       "Militiaman",
       "Zealot"
     ],
+    "promotion_targets": [
+      "captain"
+    ],
     "ocr_review_required": true
   },
   {
@@ -1969,6 +2168,7 @@
       "Pit Fighter"
     ],
     "career_exits": [],
+    "promotion_targets": [],
     "ocr_review_required": false
   },
   {
@@ -2008,6 +2208,9 @@
       "Scout",
       "Woodsman"
     ],
+    "promotion_targets": [
+      "scout"
+    ],
     "ocr_review_required": true
   },
   {
@@ -2039,6 +2242,10 @@
       "Squire",
       "Steward",
       "Student"
+    ],
+    "promotion_targets": [
+      "herald",
+      "steward"
     ],
     "ocr_review_required": false
   },
@@ -2074,6 +2281,10 @@
       "Soldier",
       "Tradesman"
     ],
+    "promotion_targets": [
+      "racketeer",
+      "sergeant"
+    ],
     "ocr_review_required": true
   },
   {
@@ -2108,6 +2319,9 @@
       "Scout",
       "Vagabond"
     ],
+    "promotion_targets": [
+      "scout"
+    ],
     "ocr_review_required": false
   },
   {
@@ -2140,6 +2354,10 @@
       "Flagellant",
       "Friar",
       "Outlaw"
+    ],
+    "promotion_targets": [
+      "flagellant",
+      "friar"
     ],
     "ocr_review_required": false
   }

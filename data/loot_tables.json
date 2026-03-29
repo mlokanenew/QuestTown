@@ -1,0 +1,29 @@
+[
+  {
+    "id": "combat_loot",
+    "name": "Combat Loot",
+    "entries": [
+      {"item_id": "basic_blade", "weight": 4},
+      {"item_id": "mail_and_shield", "weight": 1}
+    ],
+    "source_table": "table_5_missile_weapons"
+  },
+  {
+    "id": "beast_loot",
+    "name": "Beast Loot",
+    "entries": [
+      {"item_id": "tavern_meal", "weight": 3},
+      {"item_id": "sturdy_bow", "weight": 1}
+    ],
+    "source_table": "table_5_8_food_drink"
+  },
+  {
+    "id": "spiritual_loot",
+    "name": "Spiritual Loot",
+    "entries": [
+      {"item_id": "temple_blessing", "weight": 2},
+      {"item_id": "temple_healing", "weight": 2}
+    ],
+    "source_table": "table_5_19_special_equipment"
+  }
+]

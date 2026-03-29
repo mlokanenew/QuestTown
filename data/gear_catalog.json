@@ -1,0 +1,32 @@
+[
+  {
+    "id": "basic_blade",
+    "name": "Basic Blade",
+    "building_type": "weapons_shop",
+    "category": "weapon",
+    "cost": 1,
+    "gear_bonus": 1,
+    "min_building_level": 1,
+    "source_table": "table_5_missile_weapons"
+  },
+  {
+    "id": "sturdy_bow",
+    "name": "Sturdy Bow",
+    "building_type": "weapons_shop",
+    "category": "weapon",
+    "cost": 2,
+    "gear_bonus": 2,
+    "min_building_level": 2,
+    "source_table": "table_5_missile_weapons"
+  },
+  {
+    "id": "mail_and_shield",
+    "name": "Mail and Shield",
+    "building_type": "weapons_shop",
+    "category": "armour",
+    "cost": 3,
+    "gear_bonus": 3,
+    "min_building_level": 3,
+    "source_table": "table_5_6_advanced_armour"
+  }
+]
