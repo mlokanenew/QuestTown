@@ -112,6 +112,11 @@ def check_assertions(assertions: list, state: dict) -> tuple[bool, list]:
             target = assertion.get("value", "")
             if not any(event.get("type", "") == target for event in state.get("events", [])):
                 failures.append(assertion)
+        elif kind == "quest_templates_only":
+            allowed = set(assertion.get("value", []))
+            quests = state.get("quests", [])
+            if not quests or any(quest.get("template_id", "") not in allowed for quest in quests):
+                failures.append(assertion)
     return len(failures) == 0, failures
 
 

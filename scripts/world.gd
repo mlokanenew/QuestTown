@@ -49,6 +49,12 @@ func _ready() -> void:
 		var load_btn := get_node_or_null("UILayer/UI/LoadButton")
 		if load_btn:
 			load_btn.pressed.connect(_load_world)
+		var enable_all_btn := get_node_or_null("UILayer/QuestPanel/QuestVBox/QuestFilterControls/EnableAllQuestsButton")
+		if enable_all_btn:
+			enable_all_btn.pressed.connect(func() -> void: _set_all_quest_filters(true))
+		var disable_all_btn := get_node_or_null("UILayer/QuestPanel/QuestVBox/QuestFilterControls/DisableAllQuestsButton")
+		if disable_all_btn:
+			disable_all_btn.pressed.connect(func() -> void: _set_all_quest_filters(false))
 		GameState.gold_changed.connect(_on_gold_changed)
 		GameState.building_placed.connect(_on_building_state_changed)
 		GameState.building_removed.connect(_on_building_removed)
@@ -291,27 +297,88 @@ func _setup_quest_menu() -> void:
 	_refresh_quest_ui()
 
 func _refresh_quest_ui() -> void:
+	var enabled_count := 0
 	for quest_id in _quest_filter_boxes.keys():
 		var box: CheckBox = _quest_filter_boxes[quest_id]
 		var enabled := GameState.is_quest_enabled(quest_id)
 		if box.button_pressed != enabled:
 			box.set_pressed_no_signal(enabled)
+		if enabled:
+			enabled_count += 1
+
+	var summary_label := get_node_or_null("UILayer/QuestPanel/QuestVBox/QuestFilterSummaryLabel")
+	if summary_label:
+		summary_label.text = "Enabled Templates: %d/%d" % [enabled_count, DataLoader.quests.size()]
 
 	var offers_label := get_node_or_null("UILayer/QuestPanel/QuestVBox/QuestOffersLabel")
-	if offers_label == null:
+	if offers_label:
+		if GameState.quests.is_empty():
+			offers_label.text = "No quests available with the current filters and building unlocks."
+		else:
+			var offer_lines: Array = []
+			for quest: Dictionary in GameState.quests:
+				offer_lines.append("%s  [%s, D%d, %dg, %dxp]" % [
+					quest.get("name", "?"),
+					String(quest.get("type", "")).capitalize(),
+					quest.get("difficulty", 1),
+					quest.get("gold_reward", 0),
+					quest.get("xp_reward", 0)
+				])
+			offers_label.text = "\n".join(offer_lines)
+
+	var active_summary := get_node_or_null("UILayer/QuestPanel/QuestVBox/ActiveQuestSummaryLabel")
+	var active_list := get_node_or_null("UILayer/QuestPanel/QuestVBox/ActiveQuestListLabel")
+	if active_summary == null or active_list == null:
 		return
-	if GameState.quests.is_empty():
-		offers_label.text = "No quests available."
-		return
-	var lines: Array = []
-	for quest: Dictionary in GameState.quests:
-		lines.append("%s  [D%d, %dg, %dxp]" % [
-			quest.get("name", "?"),
-			quest.get("difficulty", 1),
-			quest.get("gold_reward", 0),
-			quest.get("xp_reward", 0)
+
+	var departing_count := 0
+	var on_quest_count := 0
+	var returning_count := 0
+	var active_lines: Array = []
+	for hero: Dictionary in GameState.heroes.values():
+		var hero_state: String = hero.get("state", "")
+		var current_quest: Dictionary = hero.get("current_quest", {})
+		if current_quest.is_empty():
+			continue
+		if hero_state == "departing_quest":
+			departing_count += 1
+		elif hero_state == "on_quest":
+			on_quest_count += 1
+		elif hero_state == "returning":
+			returning_count += 1
+		else:
+			continue
+		active_lines.append("%s: %s (%s)" % [
+			hero.get("name", "?"),
+			current_quest.get("name", "?"),
+			_format_quest_state(hero_state)
 		])
-	offers_label.text = "\n".join(lines)
+
+	if active_lines.is_empty():
+		active_summary.text = "No heroes are out on quests."
+		active_list.text = "No active expeditions."
+	else:
+		active_summary.text = "Departing: %d   On Quest: %d   Returning: %d" % [
+			departing_count,
+			on_quest_count,
+			returning_count
+		]
+		active_list.text = "\n".join(active_lines)
+
+func _set_all_quest_filters(enabled: bool) -> void:
+	for quest: Dictionary in DataLoader.quests:
+		GameState.set_quest_enabled(quest.get("id", ""), enabled)
+
+func _format_quest_state(state: String) -> String:
+	match state:
+		"departing_quest":
+			return "leaving town"
+		"on_quest":
+			return "off-screen"
+		"returning":
+			return "heading home"
+		_:
+			return state.replace("_", " ")
 
 func _save_world() -> void:
 	var saved: bool = sim.save_world()

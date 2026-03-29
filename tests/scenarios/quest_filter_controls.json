@@ -1,0 +1,18 @@
+{
+  "name": "Quest filters control available offers",
+  "goal": "Disable every quest template except Escort Merchant Cart and verify only that offer type remains available.",
+  "seed": 42,
+  "max_ticks": 60,
+  "commands": [
+    {"cmd": "set_quest_enabled", "id": "clear_wolves", "enabled": false},
+    {"cmd": "set_quest_enabled", "id": "hunt_forest_beast", "enabled": false},
+    {"cmd": "set_quest_enabled", "id": "investigate_old_shrine", "enabled": false},
+    {"cmd": "set_quest_enabled", "id": "drive_off_bandits", "enabled": false},
+    {"cmd": "place_building", "type": "tavern", "x": 0, "z": 0}
+  ],
+  "assertions": [
+    {"assert": "quest_count_gte", "value": 1},
+    {"assert": "quest_templates_only", "value": ["escort_merchant_cart"]}
+  ]
+}
+

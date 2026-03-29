@@ -212,8 +212,19 @@ text = "Quest Menu"
 theme_override_font_sizes/font_size = 16
 
 [node name="QuestHelp" type="Label" parent="UILayer/QuestPanel/QuestVBox"]
-text = "Select which quest templates can appear."
+text = "Select which quest templates can appear and watch active expeditions."
 autowrap_mode = 3
+
+[node name="QuestFilterSummaryLabel" type="Label" parent="UILayer/QuestPanel/QuestVBox"]
+text = "Enabled Templates: 0/0"
+
+[node name="QuestFilterControls" type="HBoxContainer" parent="UILayer/QuestPanel/QuestVBox"]
+
+[node name="EnableAllQuestsButton" type="Button" parent="UILayer/QuestPanel/QuestVBox/QuestFilterControls"]
+text = "Enable All"
+
+[node name="DisableAllQuestsButton" type="Button" parent="UILayer/QuestPanel/QuestVBox/QuestFilterControls"]
+text = "Disable All"
 
 [node name="QuestFilterList" type="VBoxContainer" parent="UILayer/QuestPanel/QuestVBox"]
 
@@ -222,4 +233,15 @@ text = "Available Offers"
 
 [node name="QuestOffersLabel" type="Label" parent="UILayer/QuestPanel/QuestVBox"]
 text = "No quests yet."
+autowrap_mode = 3
+
+[node name="ActiveQuestTitle" type="Label" parent="UILayer/QuestPanel/QuestVBox"]
+text = "Active Expeditions"
+
+[node name="ActiveQuestSummaryLabel" type="Label" parent="UILayer/QuestPanel/QuestVBox"]
+text = "No heroes are out on quests."
+autowrap_mode = 3
+
+[node name="ActiveQuestListLabel" type="Label" parent="UILayer/QuestPanel/QuestVBox"]
+text = "No active expeditions."
 autowrap_mode = 3

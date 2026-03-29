@@ -108,6 +108,11 @@ func _assign_quests() -> void:
 			"z": quest_destination.z
 		}
 		GameState.set_hero_state(hero_id, "departing_quest")
+		GameState.log_event("hero_departed_for_quest", {
+			"hero_id": hero_id,
+			"hero_name": hero.get("name", "?"),
+			"quest_name": quest.get("name", "?")
+		})
 		GameState.log_event("hero_started_quest", {
 			"hero_id": hero_id,
 			"hero_name": hero.get("name", "?"),
@@ -202,6 +207,11 @@ func _resolve_quest(hero_id: int, building_system: Object) -> void:
 	var tavern := _tavern_position()
 	GameState.heroes[hero_id]["target"] = {"x": tavern.x, "y": tavern.y, "z": tavern.z}
 	GameState.set_hero_state(hero_id, "returning")
+	GameState.log_event("hero_heading_home", {
+		"hero_id": hero_id,
+		"hero_name": hero.get("name", "?"),
+		"quest_name": quest.get("name", "?")
+	})
 	GameState.log_event("hero_completed_quest", {
 		"hero_id": hero_id,
 		"hero_name": hero.get("name", "?"),

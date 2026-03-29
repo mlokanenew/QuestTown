@@ -24,7 +24,9 @@
     {"assert": "hero_count_gte", "value": 1},
     {"assert": "hero_count_lte", "value": 5},
     {"assert": "event_type_seen", "value": "hero_started_quest"},
+    {"assert": "event_type_seen", "value": "hero_departed_for_quest"},
     {"assert": "event_type_seen", "value": "hero_completed_quest"},
+    {"assert": "event_type_seen", "value": "hero_heading_home"},
     {"assert": "event_type_seen", "value": "hero_returned_from_quest"}
   ]
 }

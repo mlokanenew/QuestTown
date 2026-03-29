@@ -125,6 +125,12 @@ func _check(assertion: Dictionary, state: Dictionary) -> bool:
 				if event.get("type", "") == assertion.get("value", ""):
 					return true
 			return false
+		"quest_templates_only":
+			var allowed: Array = assertion.get("value", [])
+			for quest in state.get("quests", []):
+				if not allowed.has(quest.get("template_id", "")):
+					return false
+			return not state.get("quests", []).is_empty()
 	push_warning("ScenarioRunner: unknown assertion type '%s'" % kind)
 	return false
 

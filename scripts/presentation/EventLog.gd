@@ -41,6 +41,12 @@ func _format(event: Dictionary) -> String:
 				event.get("hero_name", "?"),
 				event.get("quest_name", "?")
 			]
+		"hero_departed_for_quest":
+			return "[%d] %s leaves town for %s." % [
+				event.get("tick", 0),
+				event.get("hero_name", "?"),
+				event.get("quest_name", "?")
+			]
 		"hero_completed_quest":
 			var outcome := "completed" if event.get("success", false) else "barely survived"
 			return "[%d] %s %s %s (+%dg, +%dxp)." % [
@@ -50,6 +56,12 @@ func _format(event: Dictionary) -> String:
 				event.get("quest_name", "?"),
 				event.get("gold_reward", 0),
 				event.get("xp_reward", 0)
+			]
+		"hero_heading_home":
+			return "[%d] %s heads back to town from %s." % [
+				event.get("tick", 0),
+				event.get("hero_name", "?"),
+				event.get("quest_name", "?")
 			]
 		"hero_returned_from_quest":
 			return "[%d] %s returns from %s." % [
