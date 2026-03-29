@@ -142,6 +142,12 @@ func _check(assertion: Dictionary, state: Dictionary) -> bool:
 				if not allowed.has(quest.get("template_id", "")):
 					return false
 			return not state.get("quests", []).is_empty()
+		"hero_careers_only":
+			var allowed_careers: Array = assertion.get("value", [])
+			for hero in state["heroes"]:
+				if not allowed_careers.has(hero.get("career_id", "")):
+					return false
+			return not state["heroes"].is_empty()
 	push_warning("ScenarioRunner: unknown assertion type '%s'" % kind)
 	return false
 

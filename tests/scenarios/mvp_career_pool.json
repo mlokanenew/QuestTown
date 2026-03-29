@@ -1,0 +1,13 @@
+{
+  "name": "MVP career pool stays at three starter careers",
+  "goal": "Place a tavern, let heroes arrive, and verify all arriving heroes use the stripped-down MVP starter pool.",
+  "seed": 42,
+  "max_ticks": 2400,
+  "commands": [
+    {"cmd": "place_building", "type": "tavern", "x": 0, "z": 0}
+  ],
+  "assertions": [
+    {"assert": "hero_count_gte", "value": 3},
+    {"assert": "hero_careers_only", "value": ["mercenary", "apprentice_wizard", "thief"]}
+  ]
+}

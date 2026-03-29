@@ -135,6 +135,10 @@ def check_assertions(assertions: list, state: dict) -> tuple[bool, list]:
             quests = state.get("quests", [])
             if not quests or any(quest.get("template_id", "") not in allowed for quest in quests):
                 failures.append(assertion)
+        elif kind == "hero_careers_only":
+            allowed = set(assertion.get("value", []))
+            if not heroes or any(hero.get("career_id", "") not in allowed for hero in heroes):
+                failures.append(assertion)
     return len(failures) == 0, failures
 
 

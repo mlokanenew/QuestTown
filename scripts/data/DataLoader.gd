@@ -2,6 +2,8 @@ extends Node
 ## Loads and caches JSON data files.
 ## Access via DataLoader.careers, DataLoader.buildings, etc.
 
+const MVP_CAREER_IDS := ["mercenary", "apprentice_wizard", "thief"]
+
 var careers: Array = []
 var advanced_careers: Array = []
 var buildings: Array = []
@@ -35,6 +37,7 @@ func _ready() -> void:
 	gear_catalog = _load_json("res://data/gear_catalog.json")
 	loot_tables = _load_json("res://data/loot_tables.json")
 	hero_names = _load_json("res://data/hero_names.json")
+	careers = _filter_mvp_careers(careers)
 
 	for c in careers:
 		careers_by_id[c["id"]] = c
@@ -80,6 +83,16 @@ func random_career(rng: RandomNumberGenerator) -> Dictionary:
 	if careers.is_empty():
 		return {"id": "mercenary", "name": "Mercenary", "archetype": "martial"}
 	return careers[rng.randi() % careers.size()]
+
+func _filter_mvp_careers(source_careers: Array) -> Array:
+	var allowed := {}
+	for career_id in MVP_CAREER_IDS:
+		allowed[career_id] = true
+	var filtered: Array = []
+	for career: Dictionary in source_careers:
+		if allowed.has(career.get("id", "")):
+			filtered.append(career)
+	return filtered
 
 func get_skill_names(skill_ids: Array) -> Array:
 	var names := []
