@@ -1,0 +1,58 @@
+name: Epic
+description: Large work item that should be broken into concrete tasks.
+title: "Epic: "
+labels:
+  - epic
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: State the user-facing outcome this epic should achieve.
+      placeholder: Deliver a clear, testable gameplay or tooling outcome.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Simulation
+        - Buildings
+        - Adventurers
+        - Quests
+        - UI
+        - Save/Load
+        - Tests
+    validations:
+      required: true
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - P0
+        - P1
+        - P2
+    validations:
+      required: true
+  - type: textarea
+    id: child_work
+    attributes:
+      label: Child Tasks
+      description: List the concrete implementation issues that should sit under this epic.
+      placeholder: |
+        - [ ] #123 Add ...
+        - [ ] #124 Update ...
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance Criteria
+      placeholder: |
+        - Player-visible behavior is complete
+        - Headless test coverage exists
+        - Save/load path remains valid
+    validations:
+      required: true

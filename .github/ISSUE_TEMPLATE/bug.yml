@@ -1,0 +1,40 @@
+name: Bug
+description: Runtime, workflow, or regression problem.
+title: "Bug: "
+labels:
+  - bug
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What is broken now?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduction
+      description: How can this be reproduced?
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Result
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Simulation
+        - Buildings
+        - Adventurers
+        - Quests
+        - UI
+        - Save/Load
+        - Tests
+    validations:
+      required: true

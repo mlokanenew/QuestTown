@@ -1,0 +1,56 @@
+name: Task
+description: Concrete implementation task for one bounded change.
+title: "Task: "
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: Describe the exact change to make.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Simulation
+        - Buildings
+        - Adventurers
+        - Quests
+        - UI
+        - Save/Load
+        - Tests
+    validations:
+      required: true
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - P0
+        - P1
+        - P2
+    validations:
+      required: true
+  - type: dropdown
+    id: size
+    attributes:
+      label: Size
+      options:
+        - XS
+        - S
+        - M
+        - L
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance Criteria
+      placeholder: |
+        - Implementation is complete
+        - Tests added or updated
+        - No regressions in current playable loop
+    validations:
+      required: true
