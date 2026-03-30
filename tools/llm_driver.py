@@ -35,6 +35,7 @@ DEFAULT_MODEL = "phi3:mini"
 CONNECT_TIMEOUT = 30
 MAX_LLM_TURNS = 24
 OLLAMA_TIMEOUT = 12
+STARTING_GOLD = 500
 RUN_UNTIL_EVENTS = {
     "hero_arrived_at_tavern",
     "hero_departed_for_quest",
@@ -69,6 +70,22 @@ Rules:
 2. Prefer run_until or step_ticks once the needed building is placed.
 3. If the world is already close to satisfying the goal, advance time instead of placing more buildings.
 4. Output JSON only."""
+
+ANALYSIS_PROMPT = """You are reviewing a fantasy town-sim MVP test run.
+
+Judge whether the loop hangs together across economy, injuries, quest outcomes, and progression.
+Be concrete. Call out if the game looks too easy, too hard, too rich, too poor, too safe, or too punishing.
+Use the provided metrics and flags only. Do not invent missing data.
+
+Return JSON only:
+{
+  "summary": "short overall judgment",
+  "economy": "short judgment",
+  "difficulty": "short judgment",
+  "injury_pressure": "short judgment",
+  "progression": "short judgment",
+  "top_risks": ["risk 1", "risk 2"]
+}"""
 
 
 async def tcp_cmd(reader: asyncio.StreamReader, writer: asyncio.StreamWriter, cmd: dict) -> dict:
@@ -191,6 +208,249 @@ def choose_port(port_arg: int) -> int:
         return int(sock.getsockname()[1])
 
 
+def safe_div(numerator: float, denominator: float) -> float:
+    if denominator == 0:
+        return 0.0
+    return float(numerator) / float(denominator)
+
+
+def average(values: list[float]) -> float:
+    if not values:
+        return 0.0
+    return float(sum(values)) / float(len(values))
+
+
+def round2(value: float) -> float:
+    return round(float(value), 2)
+
+
+def event_count(events: list[dict], event_type: str, service: str | None = None) -> int:
+    total = 0
+    for event in events:
+        if event.get("type") != event_type:
+            continue
+        if service is not None and event.get("service") != service:
+            continue
+        total += 1
+    return total
+
+
+def event_amount(events: list[dict], event_type: str, service: str | None = None) -> int:
+    total = 0
+    for event in events:
+        if event.get("type") != event_type:
+            continue
+        if service is not None and event.get("service") != service:
+            continue
+        total += int(event.get("amount", 0))
+    return total
+
+
+def build_balance_report(state: dict, scenario: dict) -> dict:
+    heroes = state.get("heroes", [])
+    events = state.get("events", [])
+    completed = state.get("completed_quests", [])
+    buildings = state.get("buildings", [])
+    current_gold = int(state.get("gold", 0))
+    town_profit = current_gold - STARTING_GOLD
+
+    hero_gold_values = [int(hero.get("gold", 0)) for hero in heroes]
+    hero_level_values = [int(hero.get("level", 1)) for hero in heroes]
+    hero_hp_ratios = [
+        safe_div(int(hero.get("health", 0)), max(1, int(hero.get("max_health", 1))))
+        for hero in heroes
+    ]
+    wounded_heroes = [hero for hero in heroes if str(hero.get("wound_state", "healthy")) != "healthy"]
+    recovering_heroes = [hero for hero in heroes if hero.get("state") == "recovering"]
+    broke_heroes = [hero for hero in heroes if int(hero.get("gold", 0)) <= 1]
+
+    success_count = sum(1 for entry in completed if bool(entry.get("success", False)))
+    failure_count = len(completed) - success_count
+    wound_count = sum(1 for entry in completed if str(entry.get("wound_state", "healthy")) != "healthy")
+    success_wound_count = sum(
+        1
+        for entry in completed
+        if bool(entry.get("success", False)) and str(entry.get("wound_state", "healthy")) != "healthy"
+    )
+    total_reward_gold = sum(int(entry.get("gold_reward", 0)) for entry in completed)
+    total_reward_xp = sum(int(entry.get("xp_reward", 0)) for entry in completed)
+
+    spending = {
+        "tavern": {
+            "count": event_count(events, "hero_spent_at_tavern"),
+            "amount": event_amount(events, "hero_spent_at_tavern"),
+        },
+        "general_store": {
+            "count": event_count(events, "hero_spent_at_weapons_shop"),
+            "amount": event_amount(events, "hero_spent_at_weapons_shop"),
+        },
+        "temple": {
+            "count": event_count(events, "hero_spent_at_temple"),
+            "amount": event_amount(events, "hero_spent_at_temple"),
+            "healing_count": event_count(events, "hero_spent_at_temple", "healing"),
+            "blessing_count": event_count(events, "hero_spent_at_temple", "blessing"),
+        },
+    }
+
+    quest_event_counts = {
+        "started": event_count(events, "hero_started_quest"),
+        "departed": event_count(events, "hero_departed_for_quest"),
+        "completed": event_count(events, "hero_completed_quest"),
+        "returned": event_count(events, "hero_returned_from_quest"),
+        "leveled_up": event_count(events, "hero_leveled_up"),
+    }
+
+    loop_health = {
+        "quests_generated": len(state.get("quests", [])) + len(completed) > 0,
+        "quests_started": quest_event_counts["started"] > 0,
+        "quests_completed": len(completed) > 0,
+        "returns_seen": quest_event_counts["returned"] > 0,
+        "spending_seen_in_all_services": all(entry["count"] > 0 for entry in spending.values()),
+        "loop_closed": (
+            quest_event_counts["started"] > 0
+            and len(completed) > 0
+            and sum(entry["count"] for entry in spending.values()) > 0
+        ),
+    }
+
+    severe_flags: list[str] = []
+    moderate_flags: list[str] = []
+
+    if len(completed) == 0:
+        severe_flags.append("no_completed_quests")
+    if not loop_health["loop_closed"]:
+        severe_flags.append("loop_not_closing")
+    if town_profit < -150:
+        severe_flags.append("town_bleeds_money")
+    elif town_profit > 250:
+        moderate_flags.append("town_gets_rich_too_fast")
+
+    success_rate = safe_div(success_count, len(completed))
+    wound_rate = safe_div(wound_count, len(completed))
+    success_wound_rate = safe_div(success_wound_count, max(1, success_count))
+
+    if len(completed) >= 3:
+        if success_rate < 0.4:
+            severe_flags.append("quests_too_hard")
+        elif success_rate > 0.95:
+            moderate_flags.append("quests_too_easy")
+
+        if wound_rate < 0.05:
+            moderate_flags.append("injury_pressure_too_low")
+        elif wound_rate > 0.7:
+            severe_flags.append("injury_pressure_too_high")
+
+        if average(hero_gold_values) <= 1.5:
+            severe_flags.append("heroes_too_poor")
+        elif average(hero_gold_values) >= 25:
+            moderate_flags.append("heroes_hoard_too_much_gold")
+
+    if wound_count > 0 and spending["temple"]["healing_count"] == 0:
+        moderate_flags.append("wounds_not_driving_temple_usage")
+    if quest_event_counts["started"] > 0 and spending["general_store"]["count"] == 0:
+        moderate_flags.append("quest_prep_loop_missing")
+    if heroes and spending["tavern"]["count"] == 0:
+        moderate_flags.append("inn_spending_loop_missing")
+    if heroes and average(hero_hp_ratios) < 0.45:
+        severe_flags.append("party_health_too_low")
+    elif heroes and average(hero_hp_ratios) > 0.98 and len(completed) >= 3:
+        moderate_flags.append("party_almost_never_takes_damage")
+
+    target_overrides = scenario.get("analysis_targets", {})
+    max_town_gold = target_overrides.get("max_town_gold")
+    if max_town_gold is not None and current_gold > int(max_town_gold):
+        moderate_flags.append("town_gold_above_target")
+    min_town_gold = target_overrides.get("min_town_gold")
+    if min_town_gold is not None and current_gold < int(min_town_gold):
+        moderate_flags.append("town_gold_below_target")
+
+    verdict = "healthy"
+    if severe_flags:
+        verdict = "unstable"
+    elif moderate_flags:
+        verdict = "watch"
+
+    economy_band = "healthy"
+    if town_profit < -50:
+        economy_band = "starved"
+    elif town_profit > 180:
+        economy_band = "rich"
+
+    difficulty_band = "healthy"
+    if len(completed) >= 3:
+        if success_rate < 0.45:
+            difficulty_band = "hard"
+        elif success_rate > 0.9:
+            difficulty_band = "easy"
+
+    injury_band = "healthy"
+    if len(completed) >= 3:
+        if wound_rate < 0.08:
+            injury_band = "low"
+        elif wound_rate > 0.55:
+            injury_band = "high"
+
+    report = {
+        "verdict": verdict,
+        "loop_health": loop_health,
+        "economy": {
+            "starting_gold": STARTING_GOLD,
+            "current_gold": current_gold,
+            "town_profit": town_profit,
+            "band": economy_band,
+            "spending": spending,
+        },
+        "adventurers": {
+            "count": len(heroes),
+            "avg_level": round2(average(hero_level_values)),
+            "max_level": max(hero_level_values) if hero_level_values else 0,
+            "avg_gold": round2(average(hero_gold_values)),
+            "avg_hp_ratio": round2(average(hero_hp_ratios)),
+            "wounded_count": len(wounded_heroes),
+            "recovering_count": len(recovering_heroes),
+            "broke_count": len(broke_heroes),
+        },
+        "quests": {
+            "completed_count": len(completed),
+            "success_count": success_count,
+            "failure_count": failure_count,
+            "success_rate": round2(success_rate),
+            "wound_count": wound_count,
+            "wound_rate": round2(wound_rate),
+            "success_wound_count": success_wound_count,
+            "success_wound_rate": round2(success_wound_rate),
+            "avg_gold_reward": round2(safe_div(total_reward_gold, max(1, len(completed)))),
+            "avg_xp_reward": round2(safe_div(total_reward_xp, max(1, len(completed)))),
+            "event_counts": quest_event_counts,
+            "difficulty_band": difficulty_band,
+            "injury_band": injury_band,
+        },
+        "flags": {
+            "severe": severe_flags,
+            "moderate": moderate_flags,
+        },
+    }
+    report["summary"] = summarize_balance_report(report)
+    return report
+
+
+def summarize_balance_report(report: dict) -> str:
+    parts = [
+        f"verdict={report.get('verdict', 'unknown')}",
+        f"town_profit={report.get('economy', {}).get('town_profit', 0)}",
+        f"quest_success_rate={report.get('quests', {}).get('success_rate', 0)}",
+        f"wound_rate={report.get('quests', {}).get('wound_rate', 0)}",
+        f"avg_hero_gold={report.get('adventurers', {}).get('avg_gold', 0)}",
+    ]
+    severe = report.get("flags", {}).get("severe", [])
+    moderate = report.get("flags", {}).get("moderate", [])
+    if severe:
+        parts.append("severe=" + ",".join(severe))
+    elif moderate:
+        parts.append("watch=" + ",".join(moderate[:3]))
+    return "; ".join(parts)
+
+
 def ask_llm(model: str, goal: str, state: dict, history: list, failures: list) -> dict | None:
     messages = [{"role": "system", "content": SYSTEM_PROMPT}]
     messages.extend(history[-4:])
@@ -216,6 +476,37 @@ def ask_llm(model: str, goal: str, state: dict, history: list, failures: list) -
     except Exception as exc:
         print(f"[LLM] error: {exc}", file=sys.stderr)
         return None
+
+
+def ask_llm_analysis(model: str, scenario: dict, report: dict) -> dict | None:
+    messages = [
+        {"role": "system", "content": ANALYSIS_PROMPT},
+        {
+            "role": "user",
+            "content": (
+                f"Scenario: {scenario.get('name', '?')}\n"
+                f"Goal: {scenario.get('goal', '')}\n\n"
+                f"Balance report:\n{json.dumps(report, indent=2)}\n"
+            ),
+        },
+    ]
+    try:
+        resp = requests.post(
+            OLLAMA_URL,
+            json={"model": model, "messages": messages, "stream": False},
+            timeout=OLLAMA_TIMEOUT,
+        )
+        resp.raise_for_status()
+        content = resp.json()["message"]["content"].strip()
+        print(f"[LLM-analysis] raw: {content[:300]}")
+        decoder = json.JSONDecoder()
+        cleaned = content.replace("```json", "").replace("```", "").strip()
+        parsed, _ = decoder.raw_decode(cleaned)
+        if isinstance(parsed, dict):
+            return parsed
+    except Exception as exc:
+        print(f"[LLM-analysis] error: {exc}", file=sys.stderr)
+    return None
 
 
 def extract_command(text: str) -> dict | None:
@@ -294,6 +585,7 @@ def normalize_command(cmd: dict) -> dict | None:
 
 
 def summarize_state_for_llm(state: dict) -> dict:
+    completed = state.get("completed_quests", [])
     return {
         "tick": state.get("tick", 0),
         "gold": state.get("gold", 0),
@@ -322,6 +614,11 @@ def summarize_state_for_llm(state: dict) -> dict:
             }
             for quest in state.get("quests", [])
         ],
+        "quest_summary": {
+            "completed": len(completed),
+            "successes": sum(1 for quest in completed if bool(quest.get("success", False))),
+            "wounded_returns": sum(1 for quest in completed if str(quest.get("wound_state", "healthy")) != "healthy"),
+        },
         "recent_events": state.get("events", [])[-8:],
     }
 
@@ -617,6 +914,10 @@ async def main(args):
             pass
 
         passed, failures = check_assertions(scenario.get("assertions", []), final_state)
+        balance_report = build_balance_report(final_state, scenario)
+        llm_analysis = None
+        if args.analysis_llm:
+            llm_analysis = ask_llm_analysis(args.model, scenario, balance_report)
         result = {
             "scenario": scenario.get("name", "?"),
             "passed": passed,
@@ -624,7 +925,11 @@ async def main(args):
             "heroes": len(final_state.get("heroes", [])),
             "buildings": len(final_state.get("buildings", [])),
             "failures": failures,
+            "balance_report": balance_report,
         }
+        if llm_analysis is not None:
+            result["llm_analysis"] = llm_analysis
+        print(f"[analysis] {balance_report['summary']}")
         print(json.dumps(result, indent=2))
         sys.exit(0 if passed else 1)
 
@@ -643,4 +948,5 @@ if __name__ == "__main__":
     parser.add_argument("--model", default=DEFAULT_MODEL, help="Ollama model name")
     parser.add_argument("--port", type=int, default=0, help="TCP port for Godot callback; 0 chooses a free port")
     parser.add_argument("--no-llm", action="store_true", help="Use scripted sequence instead of LLM")
+    parser.add_argument("--analysis-llm", action="store_true", help="Ask the LLM for a post-run balance assessment")
     asyncio.run(main(parser.parse_args()))
