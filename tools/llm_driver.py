@@ -67,9 +67,10 @@ Allowed commands:
 
 Rules:
 1. Never place a building if one of that type already exists.
-2. Prefer run_until or step_ticks once the needed building is placed.
-3. If the world is already close to satisfying the goal, advance time instead of placing more buildings.
-4. Output JSON only."""
+2. New buildings start idle. If a building needs to generate quests, supplies, or healing, explicitly use set_building_output_mode.
+3. Prefer run_until or step_ticks once the needed building is placed and any required output mode is active.
+4. If the world is already close to satisfying the goal, advance time instead of placing more buildings.
+5. Output JSON only."""
 
 ANALYSIS_PROMPT = """You are reviewing a fantasy town-sim MVP test run.
 
@@ -601,6 +602,8 @@ def summarize_state_for_llm(state: dict) -> dict:
             {
                 "type": building.get("type"),
                 "level": building.get("level", 1),
+                "current_action": building.get("current_action", "idle"),
+                "output_stock": building.get("output_stock", 0),
             }
             for building in state.get("buildings", [])
         ],
@@ -635,23 +638,35 @@ def choose_fallback_command(state: dict, failures: list) -> dict:
     buildings = state.get("buildings", [])
     building_types = {building.get("type") for building in buildings}
     building_levels = {building.get("type"): int(building.get("level", 1)) for building in buildings}
+    building_actions = {building.get("type"): str(building.get("current_action", "idle")) for building in buildings}
     heroes = state.get("heroes", [])
     required_buildings = set()
+    required_output_buildings = set()
 
     for failure in failures:
         kind = failure.get("assert", "")
         if kind == "gold_gte":
             required_buildings.update({"tavern", "weapons_shop", "temple"})
+            required_output_buildings.update({"tavern", "weapons_shop", "temple"})
         if kind == "quest_count_gte" or kind == "quest_templates_only":
             required_buildings.add("tavern")
+            required_output_buildings.add("tavern")
+        if kind == "building_output_stock_gte":
+            required_output_buildings.add(failure.get("type", ""))
         if kind == "event_type_seen":
             event_type = failure.get("value", "")
             if event_type == "hero_spent_at_tavern":
                 required_buildings.add("tavern")
+                required_output_buildings.add("tavern")
             elif event_type == "hero_spent_at_weapons_shop":
                 required_buildings.add("weapons_shop")
+                required_output_buildings.add("weapons_shop")
             elif event_type == "hero_spent_at_temple":
                 required_buildings.add("temple")
+                required_output_buildings.add("temple")
+            elif event_type in {"hero_started_quest", "hero_departed_for_quest", "hero_completed_quest", "hero_heading_home", "hero_returned_from_quest"}:
+                required_buildings.add("tavern")
+                required_output_buildings.add("tavern")
 
     for building_type in ("tavern", "weapons_shop", "temple"):
         if building_type in required_buildings and building_type not in building_types:
@@ -662,11 +677,18 @@ def choose_fallback_command(state: dict, failures: list) -> dict:
             }[building_type]
             return {"cmd": "place_building", "type": building_type, **placement}
 
+    for building_type in ("tavern", "weapons_shop", "temple"):
+        if building_type in required_output_buildings and building_type in building_types:
+            if building_actions.get(building_type, "idle") == "idle":
+                return {"cmd": "set_building_output_mode", "type": building_type}
+
     for failure in failures:
         kind = failure.get("assert", "")
         if kind in {"hero_count_gte", "any_hero_state"}:
             if "tavern" not in building_types:
                 return {"cmd": "place_building", "type": "tavern", "x": 0, "z": 0}
+            if building_actions.get("tavern", "idle") == "idle":
+                return {"cmd": "set_building_output_mode", "type": "tavern"}
             if not heroes:
                 return {"cmd": "run_until", "event": "hero_arrived_at_tavern", "max_ticks": 1800}
             return {"cmd": "step_ticks", "n": 300}
@@ -692,10 +714,14 @@ def choose_fallback_command(state: dict, failures: list) -> dict:
         if kind == "quest_count_gte":
             if "tavern" not in building_types:
                 return {"cmd": "place_building", "type": "tavern", "x": 0, "z": 0}
+            if building_actions.get("tavern", "idle") == "idle":
+                return {"cmd": "set_building_output_mode", "type": "tavern"}
             return {"cmd": "step_ticks", "n": 300}
         if kind == "quest_templates_only":
             if "tavern" not in building_types:
                 return {"cmd": "place_building", "type": "tavern", "x": 0, "z": 0}
+            if building_actions.get("tavern", "idle") == "idle":
+                return {"cmd": "set_building_output_mode", "type": "tavern"}
             return {"cmd": "step_ticks", "n": 600}
         if kind == "gold_gte":
             for building_type in ("tavern", "weapons_shop", "temple"):
@@ -706,6 +732,9 @@ def choose_fallback_command(state: dict, failures: list) -> dict:
                         "temple": {"x": -3, "z": 0},
                     }[building_type]
                     return {"cmd": "place_building", "type": building_type, **placement}
+            for building_type in ("tavern", "weapons_shop", "temple"):
+                if building_actions.get(building_type, "idle") == "idle":
+                    return {"cmd": "set_building_output_mode", "type": building_type}
             return {"cmd": "step_ticks", "n": 900}
         if kind == "event_type_seen":
             event_type = failure.get("value")
@@ -717,6 +746,18 @@ def choose_fallback_command(state: dict, failures: list) -> dict:
                 return {"cmd": "place_building", "type": "temple", "x": -3, "z": 0}
             if "tavern" not in building_types:
                 return {"cmd": "place_building", "type": "tavern", "x": 0, "z": 0}
+            if event_type in {
+                "hero_started_quest",
+                "hero_departed_for_quest",
+                "hero_completed_quest",
+                "hero_heading_home",
+                "hero_returned_from_quest",
+            } and building_actions.get("tavern", "idle") == "idle":
+                return {"cmd": "set_building_output_mode", "type": "tavern"}
+            if event_type == "hero_spent_at_weapons_shop" and building_actions.get("weapons_shop", "idle") == "idle":
+                return {"cmd": "set_building_output_mode", "type": "weapons_shop"}
+            if event_type == "hero_spent_at_temple" and building_actions.get("temple", "idle") == "idle":
+                return {"cmd": "set_building_output_mode", "type": "temple"}
             if not heroes:
                 return {"cmd": "run_until", "event": "hero_arrived_at_tavern", "max_ticks": 1800}
             if event_type == "hero_started_quest":
@@ -740,8 +781,14 @@ def choose_fallback_command(state: dict, failures: list) -> dict:
         if building_levels.get(building_type, 1) < 3:
             return {"cmd": "upgrade_building", "type": building_type}
 
+    for building_type in ("tavern", "weapons_shop", "temple"):
+        if building_type in building_types and building_actions.get(building_type, "idle") == "idle":
+            return {"cmd": "set_building_output_mode", "type": building_type}
+
     if "tavern" not in building_types:
         return {"cmd": "place_building", "type": "tavern", "x": 0, "z": 0}
+    if building_actions.get("tavern", "idle") == "idle":
+        return {"cmd": "set_building_output_mode", "type": "tavern"}
     if not heroes:
         return {"cmd": "run_until", "event": "hero_arrived_at_tavern", "max_ticks": 1800}
     return {"cmd": "step_ticks", "n": 300}
@@ -753,6 +800,7 @@ def is_useful_command(cmd: dict, state: dict, last_cmd: dict | None, failures: l
 
     buildings = state.get("buildings", [])
     building_types = {building.get("type") for building in buildings}
+    building_actions = {building.get("type"): str(building.get("current_action", "idle")) for building in buildings}
     required_buildings = set()
     for failure in failures:
         kind = failure.get("assert", "")
@@ -777,6 +825,12 @@ def is_useful_command(cmd: dict, state: dict, last_cmd: dict | None, failures: l
         return False
     if cmd.get("cmd") == "upgrade_building" and cmd.get("type") not in building_types:
         return False
+    if cmd.get("cmd") == "set_building_output_mode":
+        building_type = cmd.get("type")
+        if building_type not in building_types:
+            return False
+        if building_actions.get(building_type, "idle") != "idle":
+            return False
     if last_cmd is not None and cmd == last_cmd and cmd.get("cmd") != "step_ticks":
         return False
     return True

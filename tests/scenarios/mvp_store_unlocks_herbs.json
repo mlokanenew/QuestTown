@@ -9,7 +9,8 @@
     {"cmd": "upgrade_building", "type": "tavern"},
     {"cmd": "upgrade_building", "type": "weapons_shop"},
     {"cmd": "set_quest_enabled", "id": "clear_rats_cellar", "enabled": false},
-    {"cmd": "set_quest_enabled", "id": "investigate_strange_lights", "enabled": false}
+    {"cmd": "set_quest_enabled", "id": "investigate_strange_lights", "enabled": false},
+    {"cmd": "set_building_output_mode", "type": "tavern"}
   ],
   "assertions": [
     {"assert": "quest_count_gte", "value": 1},

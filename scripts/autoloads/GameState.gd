@@ -61,7 +61,7 @@ func add_building(type: String, position: Vector3) -> Dictionary:
 		"id": _next_building_id,
 		"type": type,
 		"level": 1,
-		"current_action": "output",
+		"current_action": "idle",
 		"action_progress_ticks": 0,
 		"action_required_ticks": 0,
 		"output_stock": 0,
@@ -82,7 +82,7 @@ func upgrade_building(id: int) -> Dictionary:
 	if not buildings.has(id):
 		return {}
 	buildings[id]["level"] += 1
-	buildings[id]["current_action"] = "output"
+	buildings[id]["current_action"] = "idle"
 	buildings[id]["action_progress_ticks"] = 0
 	buildings[id]["action_required_ticks"] = 0
 	var new_level: int = buildings[id]["level"]

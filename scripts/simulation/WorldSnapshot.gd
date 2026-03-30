@@ -24,7 +24,7 @@ func _buildings() -> Array:
 			"id":       b["id"],
 			"type":     b["type"],
 			"level":    b.get("level", 1),
-			"current_action": b.get("current_action", "output"),
+			"current_action": b.get("current_action", "idle"),
 			"action_progress_ticks": b.get("action_progress_ticks", 0),
 			"action_required_ticks": b.get("action_required_ticks", 0),
 			"output_stock": b.get("output_stock", 0),

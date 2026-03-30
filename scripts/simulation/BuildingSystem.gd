@@ -34,7 +34,6 @@ func place_building(type: String, position: Vector3) -> Dictionary:
 		return {}
 
 	var b := GameState.add_building(type, position)
-	GameState.set_building_action(int(b["id"]), "output", _output_ticks(type))
 	var footprint: Array = building_data.get("footprint", [1, 1])
 	var cells := _cells_for(position, footprint[0], footprint[1])
 	for cell in cells:
@@ -66,7 +65,7 @@ func start_upgrade_work(id: int) -> Dictionary:
 	var building: Dictionary = GameState.buildings.get(id, {})
 	if building.is_empty():
 		return {}
-	if building.get("current_action", "output") == "upgrading":
+	if building.get("current_action", "idle") == "upgrading":
 		return building
 
 	var building_data: Dictionary = DataLoader.buildings_by_id.get(building["type"], {})
@@ -96,7 +95,7 @@ func set_output_mode(id: int) -> Dictionary:
 	var building: Dictionary = GameState.buildings.get(id, {})
 	if building.is_empty():
 		return {}
-	if building.get("current_action", "output") == "upgrading":
+	if building.get("current_action", "idle") == "upgrading":
 		return {}
 	return GameState.set_building_action(id, "output", _output_ticks(building.get("type", "")))
 
@@ -167,8 +166,12 @@ func rebuild_from_game_state() -> void:
 		for cell in cells:
 			_occupied[cell] = building["id"]
 		if int(building.get("action_required_ticks", 0)) <= 0:
-			var current_action: String = building.get("current_action", "output")
-			var required_ticks: int = _upgrade_ticks(building.get("type", "")) if current_action == "upgrading" else _output_ticks(building.get("type", ""))
+			var current_action: String = building.get("current_action", "idle")
+			var required_ticks: int = 0
+			if current_action == "upgrading":
+				required_ticks = _upgrade_ticks(building.get("type", ""))
+			elif current_action == "output":
+				required_ticks = _output_ticks(building.get("type", ""))
 			GameState.buildings[int(building["id"])]["action_required_ticks"] = required_ticks
 
 func _cells_for(position: Vector3, w: int, d: int) -> Array:
@@ -189,7 +192,9 @@ func _step_building(building_id: int) -> void:
 	var building: Dictionary = GameState.buildings.get(building_id, {})
 	if building.is_empty():
 		return
-	var action: String = building.get("current_action", "output")
+	var action: String = building.get("current_action", "idle")
+	if action == "idle":
+		return
 	var building_type: String = building.get("type", "")
 	var required_ticks: int = int(building.get("action_required_ticks", 0))
 	if required_ticks <= 0:
@@ -202,7 +207,6 @@ func _step_building(building_id: int) -> void:
 		GameState.set_building_action_progress(building_id, required_ticks, required_ticks)
 		var upgraded := GameState.upgrade_building(building_id)
 		var building_data: Dictionary = DataLoader.buildings_by_id.get(building_type, {})
-		GameState.set_building_action(building_id, "output", _output_ticks(building_type))
 		GameState.log_event("building_upgrade_completed", {
 			"building_id": building_id,
 			"building_type": building_type,

@@ -7,7 +7,9 @@
     {"cmd": "place_building", "type": "tavern", "x": 0, "z": 0},
     {"cmd": "place_building", "type": "weapons_shop", "x": 3, "z": 0},
     {"cmd": "upgrade_building", "type": "tavern"},
-    {"cmd": "upgrade_building", "type": "weapons_shop"}
+    {"cmd": "upgrade_building", "type": "weapons_shop"},
+    {"cmd": "set_building_output_mode", "type": "tavern"},
+    {"cmd": "set_building_output_mode", "type": "weapons_shop"}
   ],
   "assertions": [
     {"assert": "completed_quest_count_gte", "value": 2},

@@ -6,6 +6,7 @@
   "commands": [
     { "cmd": "reset_world", "seed": 42 },
     { "cmd": "place_building", "type": "tavern", "x": 0, "z": 0 },
+    { "cmd": "set_building_output_mode", "type": "tavern" },
     { "cmd": "step_ticks", "n": 840 }
   ],
   "assertions": [

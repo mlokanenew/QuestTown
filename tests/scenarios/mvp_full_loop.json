@@ -12,7 +12,10 @@
     {"cmd": "upgrade_building", "type": "weapons_shop"},
     {"cmd": "upgrade_building", "type": "weapons_shop"},
     {"cmd": "upgrade_building", "type": "temple"},
-    {"cmd": "upgrade_building", "type": "temple"}
+    {"cmd": "upgrade_building", "type": "temple"},
+    {"cmd": "set_building_output_mode", "type": "tavern"},
+    {"cmd": "set_building_output_mode", "type": "weapons_shop"},
+    {"cmd": "set_building_output_mode", "type": "temple"}
   ],
   "assertions": [
     {"assert": "building_exists", "type": "tavern"},

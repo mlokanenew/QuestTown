@@ -633,7 +633,7 @@ func _refresh_context_upgrade_button() -> void:
 
 	var current_level: int = int(building.get("level", 1))
 	var levels: Array = data.get("levels", [])
-	var current_action: String = building.get("current_action", "output")
+	var current_action: String = building.get("current_action", "idle")
 	if current_level >= levels.size():
 		button.visible = true
 		button.text = "%s Max Level" % building_name
@@ -665,7 +665,7 @@ func _refresh_building_action_button() -> void:
 	var building_name: String = data.get("name", building_type.capitalize())
 	var current_level: int = int(building.get("level", 1))
 	var levels: Array = data.get("levels", [])
-	var current_action: String = building.get("current_action", "output")
+	var current_action: String = building.get("current_action", "idle")
 	button.visible = true
 	if current_level >= levels.size():
 		button.text = "%s Max Level" % building_name
@@ -692,10 +692,15 @@ func _refresh_output_action_button() -> void:
 	var building_type: String = building.get("type", "")
 	var data: Dictionary = DataLoader.buildings_by_id.get(building_type, {})
 	var building_name: String = data.get("name", building_type.capitalize())
-	var current_action: String = building.get("current_action", "output")
+	var current_action: String = building.get("current_action", "idle")
 	button.visible = true
 	if current_action == "upgrading":
 		button.text = "Output Paused During Upgrade"
+		button.disabled = true
+		return
+	if current_action == "output":
+		var progress_ratio := _action_progress_ratio(building)
+		button.text = "Producing  (%d%%)" % int(round(progress_ratio * 100.0))
 		button.disabled = true
 		return
 	button.text = "Produce Output  (%s)" % building_name
@@ -1023,11 +1028,13 @@ func _set_selected_building_output_mode() -> void:
 	_refresh_output_action_button()
 
 func _building_action_summary(building: Dictionary) -> String:
-	var current_action: String = building.get("current_action", "output")
+	var current_action: String = building.get("current_action", "idle")
 	var progress_ratio := _action_progress_ratio(building)
 	if current_action == "upgrading":
 		return "Current Action: Upgrading (%d%% complete)" % int(round(progress_ratio * 100.0))
-	return "Current Action: Producing output (%d%% to next result)" % int(round(progress_ratio * 100.0))
+	if current_action == "output":
+		return "Current Action: Producing output (%d%% to next result)" % int(round(progress_ratio * 100.0))
+	return "Current Action: Waiting for orders"
 
 func _building_output_summary(building: Dictionary) -> String:
 	var building_type: String = building.get("type", "")
@@ -1054,10 +1061,12 @@ func _building_level_of_type(building_type: String) -> int:
 	return int(building.get("level", 1))
 
 func _building_mode_name(building: Dictionary) -> String:
-	var current_action: String = str(building.get("current_action", "output"))
+	var current_action: String = str(building.get("current_action", "idle"))
 	if current_action == "upgrading":
 		return "Upgrading"
-	return "Producing output"
+	if current_action == "output":
+		return "Producing output"
+	return "Idle"
 
 func _next_upgrade_summary(building: Dictionary) -> String:
 	var building_type: String = str(building.get("type", ""))
