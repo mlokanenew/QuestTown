@@ -193,6 +193,12 @@ func _check(assertion: Dictionary, state: Dictionary) -> bool:
 				if field_value == null or String(field_value) == "":
 					return false
 			return not state["heroes"].is_empty()
+		"active_party_size_gte":
+			var target_size: int = int(assertion.get("value", 3))
+			for hero in state["heroes"]:
+				if hero.get("state", "") in ["departing_quest", "on_quest", "returning"] and int(hero.get("quest_party_size", 0)) >= target_size:
+					return true
+			return false
 	push_warning("ScenarioRunner: unknown assertion type '%s'" % kind)
 	return false
 

@@ -197,6 +197,14 @@ def check_assertions(assertions: list, state: dict) -> tuple[bool, list]:
                     if field_value in (None, ""):
                         failures.append(assertion)
                         break
+        elif kind == "active_party_size_gte":
+            target_size = int(assertion.get("value", 3))
+            if not any(
+                hero.get("state") in ["departing_quest", "on_quest", "returning"]
+                and int(hero.get("quest_party_size", 0)) >= target_size
+                for hero in heroes
+            ):
+                failures.append(assertion)
     return len(failures) == 0, failures
 
 

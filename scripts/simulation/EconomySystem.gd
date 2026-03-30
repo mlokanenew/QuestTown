@@ -25,6 +25,9 @@ func _step_hero(hero_id: int, building_system: Object) -> void:
 	if hero.is_empty():
 		return
 	var state: String = hero.get("state", "")
+	if state == "using_service":
+		_complete_pending_service(hero_id, building_system)
+		return
 	if state not in ["idling", "recovering"]:
 		return
 
@@ -33,11 +36,11 @@ func _step_hero(hero_id: int, building_system: Object) -> void:
 		GameState.heroes[hero_id]["service_cooldown_ticks"] = cooldown - 1
 		return
 
+	if int(hero.get("health", 0)) < int(hero.get("max_health", 0)) and _handle_healing(hero_id, building_system):
+		return
 	if bool(hero.get("needs_lodging", false)) and _handle_lodging(hero_id, building_system):
 		return
 	if bool(hero.get("needs_meal", false)) and _handle_meal(hero_id, building_system):
-		return
-	if int(hero.get("health", 0)) < int(hero.get("max_health", 0)) and _handle_healing(hero_id, building_system):
 		return
 	if state == "idling" and int(hero.get("gear_bonus", 0)) <= 0 and _handle_gear_purchase(hero_id, building_system):
 		return
@@ -92,15 +95,16 @@ func _handle_gear_purchase(hero_id: int, building_system: Object) -> bool:
 	var gear_offer: Dictionary = DataLoader.get_best_gear_offer(int(shop.get("level", 1)))
 	var spend: int = max(1, int(gear_offer.get("cost", _building_effect(building_system, "weapons_shop", "gear_spending"))))
 	var gear_bonus: int = max(1, int(gear_offer.get("gear_bonus", spend)))
-	return _transfer_gold(hero_id, spend, "hero_spent_at_weapons_shop", {
-		"building_type": "weapons_shop",
-		"service": "gear",
-		"gear_id": gear_offer.get("id", "")
-	}, func() -> void:
-		GameState.consume_building_output_stock(int(shop.get("id", 0)), 1)
-		GameState.heroes[hero_id]["gear_bonus"] = gear_bonus
-		GameState.heroes[hero_id]["service_cooldown_ticks"] = SERVICE_COOLDOWN_TICKS
-	)
+	if int(GameState.heroes[hero_id].get("gold", 0)) < spend:
+		return false
+	return _send_hero_to_service(hero_id, "weapons_shop", building_system, {
+		"service_type": "gear",
+		"spend": spend,
+		"gear_bonus": gear_bonus,
+		"building_id": int(shop.get("id", 0)),
+		"gear_id": gear_offer.get("id", ""),
+		"return_state": "idling"
+	})
 
 func _handle_healing(hero_id: int, building_system: Object) -> bool:
 	var temple: Dictionary = building_system.get_building_of_type("temple")
@@ -113,20 +117,16 @@ func _handle_healing(hero_id: int, building_system: Object) -> bool:
 	var recovery_bonus: int = max(1, _building_effect(building_system, "temple", "recovery_bonus"))
 	var service: Dictionary = DataLoader.get_service("temple_healing")
 	var cost: int = max(1, int(service.get("base_cost", 1)) + recovery_bonus - 1)
-	return _transfer_gold(hero_id, cost, "hero_spent_at_temple", {
-		"building_type": "temple",
-		"service": "healing",
-		"service_id": service.get("id", "temple_healing")
-	}, func() -> void:
-		GameState.consume_building_output_stock(int(temple.get("id", 0)), 1)
-		var max_health: int = int(GameState.heroes[hero_id].get("max_health", 0))
-		GameState.heroes[hero_id]["health"] = max_health
-		GameState.heroes[hero_id]["wound_state"] = "healthy"
-		if GameState.heroes[hero_id].get("state", "") == "recovering":
-			var remaining: int = int(GameState.heroes[hero_id].get("recovery_ticks_remaining", 0))
-			GameState.heroes[hero_id]["recovery_ticks_remaining"] = max(0, remaining - recovery_bonus * 120)
-		GameState.heroes[hero_id]["service_cooldown_ticks"] = SERVICE_COOLDOWN_TICKS
-	)
+	if int(GameState.heroes[hero_id].get("gold", 0)) < cost:
+		return false
+	return _send_hero_to_service(hero_id, "temple", building_system, {
+		"service_type": "healing",
+		"spend": cost,
+		"recovery_bonus": recovery_bonus,
+		"building_id": int(temple.get("id", 0)),
+		"service_id": service.get("id", "temple_healing"),
+		"return_state": GameState.heroes[hero_id].get("state", "recovering")
+	})
 
 func _handle_blessing(hero_id: int, building_system: Object) -> bool:
 	var temple: Dictionary = building_system.get_building_of_type("temple")
@@ -150,15 +150,101 @@ func _handle_blessing(hero_id: int, building_system: Object) -> bool:
 	if int(hero.get("xp", 0)) < 6 or int(hero.get("gold", 0)) < spend + 4:
 		return false
 	var survival_bonus: int = max(1, _building_effect(building_system, "temple", "survival_bonus") + 1)
-	return _transfer_gold(hero_id, spend, "hero_spent_at_temple", {
-		"building_type": "temple",
-		"service": "blessing",
-		"service_id": service.get("id", "temple_blessing")
-	}, func() -> void:
-		GameState.consume_building_output_stock(int(temple.get("id", 0)), 1)
-		GameState.heroes[hero_id]["blessing_bonus"] = survival_bonus
-		GameState.heroes[hero_id]["service_cooldown_ticks"] = SERVICE_COOLDOWN_TICKS
-	)
+	return _send_hero_to_service(hero_id, "temple", building_system, {
+		"service_type": "blessing",
+		"spend": spend,
+		"survival_bonus": survival_bonus,
+		"building_id": int(temple.get("id", 0)),
+		"service_id": service.get("id", "temple_blessing"),
+		"return_state": "idling"
+	})
+
+func _send_hero_to_service(hero_id: int, building_type: String, building_system: Object, payload: Dictionary) -> bool:
+	var building: Dictionary = building_system.get_building_of_type(building_type)
+	if building.is_empty() or not GameState.heroes.has(hero_id):
+		return false
+	var hero: Dictionary = GameState.heroes[hero_id]
+	if hero.get("state", "") not in ["idling", "recovering"]:
+		return false
+	var position: Dictionary = building.get("position", {})
+	var pending: Dictionary = payload.duplicate(true)
+	pending["building_type"] = building_type
+	GameState.heroes[hero_id]["pending_service"] = pending
+	GameState.heroes[hero_id]["pre_service_state"] = hero.get("state", "idling")
+	GameState.heroes[hero_id]["target"] = {
+		"x": float(position.get("x", 0.0)),
+		"y": float(position.get("y", 0.0)),
+		"z": float(position.get("z", 0.0))
+	}
+	GameState.set_hero_state(hero_id, "walking_to_service")
+	GameState.log_event("hero_heading_to_service", {
+		"hero_id": hero_id,
+		"hero_name": hero.get("name", "?"),
+		"building_type": building_type,
+		"service": payload.get("service_type", "service")
+	})
+	return true
+
+func _complete_pending_service(hero_id: int, building_system: Object) -> void:
+	if not GameState.heroes.has(hero_id):
+		return
+	var hero: Dictionary = GameState.heroes[hero_id]
+	var pending: Dictionary = hero.get("pending_service", {})
+	if pending.is_empty():
+		GameState.set_hero_state(hero_id, String(hero.get("pre_service_state", "idling")))
+		return
+	var building_type: String = String(pending.get("building_type", ""))
+	var spend: int = int(pending.get("spend", 0))
+	var completed: bool = false
+	match String(pending.get("service_type", "")):
+		"gear":
+			completed = _transfer_gold(hero_id, spend, "hero_spent_at_weapons_shop", {
+				"building_type": building_type,
+				"service": "gear",
+				"gear_id": pending.get("gear_id", "")
+			}, func() -> void:
+				GameState.consume_building_output_stock(int(pending.get("building_id", 0)), 1)
+				GameState.heroes[hero_id]["gear_bonus"] = int(pending.get("gear_bonus", 0))
+				GameState.heroes[hero_id]["service_cooldown_ticks"] = SERVICE_COOLDOWN_TICKS
+			)
+		"healing":
+			completed = _transfer_gold(hero_id, spend, "hero_spent_at_temple", {
+				"building_type": building_type,
+				"service": "healing",
+				"service_id": pending.get("service_id", "temple_healing")
+			}, func() -> void:
+				GameState.consume_building_output_stock(int(pending.get("building_id", 0)), 1)
+				var max_health: int = int(GameState.heroes[hero_id].get("max_health", 0))
+				GameState.heroes[hero_id]["health"] = max_health
+				GameState.heroes[hero_id]["wound_state"] = "healthy"
+				var remaining: int = int(GameState.heroes[hero_id].get("recovery_ticks_remaining", 0))
+				if remaining > 0:
+					GameState.heroes[hero_id]["recovery_ticks_remaining"] = max(0, remaining - int(pending.get("recovery_bonus", 1)) * 120)
+				GameState.heroes[hero_id]["service_cooldown_ticks"] = SERVICE_COOLDOWN_TICKS
+			)
+		"blessing":
+			completed = _transfer_gold(hero_id, spend, "hero_spent_at_temple", {
+				"building_type": building_type,
+				"service": "blessing",
+				"service_id": pending.get("service_id", "temple_blessing")
+			}, func() -> void:
+				GameState.consume_building_output_stock(int(pending.get("building_id", 0)), 1)
+				GameState.heroes[hero_id]["blessing_bonus"] = int(pending.get("survival_bonus", 0))
+				GameState.heroes[hero_id]["service_cooldown_ticks"] = SERVICE_COOLDOWN_TICKS
+			)
+		_:
+			pass
+	if completed:
+		GameState.log_event("hero_used_service", {
+			"hero_id": hero_id,
+			"hero_name": hero.get("name", "?"),
+			"building_type": building_type,
+			"service": pending.get("service_type", "service")
+		})
+	GameState.heroes[hero_id]["pending_service"] = {}
+	GameState.heroes[hero_id].erase("pre_service_state")
+	var return_state: String = String(pending.get("return_state", "idling"))
+	GameState.set_hero_state(hero_id, return_state)
 
 func _transfer_gold(hero_id: int, amount: int, event_type: String, extra: Dictionary, on_success: Callable) -> bool:
 	if not GameState.heroes.has(hero_id):

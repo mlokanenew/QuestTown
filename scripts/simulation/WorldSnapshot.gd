@@ -60,10 +60,14 @@ func _heroes() -> Array:
 			"quest_bias": h.get("quest_bias", ""),
 			"service_bias": h.get("service_bias", ""),
 			"current_quest": h.get("current_quest", {}),
+			"quest_party_id": h.get("quest_party_id", -1),
+			"quest_party_size": h.get("quest_party_size", 0),
+			"quest_party_leader_id": h.get("quest_party_leader_id", -1),
 			"needs_lodging": h.get("needs_lodging", false),
 			"needs_meal": h.get("needs_meal", false),
 			"gear_bonus": h.get("gear_bonus", 0),
 			"blessing_bonus": h.get("blessing_bonus", 0),
+			"pending_service": h.get("pending_service", {}),
 			"state":    h["state"],
 			"position": h["position"]
 		})

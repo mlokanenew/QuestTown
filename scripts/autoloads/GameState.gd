@@ -163,7 +163,11 @@ func add_hero(hero_name: String, career_data: Dictionary, profile: Dictionary = 
 		"needs_meal": true,
 		"service_cooldown_ticks": 120,
 		"gear_bonus": 0,
-		"blessing_bonus": 0
+		"blessing_bonus": 0,
+		"pending_service": {},
+		"quest_party_id": -1,
+		"quest_party_size": 0,
+		"quest_party_leader_id": -1
 	}
 	_next_hero_id += 1
 	heroes[h["id"]] = h

@@ -304,7 +304,7 @@ func _refresh_hero_panel(hero_id: int) -> void:
 	if state_lbl:
 		state_lbl.text = "Activity: %s   Wounds: %s" % [_format_entity_state(h["state"]), String(h.get("wound_state", "healthy")).replace("_", " ")]
 	if summary_lbl:
-		summary_lbl.text = "Personal gold %dg   WFRP career %s" % [h.get("gold", 0), h.get("career", "?")]
+		summary_lbl.text = "WFRP starter  %s   Personal gold %dg" % [h.get("career", "?"), h.get("gold", 0)]
 	if health_bar:
 		health_bar.max_value = max(1, max_health)
 		health_bar.value = health
@@ -319,14 +319,20 @@ func _refresh_hero_panel(hero_id: int) -> void:
 		health_lbl.text = "Health %d / %d" % [health, max_health]
 	if primary_lbl:
 		var current_quest: Dictionary = h.get("current_quest", {})
-		var activity := "No active quest"
+		var activity := _hero_activity_summary(h)
 		if not current_quest.is_empty():
 			activity = "%s (%s)" % [current_quest.get("name", "?"), _format_quest_state(h.get("state", ""))]
-		primary_lbl.text = "Current activity: %s\nCore stats: MGT %d  AGI %d  WIT %d" % [
+		var wfrp_stats: Dictionary = h.get("wfrp_stats", {})
+		primary_lbl.text = "Current activity: %s\nWFRP  WS %d  BS %d  S %d  T %d  Ag %d  Int %d  WP %d  Fel %d" % [
 			activity,
-			h.get("stats", {}).get("might", 0),
-			h.get("stats", {}).get("agility", 0),
-			h.get("stats", {}).get("wits", 0)
+			wfrp_stats.get("WS", 0),
+			wfrp_stats.get("BS", 0),
+			wfrp_stats.get("S", 0),
+			wfrp_stats.get("T", 0),
+			wfrp_stats.get("Ag", 0),
+			wfrp_stats.get("Int", 0),
+			wfrp_stats.get("WP", 0),
+			wfrp_stats.get("Fel", 0)
 		]
 	if action_lbl:
 		action_lbl.visible = false
@@ -335,16 +341,11 @@ func _refresh_hero_panel(hero_id: int) -> void:
 	if gold_lbl:
 		gold_lbl.text = "Gold %d" % h.get("gold", 0)
 	if bias_lbl:
-		bias_lbl.text = "Quest Bias: %s   Service Bias: %s" % [h.get("quest_bias", "-"), h.get("service_bias", "-")]
+		bias_lbl.text = "Quest Bias: %s   Service Bias: %s   Party: %d" % [h.get("quest_bias", "-"), h.get("service_bias", "-"), int(h.get("quest_party_size", 0))]
 	if stats_lbl:
 		var stats: Dictionary = h.get("stats", {})
 		var wfrp_stats: Dictionary = h.get("wfrp_stats", {})
-		stats_lbl.text = "Quest stats  MGT %d  AGI %d  WIT %d  SPR %d  END %d\nWFRP  WS %d  BS %d  S %d  T %d  Ag %d  Int %d  WP %d  Fel %d  W %d  Mag %d" % [
-			stats.get("might", 0),
-			stats.get("agility", 0),
-			stats.get("wits", 0),
-			stats.get("spirit", 0),
-			stats.get("endurance", 0),
+		stats_lbl.text = "WFRP  WS %d  BS %d  S %d  T %d  Ag %d  Int %d  WP %d  Fel %d  W %d  Mag %d\nQuestTown  MGT %d  AGI %d  WIT %d  SPR %d  END %d" % [
 			wfrp_stats.get("WS", 0),
 			wfrp_stats.get("BS", 0),
 			wfrp_stats.get("S", 0),
@@ -354,7 +355,12 @@ func _refresh_hero_panel(hero_id: int) -> void:
 			wfrp_stats.get("WP", 0),
 			wfrp_stats.get("Fel", 0),
 			wfrp_stats.get("W", 0),
-			wfrp_stats.get("Mag", 0)
+			wfrp_stats.get("Mag", 0),
+			stats.get("might", 0),
+			stats.get("agility", 0),
+			stats.get("wits", 0),
+			stats.get("spirit", 0),
+			stats.get("endurance", 0)
 		]
 	if skills_lbl:
 		skills_lbl.text = "Skills: %s" % ", ".join(h.get("skill_names", []))
@@ -371,7 +377,7 @@ func _refresh_hero_panel(hero_id: int) -> void:
 		if current_quest.is_empty():
 			quest_lbl.text = "Current Quest: None"
 		else:
-			quest_lbl.text = "Current Quest: %s" % current_quest.get("name", "?")
+			quest_lbl.text = "Current Quest: %s   Party %d" % [current_quest.get("name", "?"), int(h.get("quest_party_size", 1))]
 	_refresh_details_visibility()
 
 func _hide_hero_panel() -> void:
@@ -794,45 +800,43 @@ func _refresh_quest_offer_cards() -> void:
 		return
 	for child in list.get_children():
 		child.queue_free()
-	var available_ids: Dictionary = {}
-	for quest_offer: Dictionary in GameState.quests:
-		available_ids[String(quest_offer.get("id", ""))] = true
-	if _selected_quest_id == "" and not DataLoader.quests.is_empty():
-		_selected_quest_id = String(DataLoader.quests[0].get("id", ""))
+	if _selected_quest_id == "" and not GameState.quests.is_empty():
+		_selected_quest_id = String(GameState.quests[0].get("offer_id", ""))
 	var has_selected := false
-	for quest: Dictionary in DataLoader.quests:
-		var quest_id := String(quest.get("id", ""))
-		if quest_id == "":
+	for quest_offer: Dictionary in GameState.quests:
+		var offer_id := String(quest_offer.get("offer_id", ""))
+		if offer_id == "":
 			continue
-		if quest_id == _selected_quest_id:
+		if offer_id == _selected_quest_id:
 			has_selected = true
 		var button := Button.new()
-		button.custom_minimum_size = Vector2(0, 56)
+		button.custom_minimum_size = Vector2(0, 68)
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		var enabled := GameState.is_quest_enabled(quest_id)
-		var unlocked := _quest_template_is_unlocked(quest)
-		var available := available_ids.has(quest_id)
-		var status_parts: Array[String] = []
-		status_parts.append("Available" if available else ("Ready" if unlocked else "Locked"))
-		status_parts.append("Pinned" if enabled else "Hidden")
-		button.text = "%s\nD%d  %dg  %dxp  %s" % [
-			quest.get("name", quest_id),
-			int(quest.get("difficulty", 1)),
-			int(quest.get("gold_reward", 0)),
-			int(quest.get("xp_reward", 0)),
-			"  ".join(status_parts)
+		var template_enabled := GameState.is_quest_enabled(String(quest_offer.get("template_id", "")))
+		button.text = "%s\nParty %d  D%d  %dg  %dxp  %s" % [
+			quest_offer.get("name", offer_id),
+			int(quest_offer.get("party_size", 3)),
+			int(quest_offer.get("difficulty", 1)),
+			int(quest_offer.get("gold_reward", 0)),
+			int(quest_offer.get("xp_reward", 0)),
+			"Pinned" if template_enabled else "Hidden"
 		]
-		if quest_id == _selected_quest_id:
+		if offer_id == _selected_quest_id:
 			button.text = ">> " + button.text
-		var local_quest_id := quest_id
+		var local_offer_id := offer_id
 		button.pressed.connect(func() -> void:
-			_selected_quest_id = local_quest_id
+			_selected_quest_id = local_offer_id
 			_refresh_quest_ui()
 		)
 		list.add_child(button)
-	if not has_selected and not DataLoader.quests.is_empty():
-		_selected_quest_id = String(DataLoader.quests[0].get("id", ""))
+	if GameState.quests.is_empty():
+		var empty := Label.new()
+		empty.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		empty.text = "No quests are available. Produce rumours at the Inn to discover work."
+		list.add_child(empty)
+	elif not has_selected:
+		_selected_quest_id = String(GameState.quests[0].get("offer_id", ""))
 
 func _refresh_selected_quest_detail() -> void:
 	var detail_title := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestDetailHeader/QuestDetailHeaderVBox/QuestDetailTitleLabel")
@@ -844,25 +848,24 @@ func _refresh_selected_quest_detail() -> void:
 	var requirement_label := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestMetaCard/QuestMetaVBox/QuestRequirementLabel")
 	var suitability_label := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestSuitabilityCard/QuestSuitabilityLabel")
 	var action_button := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestActionButton")
-	var quest := _get_quest_template(_selected_quest_id)
+	var quest := _get_quest_offer(_selected_quest_id)
 	if quest.is_empty():
 		if detail_title:
-			detail_title.text = "No quest selected"
+			detail_title.text = "No quest available"
 		if detail_summary:
-			detail_summary.text = "Select a quest card to inspect it."
+			detail_summary.text = "Produce rumours at the Inn before the board can offer expeditions."
 		if detail_kicker:
 			detail_kicker.text = "Quest Board"
 		if action_button:
 			action_button.disabled = true
 			action_button.text = "Pin to Board"
 		return
-	var quest_id := String(quest.get("id", ""))
-	var unlocked := _quest_template_is_unlocked(quest)
-	var enabled := GameState.is_quest_enabled(quest_id)
+	var template_id := String(quest.get("template_id", ""))
+	var enabled := GameState.is_quest_enabled(template_id)
 	if detail_kicker:
-		detail_kicker.text = "Available Now" if _quest_offer_exists(quest_id) else ("Unlocked" if unlocked else "Locked")
+		detail_kicker.text = "Available Now"
 	if detail_title:
-		detail_title.text = String(quest.get("name", quest_id))
+		detail_title.text = String(quest.get("name", template_id))
 	if detail_summary:
 		detail_summary.text = _quest_summary_text(quest)
 	if reward_label:
@@ -870,31 +873,20 @@ func _refresh_selected_quest_detail() -> void:
 	if xp_label:
 		xp_label.text = "Experience  %dxp" % int(quest.get("xp_reward", 0))
 	if risk_label:
-		risk_label.text = "Risk  Wound %s   Death deferred for MVP" % _risk_label(int(quest.get("risk_level", 1)))
+		risk_label.text = "Risk  Wound %s   Party %d   Death deferred for MVP" % [_risk_label(int(quest.get("risk_level", 1))), int(quest.get("party_size", 3))]
 	if requirement_label:
 		requirement_label.text = "Requirements  %s" % _quest_requirements_text(quest)
 	if suitability_label:
 		suitability_label.text = _quest_suitability_text(quest)
 	if action_button:
 		action_button.disabled = false
-		action_button.text = "Remove From Board" if enabled else "Pin To Board"
+		action_button.text = "Hide Template" if enabled else "Allow Template"
 
-func _get_quest_template(quest_id: String) -> Dictionary:
-	for quest: Dictionary in DataLoader.quests:
-		if String(quest.get("id", "")) == quest_id:
+func _get_quest_offer(offer_id: String) -> Dictionary:
+	for quest: Dictionary in GameState.quests:
+		if String(quest.get("offer_id", "")) == offer_id:
 			return quest
 	return {}
-
-func _quest_offer_exists(quest_id: String) -> bool:
-	for quest_offer: Dictionary in GameState.quests:
-		if String(quest_offer.get("id", "")) == quest_id:
-			return true
-	return false
-
-func _quest_template_is_unlocked(quest: Dictionary) -> bool:
-	return _building_level_of_type("tavern") >= int(quest.get("min_tavern_level", 0)) \
-		and _building_level_of_type("weapons_shop") >= int(quest.get("min_weapons_shop_level", 0)) \
-		and _building_level_of_type("temple") >= int(quest.get("min_temple_level", 0))
 
 func _quest_requirements_text(quest: Dictionary) -> String:
 	var parts: Array[String] = []
@@ -912,7 +904,7 @@ func _quest_requirements_text(quest: Dictionary) -> String:
 	return ", ".join(parts)
 
 func _quest_summary_text(quest: Dictionary) -> String:
-	match String(quest.get("id", "")):
+	match String(quest.get("template_id", "")):
 		"clear_rats_cellar":
 			return "A cellar job with decent coin and a fair chance of scratches. Strong fit for Warrior or Rogue."
 		"gather_rare_herbs":
@@ -934,8 +926,9 @@ func _quest_suitability_text(quest: Dictionary) -> String:
 				names.append("Rogue")
 			_:
 				names.append(String(career_id).replace("_", " ").capitalize())
-	return "Likely interested adventurers: %s\nResolution focus: %s" % [
+	return "Likely interested adventurers: %s\nRecommended party size: %d\nResolution focus: %s" % [
 		", ".join(names),
+		int(quest.get("party_size", 3)),
 		String(quest.get("resolution_stat", "might")).capitalize()
 	]
 
@@ -953,7 +946,11 @@ func _risk_label(risk_level: int) -> String:
 func _toggle_selected_quest_enabled() -> void:
 	if _selected_quest_id == "":
 		return
-	GameState.set_quest_enabled(_selected_quest_id, not GameState.is_quest_enabled(_selected_quest_id))
+	var quest := _get_quest_offer(_selected_quest_id)
+	if quest.is_empty():
+		return
+	var template_id := String(quest.get("template_id", ""))
+	GameState.set_quest_enabled(template_id, not GameState.is_quest_enabled(template_id))
 
 func _set_all_quest_filters(enabled: bool) -> void:
 	for quest: Dictionary in DataLoader.quests:
@@ -1037,11 +1034,11 @@ func _building_output_summary(building: Dictionary) -> String:
 	var stock: int = int(building.get("output_stock", 0))
 	match building_type:
 		"tavern":
-			return "Stored Rumours: %d" % stock
+			return "Stored Rumours: %d   Quests only appear when rumours are produced here." % stock
 		"weapons_shop":
-			return "Supplies In Stock: %d" % stock
+			return "Supplies In Stock: %d   Heroes walk here to buy travel goods." % stock
 		"temple":
-			return "Healing Charges Ready: %d" % stock
+			return "Healing Charges Ready: %d   Wounded heroes walk here for recovery." % stock
 		_:
 			return "Stored Output: %d" % stock
 
@@ -1079,6 +1076,23 @@ func _next_upgrade_summary(building: Dictionary) -> String:
 		", ".join(effect_keys),
 		int(next_level.get("upgrade_cost", 0))
 	]
+
+func _hero_activity_summary(hero: Dictionary) -> String:
+	var state: String = String(hero.get("state", "idling"))
+	match state:
+		"walking_to_service":
+			var pending: Dictionary = hero.get("pending_service", {})
+			var building_type: String = String(pending.get("building_type", "building")).replace("_", " ")
+			var service_name: String = String(pending.get("service_type", "service"))
+			return "Walking to %s for %s" % [building_type, service_name]
+		"using_service":
+			var pending: Dictionary = hero.get("pending_service", {})
+			return "Using %s at %s" % [
+				String(pending.get("service_type", "service")),
+				String(pending.get("building_type", "building")).replace("_", " ")
+			]
+		_:
+			return "No active quest"
 
 func _toggle_left_panel() -> void:
 	_left_panel_collapsed = not _left_panel_collapsed

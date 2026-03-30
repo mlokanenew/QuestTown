@@ -48,6 +48,12 @@ func _step_hero(id: int, delta: float, building_system: Object) -> void:
 				h["service_cooldown_ticks"] = 30
 				GameState.set_hero_state(id, "idling")
 
+		"walking_to_service":
+			pos = _move_toward(pos, target, delta)
+			_set_position(id, pos)
+			if pos.distance_to(target) < 1.5:
+				GameState.set_hero_state(id, "using_service")
+
 		"idling":
 			h["idle_ticks_remaining"] -= 1
 			if h["idle_ticks_remaining"] <= 0:
@@ -142,3 +148,6 @@ func _finish_return(id: int) -> void:
 	GameState.heroes[id].erase("quest_status")
 	GameState.heroes[id].erase("post_quest_state")
 	GameState.heroes[id].erase("return_idle_ticks")
+	GameState.heroes[id]["quest_party_id"] = -1
+	GameState.heroes[id]["quest_party_size"] = 0
+	GameState.heroes[id]["quest_party_leader_id"] = -1

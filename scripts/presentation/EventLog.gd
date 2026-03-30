@@ -87,6 +87,20 @@ func _format(event: Dictionary) -> String:
 				event.get("hero_name", "?"),
 				event.get("amount", 0)
 			]
+		"hero_heading_to_service":
+			return "[%d] %s heads to the %s for %s." % [
+				event.get("tick", 0),
+				event.get("hero_name", "?"),
+				String(event.get("building_type", "building")).replace("_", " "),
+				event.get("service", "service")
+			]
+		"hero_used_service":
+			return "[%d] %s uses %s at the %s." % [
+				event.get("tick", 0),
+				event.get("hero_name", "?"),
+				event.get("service", "service"),
+				String(event.get("building_type", "building")).replace("_", " ")
+			]
 		"hero_spent_at_temple":
 			return "[%d] %s spends %dg at the temple for %s." % [
 				event.get("tick", 0),
