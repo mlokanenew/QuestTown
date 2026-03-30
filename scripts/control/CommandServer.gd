@@ -114,6 +114,18 @@ func _handle(cmd: Dictionary) -> void:
 			else:
 				_respond({"ok": true, "result": output_result})
 
+		"accept_quest":
+			var offer_id: int = int(cmd.get("offer_id", -1))
+			if offer_id < 0:
+				var quests: Array = _sim.get_world_state().get("quests", [])
+				if not quests.is_empty():
+					offer_id = int(quests[0].get("offer_id", -1))
+			var accept_result: Variant = _sim.accept_quest(offer_id)
+			if accept_result.is_empty():
+				_respond({"ok": false, "error": "accept quest failed"})
+			else:
+				_respond({"ok": true, "result": accept_result})
+
 		"step_ticks":
 			_sim.step_ticks(cmd.get("n", 1))
 			_respond({"ok": true, "tick": GameState.tick})

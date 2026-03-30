@@ -4,7 +4,7 @@ extends Node
 const CONFIG_PATH := "user://settings.cfg"
 const SECTION := "display"
 const UI_SCALE_VERSION := 3
-const DEFAULT_WINDOW_SIZE := Vector2i(1920, 1080)
+const DEFAULT_WINDOW_SIZE := Vector2i(2560, 1440)
 
 var window_mode: String = "windowed"
 var ui_scale: float = 1.0

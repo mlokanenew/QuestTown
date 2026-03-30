@@ -60,6 +60,7 @@ Allowed commands:
 {"cmd":"upgrade_building","type":"temple"}
 {"cmd":"start_building_upgrade","type":"tavern"}
 {"cmd":"set_building_output_mode","type":"tavern"}
+{"cmd":"accept_quest","offer_id":1}
 {"cmd":"set_quest_enabled","id":"clear_rats_cellar","enabled":true}
 {"cmd":"step_ticks","n":600}
 {"cmd":"run_until","event":"hero_arrived_at_tavern","max_ticks":1800}
@@ -68,9 +69,10 @@ Allowed commands:
 Rules:
 1. Never place a building if one of that type already exists.
 2. New buildings start idle. If a building needs to generate quests, supplies, or healing, explicitly use set_building_output_mode.
-3. Prefer run_until or step_ticks once the needed building is placed and any required output mode is active.
-4. If the world is already close to satisfying the goal, advance time instead of placing more buildings.
-5. Output JSON only."""
+3. Quests do not launch automatically. If a quest is available and you want heroes to go, use accept_quest.
+4. Prefer run_until or step_ticks once the needed building is placed and any required output mode is active.
+5. If the world is already close to satisfying the goal, advance time instead of placing more buildings.
+6. Output JSON only."""
 
 ANALYSIS_PROMPT = """You are reviewing a fantasy town-sim MVP test run.
 
@@ -572,6 +574,11 @@ def normalize_command(cmd: dict) -> dict | None:
         if building_type not in {"tavern", "weapons_shop", "temple"}:
             return None
         return {"cmd": "set_building_output_mode", "type": building_type}
+    if name == "accept_quest":
+        offer_id = int(cmd.get("offer_id", -1))
+        if offer_id < 0:
+            return {"cmd": "accept_quest"}
+        return {"cmd": "accept_quest", "offer_id": offer_id}
     if name == "step_ticks":
         n = max(1, min(int(cmd.get("n", 60)), 3600))
         return {"cmd": "step_ticks", "n": n}
@@ -618,6 +625,7 @@ def summarize_state_for_llm(state: dict) -> dict:
         ],
         "quests": [
             {
+                "offer_id": quest.get("offer_id", -1),
                 "id": quest.get("template_id", quest.get("id", "")),
                 "name": quest.get("name", ""),
                 "type": quest.get("type", ""),
@@ -640,6 +648,7 @@ def choose_fallback_command(state: dict, failures: list) -> dict:
     building_levels = {building.get("type"): int(building.get("level", 1)) for building in buildings}
     building_actions = {building.get("type"): str(building.get("current_action", "idle")) for building in buildings}
     heroes = state.get("heroes", [])
+    quests = state.get("quests", [])
     required_buildings = set()
     required_output_buildings = set()
 
@@ -754,13 +763,21 @@ def choose_fallback_command(state: dict, failures: list) -> dict:
                 "hero_returned_from_quest",
             } and building_actions.get("tavern", "idle") == "idle":
                 return {"cmd": "set_building_output_mode", "type": "tavern"}
+            if event_type in {
+                "hero_started_quest",
+                "hero_departed_for_quest",
+                "hero_completed_quest",
+                "hero_heading_home",
+                "hero_returned_from_quest",
+            } and quests:
+                return {"cmd": "accept_quest", "offer_id": int(quests[0].get("offer_id", -1))}
             if event_type == "hero_spent_at_weapons_shop" and building_actions.get("weapons_shop", "idle") == "idle":
                 return {"cmd": "set_building_output_mode", "type": "weapons_shop"}
             if event_type == "hero_spent_at_temple" and building_actions.get("temple", "idle") == "idle":
                 return {"cmd": "set_building_output_mode", "type": "temple"}
             if not heroes:
                 return {"cmd": "run_until", "event": "hero_arrived_at_tavern", "max_ticks": 1800}
-            if event_type == "hero_started_quest":
+            if event_type in {"hero_started_quest", "hero_departed_for_quest"}:
                 return {"cmd": "run_until", "event": "hero_departed_for_quest", "max_ticks": 1800}
             if event_type in {"hero_completed_quest", "hero_heading_home", "hero_returned_from_quest"}:
                 return {"cmd": "run_until", "event": event_type, "max_ticks": 3600}
@@ -784,6 +801,9 @@ def choose_fallback_command(state: dict, failures: list) -> dict:
     for building_type in ("tavern", "weapons_shop", "temple"):
         if building_type in building_types and building_actions.get(building_type, "idle") == "idle":
             return {"cmd": "set_building_output_mode", "type": building_type}
+
+    if quests:
+        return {"cmd": "accept_quest", "offer_id": int(quests[0].get("offer_id", -1))}
 
     if "tavern" not in building_types:
         return {"cmd": "place_building", "type": "tavern", "x": 0, "z": 0}
@@ -830,6 +850,12 @@ def is_useful_command(cmd: dict, state: dict, last_cmd: dict | None, failures: l
         if building_type not in building_types:
             return False
         if building_actions.get(building_type, "idle") != "idle":
+            return False
+    if cmd.get("cmd") == "accept_quest":
+        offer_id = int(cmd.get("offer_id", -1))
+        if offer_id < 0:
+            return len(state.get("quests", [])) > 0
+        if not any(int(quest.get("offer_id", -2)) == offer_id for quest in state.get("quests", [])):
             return False
     if last_cmd is not None and cmd == last_cmd and cmd.get("cmd") != "step_ticks":
         return False

@@ -12,7 +12,9 @@
     {"cmd": "upgrade_building", "type": "temple"},
     {"cmd": "set_building_output_mode", "type": "tavern"},
     {"cmd": "set_building_output_mode", "type": "weapons_shop"},
-    {"cmd": "set_building_output_mode", "type": "temple"}
+    {"cmd": "set_building_output_mode", "type": "temple"},
+    {"cmd": "step_ticks", "n": 1600},
+    {"cmd": "accept_quest"}
   ],
   "assertions": [
     {"assert": "hero_count_gte", "value": 1},

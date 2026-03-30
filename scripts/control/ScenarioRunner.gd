@@ -90,6 +90,18 @@ func _execute_command(sim: Node, cmd: Dictionary) -> void:
 				var output_building: Dictionary = sim.get_building_of_type(cmd.get("type", ""))
 				output_building_id = int(output_building.get("id", -1))
 			sim.set_building_output_mode(output_building_id)
+		"accept_quest":
+			var offer_id: int = int(cmd.get("offer_id", -1))
+			if offer_id < 0 and cmd.has("index"):
+				var quests: Array = sim.get_world_state().get("quests", [])
+				var index: int = int(cmd.get("index", 0))
+				if index >= 0 and index < quests.size():
+					offer_id = int(quests[index].get("offer_id", -1))
+			elif offer_id < 0:
+				var quests: Array = sim.get_world_state().get("quests", [])
+				if not quests.is_empty():
+					offer_id = int(quests[0].get("offer_id", -1))
+			sim.accept_quest(offer_id)
 		"step_ticks":
 			sim.step_ticks(cmd.get("n", 1))
 		"set_quest_enabled":

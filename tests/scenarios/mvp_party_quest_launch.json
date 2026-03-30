@@ -11,7 +11,9 @@
     { "cmd": "set_building_output_mode", "type": "tavern" },
     { "cmd": "set_building_output_mode", "type": "weapons_shop" },
     { "cmd": "set_building_output_mode", "type": "temple" },
-    { "cmd": "step_ticks", "n": 3200 }
+    { "cmd": "step_ticks", "n": 1200 },
+    { "cmd": "accept_quest" },
+    { "cmd": "step_ticks", "n": 60 }
   ],
   "assertions": [
     { "assert": "hero_count_gte", "value": 3 },

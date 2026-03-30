@@ -17,7 +17,6 @@ func reset(seed_value: int) -> void:
 
 func step(building_system: Object) -> void:
 	_refresh_available_quests(building_system)
-	_assign_quests(building_system)
 	_step_active_quests(building_system)
 	_step_recovery()
 
@@ -87,60 +86,62 @@ func _quest_is_unlocked(quest: Dictionary, building_system: Object) -> bool:
 		and _building_level(building_system, "temple") >= int(quest.get("min_temple_level", 0))
 	)
 
-func _assign_quests(building_system: Object) -> void:
-	if GameState.quests.is_empty():
-		return
-
-	var updated_quests: Array = GameState.quests.duplicate(true)
-	var changed: bool = false
+func accept_quest_offer(offer_id: int, building_system: Object) -> Dictionary:
+	var quest_index: int = _find_offer_index(offer_id)
+	if quest_index < 0:
+		return {}
 	var available_heroes: Array = _available_idle_heroes(building_system)
-	while not updated_quests.is_empty() and available_heroes.size() >= 3:
-		var picked: Dictionary = _choose_party_assignment(available_heroes, updated_quests)
-		if picked.is_empty():
-			break
-		var quest_index: int = int(picked.get("quest_index", -1))
-		var party_ids: Array = picked.get("party_ids", [])
-		if quest_index < 0 or party_ids.is_empty():
-			break
-		var quest: Dictionary = updated_quests[quest_index]
-		updated_quests.remove_at(quest_index)
-		changed = true
-		var party_size: int = party_ids.size()
-		var quest_destination: Vector3 = _pick_quest_destination()
-		var party_id: int = int(quest.get("offer_id", _next_offer_id))
-		var leader_id: int = int(party_ids[0])
-		for hero_id_variant in party_ids:
-			var hero_id: int = int(hero_id_variant)
-			var hero: Dictionary = GameState.heroes.get(hero_id, {})
-			if hero.is_empty():
-				continue
-			GameState.heroes[hero_id]["current_quest"] = quest.duplicate(true)
-			GameState.heroes[hero_id]["quest_party_id"] = party_id
-			GameState.heroes[hero_id]["quest_party_size"] = party_size
-			GameState.heroes[hero_id]["quest_party_leader_id"] = leader_id
-			GameState.heroes[hero_id]["quest_ticks_remaining"] = int(quest.get("duration_ticks", 300))
-			GameState.heroes[hero_id]["quest_destination"] = {
-				"x": quest_destination.x,
-				"y": quest_destination.y,
-				"z": quest_destination.z
-			}
-			GameState.set_hero_state(hero_id, "departing_quest")
-			GameState.log_event("hero_departed_for_quest", {
-				"hero_id": hero_id,
-				"hero_name": hero.get("name", "?"),
-				"quest_name": quest.get("name", "?"),
-				"party_size": party_size
-			})
-			GameState.log_event("hero_started_quest", {
-				"hero_id": hero_id,
-				"hero_name": hero.get("name", "?"),
-				"quest_name": quest.get("name", "?"),
-				"party_size": party_size
-			})
-		available_heroes = _available_idle_heroes(building_system)
+	var quest: Dictionary = GameState.quests[quest_index]
+	var party_ids: Array = _choose_party_for_offer(available_heroes, quest)
+	if party_ids.is_empty():
+		return {}
+	var updated_quests: Array = GameState.quests.duplicate(true)
+	updated_quests.remove_at(quest_index)
+	GameState.set_available_quests(updated_quests)
+	GameState.log_event("quest_accepted", {
+		"offer_id": offer_id,
+		"quest_name": quest.get("name", "?"),
+		"party_size": party_ids.size()
+	})
+	_launch_party_for_quest(quest, party_ids)
+	return {
+		"offer_id": offer_id,
+		"quest_name": quest.get("name", "?"),
+		"party_size": party_ids.size(),
+		"party_ids": party_ids.duplicate()
+	}
 
-	if changed:
-		GameState.set_available_quests(updated_quests)
+func get_acceptance_preview(offer_id: int, building_system: Object) -> Dictionary:
+	var quest_index: int = _find_offer_index(offer_id)
+	if quest_index < 0:
+		return {
+			"can_accept": false,
+			"reason": "Quest no longer available",
+			"party_ids": [],
+			"party_names": []
+		}
+	var quest: Dictionary = GameState.quests[quest_index]
+	var available_heroes: Array = _available_idle_heroes(building_system)
+	var party_ids: Array = _choose_party_for_offer(available_heroes, quest)
+	var party_names: Array = []
+	for hero_id_variant in party_ids:
+		var hero: Dictionary = GameState.heroes.get(int(hero_id_variant), {})
+		if not hero.is_empty():
+			party_names.append(str(hero.get("name", "?")))
+	if party_ids.is_empty():
+		return {
+			"can_accept": false,
+			"reason": "Need %d rested, equipped adventurers" % int(quest.get("party_size", 3)),
+			"party_ids": [],
+			"party_names": []
+		}
+	return {
+		"can_accept": true,
+		"reason": "",
+		"party_ids": party_ids.duplicate(),
+		"party_names": party_names,
+		"party_size": party_ids.size()
+	}
 
 func _available_idle_heroes(building_system: Object) -> Array:
 	var hero_ids: Array = []
@@ -200,6 +201,68 @@ func _choose_party_assignment(available_heroes: Array, quests: Array) -> Diction
 				"party_ids": party_ids
 			}
 	return best
+
+func _choose_party_for_offer(available_heroes: Array, quest: Dictionary) -> Array:
+	var party_size: int = clamp(int(quest.get("party_size", 3)), 3, 5)
+	if available_heroes.size() < party_size:
+		return []
+	var scored_heroes: Array = []
+	for hero_id_variant in available_heroes:
+		var hero_id: int = int(hero_id_variant)
+		var hero: Dictionary = GameState.heroes.get(hero_id, {})
+		if hero.is_empty():
+			continue
+		scored_heroes.append({
+			"hero_id": hero_id,
+			"score": _hero_quest_score(hero, quest)
+		})
+	scored_heroes.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		return float(a.get("score", 0.0)) > float(b.get("score", 0.0))
+	)
+	var party_ids: Array = []
+	for entry in scored_heroes.slice(0, party_size):
+		party_ids.append(int(entry.get("hero_id", -1)))
+	return party_ids if party_ids.size() >= party_size else []
+
+func _launch_party_for_quest(quest: Dictionary, party_ids: Array) -> void:
+	var party_size: int = party_ids.size()
+	var quest_destination: Vector3 = _pick_quest_destination()
+	var party_id: int = int(quest.get("offer_id", _next_offer_id))
+	var leader_id: int = int(party_ids[0])
+	for hero_id_variant in party_ids:
+		var hero_id: int = int(hero_id_variant)
+		var hero: Dictionary = GameState.heroes.get(hero_id, {})
+		if hero.is_empty():
+			continue
+		GameState.heroes[hero_id]["current_quest"] = quest.duplicate(true)
+		GameState.heroes[hero_id]["quest_party_id"] = party_id
+		GameState.heroes[hero_id]["quest_party_size"] = party_size
+		GameState.heroes[hero_id]["quest_party_leader_id"] = leader_id
+		GameState.heroes[hero_id]["quest_ticks_remaining"] = int(quest.get("duration_ticks", 300))
+		GameState.heroes[hero_id]["quest_destination"] = {
+			"x": quest_destination.x,
+			"y": quest_destination.y,
+			"z": quest_destination.z
+		}
+		GameState.set_hero_state(hero_id, "departing_quest")
+		GameState.log_event("hero_departed_for_quest", {
+			"hero_id": hero_id,
+			"hero_name": hero.get("name", "?"),
+			"quest_name": quest.get("name", "?"),
+			"party_size": party_size
+		})
+		GameState.log_event("hero_started_quest", {
+			"hero_id": hero_id,
+			"hero_name": hero.get("name", "?"),
+			"quest_name": quest.get("name", "?"),
+			"party_size": party_size
+		})
+
+func _find_offer_index(offer_id: int) -> int:
+	for index in range(GameState.quests.size()):
+		if int(GameState.quests[index].get("offer_id", -1)) == offer_id:
+			return index
+	return -1
 
 func _hero_quest_score(hero: Dictionary, quest: Dictionary) -> float:
 	var score: float = float(quest.get("gold_reward", 0)) + float(quest.get("xp_reward", 0))
@@ -297,8 +360,8 @@ func _resolve_party_member(hero_id: int, quest: Dictionary, tavern: Vector3, bui
 			GameState.heroes[hero_id]["post_quest_state"] = "idling"
 			GameState.heroes[hero_id]["return_idle_ticks"] = 180
 	else:
-		var wound_chance: float = 0.12 + 0.08 * float(quest.get("risk_level", 1))
-		wound_chance = clamp(wound_chance - 0.03 * float(survival_bonus), 0.08, 0.45)
+		var wound_chance: float = 0.22 + 0.12 * float(quest.get("risk_level", 1))
+		wound_chance = clamp(wound_chance - 0.03 * float(survival_bonus), 0.18, 0.65)
 		if _rng.randf() < wound_chance:
 			var chip_damage: int = max(1, int(quest.get("risk_level", 1)))
 			GameState.heroes[hero_id]["health"] = max(1, int(hero.get("health", 1)) - chip_damage)

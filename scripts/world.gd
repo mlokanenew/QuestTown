@@ -119,7 +119,8 @@ func _ready() -> void:
 			output_action_btn.pressed.connect(_set_selected_building_output_mode)
 		var quest_action_btn := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestActionButton")
 		if quest_action_btn:
-			quest_action_btn.pressed.connect(_toggle_selected_quest_enabled)
+			quest_action_btn.pressed.connect(_accept_selected_quest)
+		get_viewport().size_changed.connect(_fit_ui_to_viewport)
 		GameState.gold_changed.connect(_on_gold_changed)
 		GameState.building_placed.connect(_on_building_state_changed)
 		GameState.building_removed.connect(_on_building_removed)
@@ -138,6 +139,7 @@ func _ready() -> void:
 			RuntimeConfig.request_load_world = false
 			_load_world()
 		_apply_panel_state()
+		_fit_ui_to_viewport()
 		_refresh_roster_strip()
 		_refresh_top_bar()
 		_toggle_event_feed(false)
@@ -639,10 +641,10 @@ func _refresh_context_upgrade_button() -> void:
 		button.text = "%s Max Level" % building_name
 		button.disabled = true
 		return
-	if current_action == "upgrading":
+	if current_action != "idle":
 		var progress_ratio := _action_progress_ratio(building)
 		button.visible = true
-		button.text = "Upgrading %s  (%d%%)" % [building_name, int(round(progress_ratio * 100.0))]
+		button.text = "Busy: %s  (%d%%)" % [_building_mode_name(building), int(round(progress_ratio * 100.0))]
 		button.disabled = true
 		return
 
@@ -671,9 +673,9 @@ func _refresh_building_action_button() -> void:
 		button.text = "%s Max Level" % building_name
 		button.disabled = true
 		return
-	if current_action == "upgrading":
+	if current_action != "idle":
 		var progress_ratio := _action_progress_ratio(building)
-		button.text = "Upgrading %s  (%d%%)" % [building_name, int(round(progress_ratio * 100.0))]
+		button.text = "Busy: %s  (%d%%)" % [_building_mode_name(building), int(round(progress_ratio * 100.0))]
 		button.disabled = true
 		return
 	var next_level: Dictionary = levels[current_level]
@@ -693,6 +695,8 @@ func _refresh_output_action_button() -> void:
 	var data: Dictionary = DataLoader.buildings_by_id.get(building_type, {})
 	var building_name: String = data.get("name", building_type.capitalize())
 	var current_action: String = building.get("current_action", "idle")
+	var output_stock: int = int(building.get("output_stock", 0))
+	var output_cap: int = 1 + int(building.get("level", 1))
 	button.visible = true
 	if current_action == "upgrading":
 		button.text = "Output Paused During Upgrade"
@@ -703,7 +707,11 @@ func _refresh_output_action_button() -> void:
 		button.text = "Producing  (%d%%)" % int(round(progress_ratio * 100.0))
 		button.disabled = true
 		return
-	button.text = "Produce Output  (%s)" % building_name
+	if output_stock >= output_cap:
+		button.text = "%s Output Full" % building_name
+		button.disabled = true
+		return
+	button.text = "%s" % _building_output_action_name(building_type)
 	button.disabled = false
 
 func _setup_quest_menu() -> void:
@@ -863,10 +871,10 @@ func _refresh_selected_quest_detail() -> void:
 			detail_kicker.text = "Quest Board"
 		if action_button:
 			action_button.disabled = true
-			action_button.text = "Pin to Board"
+			action_button.text = "Accept Quest"
 		return
 	var template_id := str(quest.get("template_id", ""))
-	var enabled := GameState.is_quest_enabled(template_id)
+	var preview: Dictionary = sim.get_quest_acceptance_preview(int(quest.get("offer_id", -1)))
 	if detail_kicker:
 		detail_kicker.text = "Available Now"
 	if detail_title:
@@ -882,10 +890,10 @@ func _refresh_selected_quest_detail() -> void:
 	if requirement_label:
 		requirement_label.text = "Requirements  %s" % _quest_requirements_text(quest)
 	if suitability_label:
-		suitability_label.text = _quest_suitability_text(quest)
+		suitability_label.text = _quest_suitability_text(quest, preview)
 	if action_button:
-		action_button.disabled = false
-		action_button.text = "Hide Template" if enabled else "Allow Template"
+		action_button.disabled = not bool(preview.get("can_accept", false))
+		action_button.text = "Accept Quest" if bool(preview.get("can_accept", false)) else str(preview.get("reason", "Need party"))
 
 func _get_quest_offer(offer_id: String) -> Dictionary:
 	for quest: Dictionary in GameState.quests:
@@ -919,7 +927,7 @@ func _quest_summary_text(quest: Dictionary) -> String:
 		_:
 			return "A town opportunity for autonomous adventurers."
 
-func _quest_suitability_text(quest: Dictionary) -> String:
+func _quest_suitability_text(quest: Dictionary, preview: Dictionary) -> String:
 	var names: Array = []
 	for career_id in quest.get("preferred_careers", []):
 		match str(career_id):
@@ -931,10 +939,13 @@ func _quest_suitability_text(quest: Dictionary) -> String:
 				names.append("Rogue")
 			_:
 				names.append(str(career_id).replace("_", " ").capitalize())
-	return "Likely interested adventurers: %s\nRecommended party size: %d\nResolution focus: %s" % [
+	var preview_names: Array = preview.get("party_names", [])
+	var party_line := "Ready party: %s" % ", ".join(preview_names) if not preview_names.is_empty() else "Launch status: %s" % str(preview.get("reason", "Waiting for a ready party"))
+	return "Likely interested adventurers: %s\nRecommended party size: %d\nResolution focus: %s\n%s" % [
 		", ".join(names),
 		int(quest.get("party_size", 3)),
-		str(quest.get("resolution_stat", "might")).capitalize()
+		str(quest.get("resolution_stat", "might")).capitalize(),
+		party_line
 	]
 
 func _risk_label(risk_level: int) -> String:
@@ -948,14 +959,18 @@ func _risk_label(risk_level: int) -> String:
 		_:
 			return "high"
 
-func _toggle_selected_quest_enabled() -> void:
+func _accept_selected_quest() -> void:
 	if _selected_quest_id == "":
 		return
 	var quest := _get_quest_offer(_selected_quest_id)
 	if quest.is_empty():
 		return
-	var template_id := str(quest.get("template_id", ""))
-	GameState.set_quest_enabled(template_id, not GameState.is_quest_enabled(template_id))
+	var result: Dictionary = sim.accept_quest(int(quest.get("offer_id", -1)))
+	if result.is_empty():
+		_set_status("No ready party can take that quest yet")
+	else:
+		_set_status("Accepted %s for %d adventurers" % [result.get("quest_name", "quest"), int(result.get("party_size", 0))])
+	_refresh_quest_ui()
 
 func _set_all_quest_filters(enabled: bool) -> void:
 	for quest: Dictionary in DataLoader.quests:
@@ -1020,7 +1035,9 @@ func _start_selected_building_upgrade() -> void:
 func _set_selected_building_output_mode() -> void:
 	if _selected_building_id < 0:
 		return
-	sim.set_building_output_mode(_selected_building_id)
+	var result: Dictionary = sim.set_building_output_mode(_selected_building_id)
+	if result.is_empty():
+		_set_status("That building cannot produce output right now")
 	if _selected_entity_kind == "building":
 		_refresh_building_panel(_selected_building_id)
 	_refresh_context_upgrade_button()
@@ -1033,7 +1050,7 @@ func _building_action_summary(building: Dictionary) -> String:
 	if current_action == "upgrading":
 		return "Current Action: Upgrading (%d%% complete)" % int(round(progress_ratio * 100.0))
 	if current_action == "output":
-		return "Current Action: Producing output (%d%% to next result)" % int(round(progress_ratio * 100.0))
+		return "Current Action: Producing one output batch (%d%% complete)" % int(round(progress_ratio * 100.0))
 	return "Current Action: Waiting for orders"
 
 func _building_output_summary(building: Dictionary) -> String:
@@ -1041,11 +1058,11 @@ func _building_output_summary(building: Dictionary) -> String:
 	var stock: int = int(building.get("output_stock", 0))
 	match building_type:
 		"tavern":
-			return "Stored Rumours: %d   Quests only appear when rumours are produced here." % stock
+			return "Stored Rumours: %d   Producing rumours is manual and each click gathers one fresh lead." % stock
 		"weapons_shop":
-			return "Supplies In Stock: %d   Heroes walk here to buy travel goods." % stock
+			return "Supplies In Stock: %d   Producing supplies is manual and stocks one batch for the next expedition." % stock
 		"temple":
-			return "Healing Charges Ready: %d   Wounded heroes walk here for recovery." % stock
+			return "Healing Charges Ready: %d   Producing healing is manual and stores one charge for recovery." % stock
 		_:
 			return "Stored Output: %d" % stock
 
@@ -1065,8 +1082,19 @@ func _building_mode_name(building: Dictionary) -> String:
 	if current_action == "upgrading":
 		return "Upgrading"
 	if current_action == "output":
-		return "Producing output"
+		return "Producing"
 	return "Idle"
+
+func _building_output_action_name(building_type: String) -> String:
+	match building_type:
+		"tavern":
+			return "Gather Rumours"
+		"weapons_shop":
+			return "Stock Supplies"
+		"temple":
+			return "Prepare Healing"
+		_:
+			return "Produce Output"
 
 func _next_upgrade_summary(building: Dictionary) -> String:
 	var building_type: String = str(building.get("type", ""))
@@ -1135,6 +1163,23 @@ func _apply_panel_state() -> void:
 		right_panel.visible = (not _right_panel_collapsed) and (_selected_entity_kind != "")
 	if right_tab:
 		right_tab.visible = _right_panel_collapsed
+	_fit_ui_to_viewport()
+
+func _fit_ui_to_viewport() -> void:
+	var viewport_size: Vector2 = get_viewport().get_visible_rect().size
+	var margin: float = 24.0
+	var right_panel := get_node_or_null("UILayer/RightPanel")
+	if right_panel:
+		var desired_width: float = clamp(viewport_size.x * 0.24, 320.0, 400.0)
+		right_panel.offset_left = -desired_width - margin
+		right_panel.offset_right = -margin
+		right_panel.offset_top = 84.0
+		right_panel.offset_bottom = -148.0
+		right_panel.clip_contents = true
+	var right_tab := get_node_or_null("UILayer/RightPanelTab")
+	if right_tab:
+		right_tab.offset_left = -margin - 36.0
+		right_tab.offset_right = -margin
 
 func _toggle_event_feed(expanded: Variant = null) -> void:
 	if expanded == null:

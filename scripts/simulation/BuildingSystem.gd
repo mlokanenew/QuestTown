@@ -65,8 +65,8 @@ func start_upgrade_work(id: int) -> Dictionary:
 	var building: Dictionary = GameState.buildings.get(id, {})
 	if building.is_empty():
 		return {}
-	if building.get("current_action", "idle") == "upgrading":
-		return building
+	if building.get("current_action", "idle") != "idle":
+		return {}
 
 	var building_data: Dictionary = DataLoader.buildings_by_id.get(building["type"], {})
 	if building_data.is_empty():
@@ -95,7 +95,9 @@ func set_output_mode(id: int) -> Dictionary:
 	var building: Dictionary = GameState.buildings.get(id, {})
 	if building.is_empty():
 		return {}
-	if building.get("current_action", "idle") == "upgrading":
+	if building.get("current_action", "idle") != "idle":
+		return {}
+	if int(building.get("output_stock", 0)) >= _output_cap(building):
 		return {}
 	return GameState.set_building_action(id, "output", _output_ticks(building.get("type", "")))
 
@@ -214,15 +216,15 @@ func _step_building(building_id: int) -> void:
 			"new_level": int(upgraded.get("level", building.get("level", 1)))
 		})
 		return
-	GameState.set_building_action_progress(building_id, 0, required_ticks)
 	_produce_output(building_id, building)
 
 func _produce_output(building_id: int, building: Dictionary) -> void:
 	var building_type: String = building.get("type", "")
 	var building_data: Dictionary = DataLoader.buildings_by_id.get(building_type, {})
-	var output_cap: int = 1 + int(building.get("level", 1))
+	var output_cap: int = _output_cap(building)
 	var stock: int = int(building.get("output_stock", 0))
 	if stock >= output_cap:
+		GameState.set_building_action(building_id, "idle", 0)
 		return
 	var output_name := ""
 	match building_type:
@@ -242,9 +244,13 @@ func _produce_output(building_id: int, building: Dictionary) -> void:
 		"output_name": output_name,
 		"output_stock": next_stock
 	})
+	GameState.set_building_action(building_id, "idle", 0)
 
 func _output_ticks(building_type: String) -> int:
 	return int(OUTPUT_TICKS.get(building_type, 300))
 
 func _upgrade_ticks(building_type: String) -> int:
 	return int(UPGRADE_TICKS.get(building_type, 420))
+
+func _output_cap(building: Dictionary) -> int:
+	return 1 + int(building.get("level", 1))

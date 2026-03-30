@@ -14,6 +14,8 @@
     { "cmd": "set_building_output_mode", "type": "tavern" },
     { "cmd": "set_building_output_mode", "type": "weapons_shop" },
     { "cmd": "set_building_output_mode", "type": "temple" },
+    { "cmd": "step_ticks", "n": 1600 },
+    { "cmd": "accept_quest" },
     { "cmd": "step_ticks", "n": 6000 }
   ],
   "assertions": [

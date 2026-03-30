@@ -629,7 +629,7 @@ text = "X"
 [node name="QuestHelp" type="Label" parent="UILayer/QuestDrawer/QuestVBox"]
 theme_override_colors/font_color = Color(0.87, 0.9, 0.95, 1)
 autowrap_mode = 3
-text = "Choose which rumours stay pinned to the board and inspect likely rewards, risks, and interested adventurers."
+text = "Gather rumours at the Inn, inspect the likely party, and explicitly accept the quest when you are ready to send them."
 
 [node name="QuestContent" type="HBoxContainer" parent="UILayer/QuestDrawer/QuestVBox"]
 size_flags_vertical = 3
@@ -734,7 +734,7 @@ text = "Likely interested adventurers"
 custom_minimum_size = Vector2(0, 44)
 theme_override_styles/normal = SubResource("button_primary")
 theme_override_styles/hover = SubResource("button_secondary")
-text = "Pin to Board"
+text = "Accept Quest"
 
 [node name="QuestLowerRow" type="HBoxContainer" parent="UILayer/QuestDrawer/QuestVBox"]
 theme_override_constants/separation = 12

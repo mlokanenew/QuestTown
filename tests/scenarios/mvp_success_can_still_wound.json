@@ -9,7 +9,9 @@
     {"cmd": "upgrade_building", "type": "tavern"},
     {"cmd": "upgrade_building", "type": "weapons_shop"},
     {"cmd": "set_building_output_mode", "type": "tavern"},
-    {"cmd": "set_building_output_mode", "type": "weapons_shop"}
+    {"cmd": "set_building_output_mode", "type": "weapons_shop"},
+    {"cmd": "step_ticks", "n": 1600},
+    {"cmd": "accept_quest"}
   ],
   "assertions": [
     {"assert": "completed_quest_count_gte", "value": 2},
