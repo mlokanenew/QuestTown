@@ -126,6 +126,7 @@ func _ready() -> void:
 		GameState.building_removed.connect(_on_building_removed)
 		GameState.building_upgraded.connect(_on_building_upgraded)
 		GameState.building_action_changed.connect(_on_building_action_changed)
+		GameState.hero_spawned.connect(_on_hero_spawned)
 		GameState.hero_state_changed.connect(_on_hero_state_changed)
 		GameState.hero_removed.connect(_on_hero_removed)
 		GameState.quests_changed.connect(_refresh_quest_ui)
@@ -154,7 +155,6 @@ func _physics_process(delta: float) -> void:
 		_refresh_hero_panel(_selected_hero_id)
 	elif _selected_building_id >= 0 and GameState.buildings.has(_selected_building_id):
 		_refresh_building_panel(_selected_building_id)
-	_refresh_roster_strip()
 	_refresh_top_bar()
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -211,14 +211,14 @@ func _unhandled_input(event: InputEvent) -> void:
 			return
 	if not (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT):
 		return
-	if _try_select_building(event.position):
+	if _try_select_hero(event.position):
 		return
-	_try_select_hero(event.position)
+	_try_select_building(event.position)
 
-func _try_select_hero(mouse_pos: Vector2) -> void:
+func _try_select_hero(mouse_pos: Vector2) -> bool:
 	var camera := get_viewport().get_camera_3d()
 	if camera == null:
-		return
+		return false
 	var space_state := get_world_3d().direct_space_state
 	var params := PhysicsRayQueryParameters3D.new()
 	params.from = camera.project_ray_origin(mouse_pos)
@@ -229,8 +229,8 @@ func _try_select_hero(mouse_pos: Vector2) -> void:
 	var result: Dictionary = space_state.intersect_ray(params)
 	if not result.is_empty() and result["collider"].has_meta("hero_id"):
 		_show_hero_panel(result["collider"].get_meta("hero_id"))
-	else:
-		_hide_hero_panel()
+		return true
+	return false
 
 func _try_select_building(mouse_pos: Vector2) -> bool:
 	var camera := get_viewport().get_camera_3d()
@@ -520,6 +520,10 @@ func _on_hero_state_changed(hero_id: int, _new_state: String) -> void:
 	_refresh_roster_strip()
 	_refresh_quest_ui()
 
+func _on_hero_spawned(_hero: Dictionary) -> void:
+	_refresh_roster_strip()
+	_refresh_top_bar()
+
 func _on_hero_removed(hero_id: int) -> void:
 	if hero_id == _selected_hero_id:
 		_hide_hero_panel()
@@ -715,38 +719,22 @@ func _refresh_output_action_button() -> void:
 	button.disabled = false
 
 func _setup_quest_menu() -> void:
-	var list := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestListColumn/QuestFilterList")
-	if list == null:
-		return
-	for child in list.get_children():
-		child.queue_free()
 	_quest_filter_boxes.clear()
-	for quest in DataLoader.quests:
-		var quest_id: String = quest.get("id", "")
-		var local_quest_id := quest_id
-		var box := CheckBox.new()
-		box.text = quest.get("name", quest_id)
-		box.button_pressed = GameState.is_quest_enabled(quest_id)
-		box.toggled.connect(func(enabled: bool) -> void:
-			GameState.set_quest_enabled(local_quest_id, enabled)
-		)
-		list.add_child(box)
-		_quest_filter_boxes[local_quest_id] = box
+	var summary_label := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestListColumn/QuestFilterSummaryLabel")
+	if summary_label:
+		summary_label.text = "Available Quests: 0"
+	var controls := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestListColumn/QuestFilterControls")
+	if controls:
+		controls.visible = false
+	var list := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestListColumn/QuestFilterList")
+	if list:
+		list.visible = false
 	_refresh_quest_ui()
 
 func _refresh_quest_ui() -> void:
-	var enabled_count := 0
-	for quest_id in _quest_filter_boxes.keys():
-		var box: CheckBox = _quest_filter_boxes[quest_id]
-		var enabled := GameState.is_quest_enabled(quest_id)
-		if box.button_pressed != enabled:
-			box.set_pressed_no_signal(enabled)
-		if enabled:
-			enabled_count += 1
-
 	var summary_label := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestListColumn/QuestFilterSummaryLabel")
 	if summary_label:
-		summary_label.text = "Enabled Templates: %d/%d" % [enabled_count, DataLoader.quests.size()]
+		summary_label.text = "Available Quests: %d" % GameState.quests.size()
 
 	_refresh_quest_offer_cards()
 	_refresh_selected_quest_detail()
@@ -826,14 +814,13 @@ func _refresh_quest_offer_cards() -> void:
 		button.custom_minimum_size = Vector2(0, 68)
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		var template_enabled := GameState.is_quest_enabled(str(quest_offer.get("template_id", "")))
 		button.text = "%s\nParty %d  D%d  %dg  %dxp  %s" % [
 			quest_offer.get("name", offer_id),
 			int(quest_offer.get("party_size", 3)),
 			int(quest_offer.get("difficulty", 1)),
 			int(quest_offer.get("gold_reward", 0)),
 			int(quest_offer.get("xp_reward", 0)),
-			"Pinned" if template_enabled else "Hidden"
+			"Available"
 		]
 		if offer_id == _selected_quest_id:
 			button.text = ">> " + button.text
@@ -1224,6 +1211,7 @@ func _refresh_roster_strip() -> void:
 		child.queue_free()
 	for hero_id in GameState.heroes.keys():
 		var hero: Dictionary = GameState.heroes[hero_id]
+		var hero_name := str(hero.get("name", "adventurer"))
 		var button := Button.new()
 		button.custom_minimum_size = Vector2(122, 54)
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
@@ -1237,6 +1225,7 @@ func _refresh_roster_strip() -> void:
 		var local_hero_id := int(hero_id)
 		button.pressed.connect(func() -> void:
 			_show_hero_panel(local_hero_id)
+			_set_status("Selected %s" % hero_name)
 		)
 		roster.add_child(button)
 
