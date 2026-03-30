@@ -144,7 +144,7 @@ func _check(assertion: Dictionary, state: Dictionary) -> bool:
 		"building_action_eq":
 			for b in state["buildings"]:
 				if b["type"] == assertion.get("type", ""):
-					return String(b.get("current_action", "")) == String(assertion.get("value", ""))
+					return str(b.get("current_action", "")) == str(assertion.get("value", ""))
 			return false
 		"building_output_stock_gte":
 			for b in state["buildings"]:
@@ -157,12 +157,12 @@ func _check(assertion: Dictionary, state: Dictionary) -> bool:
 			return int(state.get("gold", -1)) >= int(assertion.get("value", 0))
 		"any_hero_wound_state":
 			for hero in state["heroes"]:
-				if String(hero.get("wound_state", "")) == String(assertion.get("value", "")):
+				if str(hero.get("wound_state", "")) == str(assertion.get("value", "")):
 					return true
 			return false
 		"completed_success_wound_seen":
 			for entry in state.get("completed_quests", []):
-				if bool(entry.get("success", false)) and String(entry.get("wound_state", "")) == "minor_wounded":
+				if bool(entry.get("success", false)) and str(entry.get("wound_state", "")) == "minor_wounded":
 					return true
 			return false
 		"event_type_seen":
@@ -190,7 +190,7 @@ func _check(assertion: Dictionary, state: Dictionary) -> bool:
 					return false
 				if field_value is Dictionary and field_value.is_empty():
 					return false
-				if field_value == null or String(field_value) == "":
+				if field_value == null or str(field_value) == "":
 					return false
 			return not state["heroes"].is_empty()
 		"active_party_size_gte":

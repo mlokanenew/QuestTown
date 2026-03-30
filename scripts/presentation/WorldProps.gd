@@ -38,6 +38,6 @@ func _spawn_props(origin: Vector3) -> void:
 		if packed == null:
 			continue
 		var node: Node3D = packed.instantiate()
-		node.global_position = origin + offset
+		node.position = origin + offset
 		node.rotation_degrees.y = rot_deg
 		add_child(node)

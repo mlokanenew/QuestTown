@@ -336,7 +336,7 @@ func _resolve_party_member(hero_id: int, quest: Dictionary, tavern: Vector3, bui
 func _hero_resolution_power(hero: Dictionary, quest: Dictionary) -> int:
 	var power: int = int(hero.get("level", 1))
 	var stats: Dictionary = hero.get("stats", {})
-	var resolution_stat: String = String(quest.get("resolution_stat", ""))
+	var resolution_stat: String = str(quest.get("resolution_stat", ""))
 	match resolution_stat:
 		"might":
 			power += int(stats.get("might", 0))

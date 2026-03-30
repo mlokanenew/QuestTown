@@ -143,14 +143,14 @@ func generate_wfrp_starting_profile(career_id: String, rng: RandomNumberGenerato
 	var wounds_table: Dictionary = wfrp_characteristics.get("starting_wounds", {}).get("Human", {})
 	var fate_table: Dictionary = wfrp_characteristics.get("starting_fate_points", {}).get("Human", {})
 	var stats := {
-		"WS": _roll_stat_expr(String(racial_generation.get("WS", "20+2d10")), rng),
-		"BS": _roll_stat_expr(String(racial_generation.get("BS", "20+2d10")), rng),
-		"S": _roll_stat_expr(String(racial_generation.get("S", "20+2d10")), rng),
-		"T": _roll_stat_expr(String(racial_generation.get("T", "20+2d10")), rng),
-		"Ag": _roll_stat_expr(String(racial_generation.get("Ag", "20+2d10")), rng),
-		"Int": _roll_stat_expr(String(racial_generation.get("Int", "20+2d10")), rng),
-		"WP": _roll_stat_expr(String(racial_generation.get("WP", "20+2d10")), rng),
-		"Fel": _roll_stat_expr(String(racial_generation.get("Fel", "20+2d10")), rng),
+		"WS": _roll_stat_expr(str(racial_generation.get("WS", "20+2d10")), rng),
+		"BS": _roll_stat_expr(str(racial_generation.get("BS", "20+2d10")), rng),
+		"S": _roll_stat_expr(str(racial_generation.get("S", "20+2d10")), rng),
+		"T": _roll_stat_expr(str(racial_generation.get("T", "20+2d10")), rng),
+		"Ag": _roll_stat_expr(str(racial_generation.get("Ag", "20+2d10")), rng),
+		"Int": _roll_stat_expr(str(racial_generation.get("Int", "20+2d10")), rng),
+		"WP": _roll_stat_expr(str(racial_generation.get("WP", "20+2d10")), rng),
+		"Fel": _roll_stat_expr(str(racial_generation.get("Fel", "20+2d10")), rng),
 		"A": int(racial_generation.get("A", "1")),
 		"M": int(racial_generation.get("M", "4")),
 		"Mag": int(racial_generation.get("Mag", "0")),
@@ -198,7 +198,7 @@ func _roll_stat_expr(expr: String, rng: RandomNumberGenerator) -> int:
 	return 0
 
 func _parse_profile_advance(value: Variant) -> int:
-	var text := String(value).strip_edges()
+	var text := str(value).strip_edges()
 	if text == "" or text == "-":
 		return 0
 	text = text.replace("%", "")
@@ -211,12 +211,12 @@ func _roll_lookup_table(table: Dictionary, rng: RandomNumberGenerator, default_v
 		return default_value
 	var roll := rng.randi_range(1, 10)
 	for key in table.keys():
-		var parts := String(key).split("-")
+		var parts := str(key).split("-")
 		if parts.size() == 2:
 			var low := int(parts[0])
 			var high := int(parts[1])
 			if roll >= low and roll <= high:
 				return int(table[key])
-		elif String(key).is_valid_int() and roll == int(key):
+		elif str(key).is_valid_int() and roll == int(key):
 			return int(table[key])
 	return default_value

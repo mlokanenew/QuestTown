@@ -295,14 +295,14 @@ func _refresh_hero_panel(hero_id: int) -> void:
 	if title_lbl:
 		title_lbl.text = "Hero"
 	if portrait:
-		var archetype: String = String(h.get("career_archetype", "commoner")).to_lower()
+		var archetype: String = str(h.get("career_archetype", "commoner")).to_lower()
 		portrait.texture = load(HERO_PORTRAITS.get(archetype, HERO_PORTRAITS["commoner"]))
 	if name_lbl:
 		name_lbl.text = h["name"]
 	if career_lbl:
 		career_lbl.text = "%s  [WFRP %s]" % [h.get("career_role", h["career"]), h["career"]]
 	if state_lbl:
-		state_lbl.text = "Activity: %s   Wounds: %s" % [_format_entity_state(h["state"]), String(h.get("wound_state", "healthy")).replace("_", " ")]
+		state_lbl.text = "Activity: %s   Wounds: %s" % [_format_entity_state(h["state"]), str(h.get("wound_state", "healthy")).replace("_", " ")]
 	if summary_lbl:
 		summary_lbl.text = "WFRP starter  %s   Personal gold %dg" % [h.get("career", "?"), h.get("gold", 0)]
 	if health_bar:
@@ -430,7 +430,7 @@ func _refresh_building_panel(building_id: int) -> void:
 	var levels: Array = data.get("levels", [])
 	var level_name: String = ""
 	if level > 0 and level <= levels.size():
-		level_name = String(levels[level - 1].get("name", ""))
+		level_name = str(levels[level - 1].get("name", ""))
 	if title_lbl:
 		title_lbl.text = "Building Ledger"
 	if portrait:
@@ -438,7 +438,7 @@ func _refresh_building_panel(building_id: int) -> void:
 	if name_lbl:
 		name_lbl.text = data.get("name", building_type.capitalize())
 	if career_lbl:
-		career_lbl.text = "Type  %s" % String(building_type).replace("_", " ").capitalize()
+		career_lbl.text = "Type  %s" % str(building_type).replace("_", " ").capitalize()
 	if state_lbl:
 		state_lbl.text = "Current mode  %s" % _building_mode_name(building)
 	if summary_lbl:
@@ -801,10 +801,10 @@ func _refresh_quest_offer_cards() -> void:
 	for child in list.get_children():
 		child.queue_free()
 	if _selected_quest_id == "" and not GameState.quests.is_empty():
-		_selected_quest_id = String(GameState.quests[0].get("offer_id", ""))
+		_selected_quest_id = str(GameState.quests[0].get("offer_id", ""))
 	var has_selected := false
 	for quest_offer: Dictionary in GameState.quests:
-		var offer_id := String(quest_offer.get("offer_id", ""))
+		var offer_id := str(quest_offer.get("offer_id", ""))
 		if offer_id == "":
 			continue
 		if offer_id == _selected_quest_id:
@@ -813,7 +813,7 @@ func _refresh_quest_offer_cards() -> void:
 		button.custom_minimum_size = Vector2(0, 68)
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		var template_enabled := GameState.is_quest_enabled(String(quest_offer.get("template_id", "")))
+		var template_enabled := GameState.is_quest_enabled(str(quest_offer.get("template_id", "")))
 		button.text = "%s\nParty %d  D%d  %dg  %dxp  %s" % [
 			quest_offer.get("name", offer_id),
 			int(quest_offer.get("party_size", 3)),
@@ -836,7 +836,7 @@ func _refresh_quest_offer_cards() -> void:
 		empty.text = "No quests are available. Produce rumours at the Inn to discover work."
 		list.add_child(empty)
 	elif not has_selected:
-		_selected_quest_id = String(GameState.quests[0].get("offer_id", ""))
+		_selected_quest_id = str(GameState.quests[0].get("offer_id", ""))
 
 func _refresh_selected_quest_detail() -> void:
 	var detail_title := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestDetailHeader/QuestDetailHeaderVBox/QuestDetailTitleLabel")
@@ -860,12 +860,12 @@ func _refresh_selected_quest_detail() -> void:
 			action_button.disabled = true
 			action_button.text = "Pin to Board"
 		return
-	var template_id := String(quest.get("template_id", ""))
+	var template_id := str(quest.get("template_id", ""))
 	var enabled := GameState.is_quest_enabled(template_id)
 	if detail_kicker:
 		detail_kicker.text = "Available Now"
 	if detail_title:
-		detail_title.text = String(quest.get("name", template_id))
+		detail_title.text = str(quest.get("name", template_id))
 	if detail_summary:
 		detail_summary.text = _quest_summary_text(quest)
 	if reward_label:
@@ -884,7 +884,7 @@ func _refresh_selected_quest_detail() -> void:
 
 func _get_quest_offer(offer_id: String) -> Dictionary:
 	for quest: Dictionary in GameState.quests:
-		if String(quest.get("offer_id", "")) == offer_id:
+		if str(quest.get("offer_id", "")) == offer_id:
 			return quest
 	return {}
 
@@ -904,7 +904,7 @@ func _quest_requirements_text(quest: Dictionary) -> String:
 	return ", ".join(parts)
 
 func _quest_summary_text(quest: Dictionary) -> String:
-	match String(quest.get("template_id", "")):
+	match str(quest.get("template_id", "")):
 		"clear_rats_cellar":
 			return "A cellar job with decent coin and a fair chance of scratches. Strong fit for Warrior or Rogue."
 		"gather_rare_herbs":
@@ -917,7 +917,7 @@ func _quest_summary_text(quest: Dictionary) -> String:
 func _quest_suitability_text(quest: Dictionary) -> String:
 	var names: Array = []
 	for career_id in quest.get("preferred_careers", []):
-		match String(career_id):
+		match str(career_id):
 			"mercenary":
 				names.append("Warrior")
 			"apprentice_wizard":
@@ -925,11 +925,11 @@ func _quest_suitability_text(quest: Dictionary) -> String:
 			"thief":
 				names.append("Rogue")
 			_:
-				names.append(String(career_id).replace("_", " ").capitalize())
+				names.append(str(career_id).replace("_", " ").capitalize())
 	return "Likely interested adventurers: %s\nRecommended party size: %d\nResolution focus: %s" % [
 		", ".join(names),
 		int(quest.get("party_size", 3)),
-		String(quest.get("resolution_stat", "might")).capitalize()
+		str(quest.get("resolution_stat", "might")).capitalize()
 	]
 
 func _risk_label(risk_level: int) -> String:
@@ -949,7 +949,7 @@ func _toggle_selected_quest_enabled() -> void:
 	var quest := _get_quest_offer(_selected_quest_id)
 	if quest.is_empty():
 		return
-	var template_id := String(quest.get("template_id", ""))
+	var template_id := str(quest.get("template_id", ""))
 	GameState.set_quest_enabled(template_id, not GameState.is_quest_enabled(template_id))
 
 func _set_all_quest_filters(enabled: bool) -> void:
@@ -1054,20 +1054,20 @@ func _building_level_of_type(building_type: String) -> int:
 	return int(building.get("level", 1))
 
 func _building_mode_name(building: Dictionary) -> String:
-	var current_action: String = String(building.get("current_action", "output"))
+	var current_action: String = str(building.get("current_action", "output"))
 	if current_action == "upgrading":
 		return "Upgrading"
 	return "Producing output"
 
 func _next_upgrade_summary(building: Dictionary) -> String:
-	var building_type: String = String(building.get("type", ""))
+	var building_type: String = str(building.get("type", ""))
 	var data: Dictionary = DataLoader.buildings_by_id.get(building_type, {})
 	var current_level: int = int(building.get("level", 1))
 	var levels: Array = data.get("levels", [])
 	if current_level >= levels.size():
 		return "Already at the highest tier"
 	var next_level: Dictionary = levels[current_level]
-	var next_name := String(next_level.get("name", "Next tier"))
+	var next_name := str(next_level.get("name", "Next tier"))
 	var effect_keys: Array = next_level.get("effects", {}).keys()
 	if effect_keys.is_empty():
 		return "%s for %dg" % [next_name, int(next_level.get("upgrade_cost", 0))]
@@ -1078,18 +1078,18 @@ func _next_upgrade_summary(building: Dictionary) -> String:
 	]
 
 func _hero_activity_summary(hero: Dictionary) -> String:
-	var state: String = String(hero.get("state", "idling"))
+	var state: String = str(hero.get("state", "idling"))
 	match state:
 		"walking_to_service":
 			var pending: Dictionary = hero.get("pending_service", {})
-			var building_type: String = String(pending.get("building_type", "building")).replace("_", " ")
-			var service_name: String = String(pending.get("service_type", "service"))
+			var building_type: String = str(pending.get("building_type", "building")).replace("_", " ")
+			var service_name: String = str(pending.get("service_type", "service"))
 			return "Walking to %s for %s" % [building_type, service_name]
 		"using_service":
 			var pending: Dictionary = hero.get("pending_service", {})
 			return "Using %s at %s" % [
-				String(pending.get("service_type", "service")),
-				String(pending.get("building_type", "building")).replace("_", " ")
+				str(pending.get("service_type", "service")),
+				str(pending.get("building_type", "building")).replace("_", " ")
 			]
 		_:
 			return "No active quest"
@@ -1178,7 +1178,7 @@ func _refresh_roster_strip() -> void:
 			hero.get("name", "?"),
 			hero.get("career_role", hero.get("career", "?")),
 			int(hero.get("level", 1)),
-			String(hero.get("wound_state", "healthy")).replace("_", " ")
+			str(hero.get("wound_state", "healthy")).replace("_", " ")
 		]
 		var local_hero_id := int(hero_id)
 		button.pressed.connect(func() -> void:

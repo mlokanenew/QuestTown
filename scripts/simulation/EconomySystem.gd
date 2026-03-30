@@ -191,12 +191,12 @@ func _complete_pending_service(hero_id: int, building_system: Object) -> void:
 	var hero: Dictionary = GameState.heroes[hero_id]
 	var pending: Dictionary = hero.get("pending_service", {})
 	if pending.is_empty():
-		GameState.set_hero_state(hero_id, String(hero.get("pre_service_state", "idling")))
+		GameState.set_hero_state(hero_id, str(hero.get("pre_service_state", "idling")))
 		return
-	var building_type: String = String(pending.get("building_type", ""))
+	var building_type: String = str(pending.get("building_type", ""))
 	var spend: int = int(pending.get("spend", 0))
 	var completed: bool = false
-	match String(pending.get("service_type", "")):
+	match str(pending.get("service_type", "")):
 		"gear":
 			completed = _transfer_gold(hero_id, spend, "hero_spent_at_weapons_shop", {
 				"building_type": building_type,
@@ -243,7 +243,7 @@ func _complete_pending_service(hero_id: int, building_system: Object) -> void:
 		})
 	GameState.heroes[hero_id]["pending_service"] = {}
 	GameState.heroes[hero_id].erase("pre_service_state")
-	var return_state: String = String(pending.get("return_state", "idling"))
+	var return_state: String = str(pending.get("return_state", "idling"))
 	GameState.set_hero_state(hero_id, return_state)
 
 func _transfer_gold(hero_id: int, amount: int, event_type: String, extra: Dictionary, on_success: Callable) -> bool:

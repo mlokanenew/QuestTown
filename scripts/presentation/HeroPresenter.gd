@@ -162,7 +162,7 @@ func _make_hero_node(hero: Dictionary) -> Node3D:
 
 	# Start position
 	var p: Dictionary = hero["position"]
-	root.global_position = Vector3(p["x"], p["y"], p["z"])
+	root.position = Vector3(p["x"], p["y"], p["z"])
 	return root
 
 func _rebuild_all() -> void:

@@ -19,7 +19,7 @@ func _ready() -> void:
 		set_process_input(false)
 		return
 	_sim = get_parent().get_node("SimulationRoot")
-	_build_types = DataLoader.buildings.map(func(building: Dictionary) -> String: return String(building.get("id", "")))
+	_build_types = DataLoader.buildings.map(func(building: Dictionary) -> String: return str(building.get("id", "")))
 
 func start_placement(building_type: String) -> void:
 	_current_type = building_type

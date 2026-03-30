@@ -28,7 +28,7 @@ func _on_building_placed(building: Dictionary) -> void:
 		return
 	var node: Node3D = packed.instantiate()
 	var p: Dictionary = building["position"]
-	node.global_position = Vector3(p["x"], 0.0, p["z"])
+	node.position = Vector3(p["x"], 0.0, p["z"])
 	node.rotation_degrees.y = float(building.get("rotation_degrees_y", 0.0))
 	var selector := Area3D.new()
 	selector.collision_layer = 4

@@ -17,7 +17,7 @@ func load_settings() -> void:
 	var config := ConfigFile.new()
 	if config.load(CONFIG_PATH) != OK:
 		return
-	window_mode = String(config.get_value(SECTION, "window_mode", window_mode))
+	window_mode = str(config.get_value(SECTION, "window_mode", window_mode))
 	ui_scale = float(config.get_value(SECTION, "ui_scale", ui_scale))
 	var stored_scale_version: int = int(config.get_value(SECTION, "ui_scale_version", 1))
 	if stored_scale_version < UI_SCALE_VERSION:

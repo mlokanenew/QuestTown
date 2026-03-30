@@ -91,7 +91,7 @@ func _format(event: Dictionary) -> String:
 			return "[%d] %s heads to the %s for %s." % [
 				event.get("tick", 0),
 				event.get("hero_name", "?"),
-				String(event.get("building_type", "building")).replace("_", " "),
+				str(event.get("building_type", "building")).replace("_", " "),
 				event.get("service", "service")
 			]
 		"hero_used_service":
@@ -99,7 +99,7 @@ func _format(event: Dictionary) -> String:
 				event.get("tick", 0),
 				event.get("hero_name", "?"),
 				event.get("service", "service"),
-				String(event.get("building_type", "building")).replace("_", " ")
+				str(event.get("building_type", "building")).replace("_", " ")
 			]
 		"hero_spent_at_temple":
 			return "[%d] %s spends %dg at the temple for %s." % [
