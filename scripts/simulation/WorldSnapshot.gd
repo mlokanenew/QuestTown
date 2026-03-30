@@ -61,6 +61,7 @@ func _heroes() -> Array:
 			"service_bias": h.get("service_bias", ""),
 			"current_quest": h.get("current_quest", {}),
 			"needs_lodging": h.get("needs_lodging", false),
+			"needs_meal": h.get("needs_meal", false),
 			"gear_bonus": h.get("gear_bonus", 0),
 			"blessing_bonus": h.get("blessing_bonus", 0),
 			"state":    h["state"],

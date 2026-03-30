@@ -5,13 +5,13 @@
   "max_ticks": 0,
   "commands": [
     {"cmd": "place_building", "type": "tavern", "x": 0, "z": 0},
-    {"cmd": "set_gold", "value": 10},
+    {"cmd": "set_gold", "value": 5},
     {"cmd": "upgrade_building", "type": "tavern"},
     {"cmd": "place_building", "type": "weapons_shop", "x": 3, "z": 0}
   ],
   "assertions": [
     {"assert": "building_type_count_eq", "type": "tavern", "value": 1},
     {"assert": "building_level_eq", "type": "tavern", "value": 1},
-    {"assert": "gold_eq", "value": 10}
+    {"assert": "gold_eq", "value": 5}
   ]
 }

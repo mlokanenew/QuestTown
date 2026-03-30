@@ -35,6 +35,8 @@ func _step_hero(hero_id: int, building_system: Object) -> void:
 
 	if bool(hero.get("needs_lodging", false)) and _handle_lodging(hero_id, building_system):
 		return
+	if bool(hero.get("needs_meal", false)) and _handle_meal(hero_id, building_system):
+		return
 	if int(hero.get("health", 0)) < int(hero.get("max_health", 0)) and _handle_healing(hero_id, building_system):
 		return
 	if state == "idling" and int(hero.get("gear_bonus", 0)) <= 0 and _handle_gear_purchase(hero_id, building_system):
@@ -59,6 +61,25 @@ func _handle_lodging(hero_id: int, building_system: Object) -> bool:
 		"service_id": service.get("id", "tavern_lodging")
 	}, func() -> void:
 		GameState.heroes[hero_id]["needs_lodging"] = false
+		GameState.heroes[hero_id]["needs_meal"] = true
+		GameState.heroes[hero_id]["service_cooldown_ticks"] = 20
+	)
+
+func _handle_meal(hero_id: int, building_system: Object) -> bool:
+	var tavern: Dictionary = building_system.get_building_of_type("tavern")
+	if tavern.is_empty():
+		return false
+	var service: Dictionary = DataLoader.get_service("tavern_meal")
+	var cost: int = max(
+		1,
+		int(service.get("base_cost", 1)) + max(0, _building_effect(building_system, "tavern", "lodging_income") - 1)
+	)
+	return _transfer_gold(hero_id, cost, "hero_spent_at_tavern", {
+		"building_type": "tavern",
+		"service": "meal",
+		"service_id": service.get("id", "tavern_meal")
+	}, func() -> void:
+		GameState.heroes[hero_id]["needs_meal"] = false
 		GameState.heroes[hero_id]["service_cooldown_ticks"] = 30
 	)
 
@@ -111,12 +132,23 @@ func _handle_blessing(hero_id: int, building_system: Object) -> bool:
 	var temple: Dictionary = building_system.get_building_of_type("temple")
 	if temple.is_empty():
 		return false
+	if int(temple.get("level", 1)) < 3:
+		return false
 	if _building_effect(building_system, "temple", "healing_service") <= 0:
 		return false
 	if int(temple.get("output_stock", 0)) <= 0:
 		return false
+	var hero: Dictionary = GameState.heroes.get(hero_id, {})
+	if hero.is_empty():
+		return false
+	if bool(hero.get("needs_lodging", false)) or bool(hero.get("needs_meal", false)):
+		return false
+	if int(hero.get("health", 0)) < int(hero.get("max_health", 0)):
+		return false
 	var service: Dictionary = DataLoader.get_service("temple_blessing")
 	var spend: int = max(1, int(service.get("base_cost", 1)) + _building_effect(building_system, "temple", "recovery_bonus") - 1)
+	if int(hero.get("xp", 0)) < 6 or int(hero.get("gold", 0)) < spend + 4:
+		return false
 	var survival_bonus: int = max(1, _building_effect(building_system, "temple", "survival_bonus") + 1)
 	return _transfer_gold(hero_id, spend, "hero_spent_at_temple", {
 		"building_type": "temple",

@@ -7,6 +7,8 @@
     {"cmd": "place_building", "type": "tavern", "x": 0, "z": 0},
     {"cmd": "place_building", "type": "temple", "x": -3, "z": 0},
     {"cmd": "upgrade_building", "type": "tavern"},
+    {"cmd": "upgrade_building", "type": "tavern"},
+    {"cmd": "upgrade_building", "type": "temple"},
     {"cmd": "upgrade_building", "type": "temple"},
     {"cmd": "set_quest_enabled", "id": "clear_rats_cellar", "enabled": false},
     {"cmd": "set_quest_enabled", "id": "gather_rare_herbs", "enabled": false}

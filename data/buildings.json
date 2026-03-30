@@ -5,13 +5,13 @@
     "description": "A warm hearth and cheap ale. Heroes find their way here.",
     "footprint": [2, 2],
     "scene": "res://scenes/buildings/Tavern.tscn",
-    "base_cost": 50,
+    "base_cost": 30,
     "max_instances": 1,
     "levels": [
       {
         "level": 1,
         "name": "Common Room",
-        "upgrade_cost": 20,
+        "upgrade_cost": 10,
         "effects": {
           "adventurer_arrival": true,
           "lodging_income": 1,
@@ -21,7 +21,7 @@
       {
         "level": 2,
         "name": "Guest Rooms",
-        "upgrade_cost": 30,
+        "upgrade_cost": 15,
         "effects": {
           "adventurer_capacity": 1,
           "lodging_income": 2,
@@ -46,13 +46,13 @@
     "description": "A practical town shop selling travel gear, simple weapons, packs, and useful supplies for new adventurers.",
     "footprint": [2, 2],
     "scene": "res://scenes/buildings/WeaponsShop.tscn",
-    "base_cost": 80,
+    "base_cost": 45,
     "max_instances": 1,
     "levels": [
       {
         "level": 1,
         "name": "Front Counter",
-        "upgrade_cost": 25,
+        "upgrade_cost": 15,
         "effects": {
           "gear_spending": 1,
           "quest_success_bonus": 1,
@@ -62,7 +62,7 @@
       {
         "level": 2,
         "name": "Travel Supplies",
-        "upgrade_cost": 35,
+        "upgrade_cost": 20,
         "effects": {
           "gear_spending": 2,
           "quest_success_bonus": 1,
@@ -87,13 +87,13 @@
     "description": "A small sanctuary offering healing, blessings, and quiet recovery.",
     "footprint": [2, 2],
     "scene": "res://scenes/buildings/Temple.tscn",
-    "base_cost": 70,
+    "base_cost": 35,
     "max_instances": 1,
     "levels": [
       {
         "level": 1,
         "name": "Shrine",
-        "upgrade_cost": 20,
+        "upgrade_cost": 10,
         "effects": {
           "healing_service": true,
           "recovery_bonus": 1,
@@ -103,7 +103,7 @@
       {
         "level": 2,
         "name": "Healer's Room",
-        "upgrade_cost": 30,
+        "upgrade_cost": 15,
         "effects": {
           "healing_service": true,
           "recovery_bonus": 2,

@@ -160,6 +160,7 @@ func add_hero(hero_name: String, career_data: Dictionary, profile: Dictionary = 
 		"target": {"x": 0.0, "y": 0.0, "z": 0.0},
 		"idle_ticks_remaining": 0,
 		"needs_lodging": true,
+		"needs_meal": true,
 		"service_cooldown_ticks": 120,
 		"gear_bonus": 0,
 		"blessing_bonus": 0

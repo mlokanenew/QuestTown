@@ -4,7 +4,7 @@ class_name QuestSystem
 
 const MAX_VISIBLE_QUESTS := 4
 const BASE_VISIBLE_QUESTS := 2
-const LEVEL_UP_XP := 20
+const LEVEL_UP_XP := 15
 const MAX_STORED_RUMOURS := 4
 
 var _rng: RandomNumberGenerator = RandomNumberGenerator.new()

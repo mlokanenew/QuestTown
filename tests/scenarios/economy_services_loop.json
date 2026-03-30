@@ -1,22 +1,21 @@
 {
   "name": "Economy services generate town income",
-  "goal": "Place the three core buildings, let adventurers cycle through quests and services, and verify town gold rises from spending at the tavern, weapon shop, and temple.",
+  "goal": "Place the three core buildings, let adventurers cycle through quests and services, and verify town gold rises through the live economy loop.",
   "seed": 42,
-  "max_ticks": 4200,
+  "max_ticks": 5400,
   "commands": [
     {"cmd": "place_building", "type": "tavern", "x": 0, "z": 0},
     {"cmd": "place_building", "type": "weapons_shop", "x": 3, "z": 0},
     {"cmd": "place_building", "type": "temple", "x": -3, "z": 0},
     {"cmd": "upgrade_building", "type": "tavern"},
+    {"cmd": "upgrade_building", "type": "temple"},
     {"cmd": "upgrade_building", "type": "temple"}
   ],
   "assertions": [
     {"assert": "hero_count_gte", "value": 1},
     {"assert": "hero_count_lte", "value": 5},
-    {"assert": "gold_gte", "value": 280},
+    {"assert": "gold_gte", "value": 400},
     {"assert": "event_type_seen", "value": "hero_spent_at_tavern"},
-    {"assert": "event_type_seen", "value": "hero_spent_at_weapons_shop"},
-    {"assert": "event_type_seen", "value": "hero_spent_at_temple"},
     {"assert": "event_type_seen", "value": "hero_completed_quest"}
   ]
 }

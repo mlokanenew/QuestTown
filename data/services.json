@@ -4,7 +4,7 @@
     "name": "Lodging",
     "building_type": "tavern",
     "category": "hospitality",
-    "base_cost": 1,
+    "base_cost": 2,
     "source_table": "table_5_18_services"
   },
   {
@@ -20,7 +20,7 @@
     "name": "Temple Healing",
     "building_type": "temple",
     "category": "medical",
-    "base_cost": 2,
+    "base_cost": 3,
     "source_table": "table_5_18_services"
   },
   {

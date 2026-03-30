@@ -34,6 +34,7 @@ func _step_hero(id: int, delta: float, building_system: Object) -> void:
 			if pos.distance_to(target) < 2.5:
 				h["idle_ticks_remaining"] = IDLE_TICKS
 				h["needs_lodging"] = true
+				h["needs_meal"] = true
 				h["service_cooldown_ticks"] = 30
 				GameState.set_hero_state(id, "idling")
 
@@ -43,6 +44,7 @@ func _step_hero(id: int, delta: float, building_system: Object) -> void:
 			if pos.distance_to(target) < 2.5:
 				h["idle_ticks_remaining"] = IDLE_TICKS
 				h["needs_lodging"] = true
+				h["needs_meal"] = true
 				h["service_cooldown_ticks"] = 30
 				GameState.set_hero_state(id, "idling")
 
@@ -125,6 +127,7 @@ func _finish_return(id: int) -> void:
 	else:
 		GameState.heroes[id]["idle_ticks_remaining"] = int(hero.get("return_idle_ticks", 180))
 		GameState.heroes[id]["needs_lodging"] = true
+		GameState.heroes[id]["needs_meal"] = true
 		GameState.heroes[id]["service_cooldown_ticks"] = 30
 		GameState.heroes[id]["wound_state"] = "minor_wounded" if int(GameState.heroes[id].get("health", 0)) < int(GameState.heroes[id].get("max_health", 0)) else "healthy"
 		GameState.set_hero_state(id, "idling")

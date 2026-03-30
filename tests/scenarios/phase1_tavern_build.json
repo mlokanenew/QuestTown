@@ -9,6 +9,6 @@
   "assertions": [
     {"assert": "building_exists", "type": "tavern"},
     {"assert": "building_level_eq", "type": "tavern", "value": 1},
-    {"assert": "gold_eq", "value": 450}
+    {"assert": "gold_eq", "value": 470}
   ]
 }
