@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://world"]
+[gd_scene load_steps=20 format=3 uid="uid://world"]
 
 [ext_resource type="Script" path="res://scripts/world.gd" id="1_world"]
 [ext_resource type="Script" path="res://scripts/simulation/SimulationRoot.gd" id="2_simroot"]
@@ -34,6 +34,86 @@ ambient_light_source = 3
 ambient_light_color = Color(0.6, 0.6, 0.65, 1)
 ambient_light_energy = 0.4
 tonemap_mode = 2
+
+[sub_resource type="StyleBoxFlat" id="panel_shell"]
+bg_color = Color(0.07, 0.11, 0.16, 0.93)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.73, 0.62, 0.34, 0.95)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+content_margin_left = 12.0
+content_margin_top = 12.0
+content_margin_right = 12.0
+content_margin_bottom = 12.0
+
+[sub_resource type="StyleBoxFlat" id="panel_card"]
+bg_color = Color(0.88, 0.84, 0.74, 0.96)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.62, 0.54, 0.35, 0.9)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+content_margin_left = 10.0
+content_margin_top = 8.0
+content_margin_right = 10.0
+content_margin_bottom = 8.0
+
+[sub_resource type="StyleBoxFlat" id="panel_soft"]
+bg_color = Color(0.12, 0.17, 0.23, 0.92)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.36, 0.51, 0.67, 0.9)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+content_margin_left = 10.0
+content_margin_top = 8.0
+content_margin_right = 10.0
+content_margin_bottom = 8.0
+
+[sub_resource type="StyleBoxFlat" id="button_primary"]
+bg_color = Color(0.73, 0.61, 0.27, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.96, 0.89, 0.67, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+content_margin_left = 12.0
+content_margin_top = 6.0
+content_margin_right = 12.0
+content_margin_bottom = 6.0
+
+[sub_resource type="StyleBoxFlat" id="button_secondary"]
+bg_color = Color(0.18, 0.27, 0.37, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.44, 0.62, 0.8, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+content_margin_left = 12.0
+content_margin_top = 6.0
+content_margin_right = 12.0
+content_margin_bottom = 6.0
 
 [node name="World" type="Node3D"]
 script = ExtResource("1_world")
@@ -79,13 +159,15 @@ script = ExtResource("6_bldpres")
 script = ExtResource("7_worldprops")
 
 [node name="UILayer" type="CanvasLayer" parent="."]
+
 [node name="TopBar" type="PanelContainer" parent="UILayer"]
 anchors_preset = 10
 anchor_right = 1.0
-offset_left = 12.0
-offset_top = 12.0
-offset_right = -12.0
-offset_bottom = 56.0
+offset_left = 16.0
+offset_top = 14.0
+offset_right = -16.0
+offset_bottom = 72.0
+theme_override_styles/panel = SubResource("panel_shell")
 
 [node name="TopBarRow" type="HBoxContainer" parent="UILayer/TopBar"]
 anchors_preset = 15
@@ -96,40 +178,61 @@ grow_vertical = 2
 theme_override_constants/separation = 10
 
 [node name="GoldLabel" type="Label" parent="UILayer/TopBar/TopBarRow"]
+theme_override_colors/font_color = Color(0.97, 0.9, 0.66, 1)
+theme_override_font_sizes/font_size = 20
 text = "Gold: 100"
 
 [node name="HeroSummaryLabel" type="Label" parent="UILayer/TopBar/TopBarRow"]
 size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.93, 0.95, 0.98, 1)
 text = "Heroes: 0   Expeditions: 0"
 
 [node name="QuestDrawerButton" type="Button" parent="UILayer/TopBar/TopBarRow"]
-text = "Quests  (K)"
+theme_override_styles/normal = SubResource("button_secondary")
+theme_override_styles/hover = SubResource("button_primary")
+text = "Quest Board  (K)"
 
 [node name="BuildPanelToggleButton" type="Button" parent="UILayer/TopBar/TopBarRow"]
+theme_override_styles/normal = SubResource("button_secondary")
+theme_override_styles/hover = SubResource("button_primary")
 text = "Build  (B)"
 
 [node name="DetailsPanelToggleButton" type="Button" parent="UILayer/TopBar/TopBarRow"]
-text = "Details  (C)"
+theme_override_styles/normal = SubResource("button_secondary")
+theme_override_styles/hover = SubResource("button_primary")
+text = "Inspector  (C)"
 
 [node name="Speed1Button" type="Button" parent="UILayer/TopBar/TopBarRow"]
+custom_minimum_size = Vector2(48, 0)
+theme_override_styles/normal = SubResource("button_secondary")
+theme_override_styles/hover = SubResource("button_primary")
 text = "1x"
 
 [node name="Speed2Button" type="Button" parent="UILayer/TopBar/TopBarRow"]
+custom_minimum_size = Vector2(48, 0)
+theme_override_styles/normal = SubResource("button_secondary")
+theme_override_styles/hover = SubResource("button_primary")
 text = "2x"
 
 [node name="Speed3Button" type="Button" parent="UILayer/TopBar/TopBarRow"]
+custom_minimum_size = Vector2(48, 0)
+theme_override_styles/normal = SubResource("button_secondary")
+theme_override_styles/hover = SubResource("button_primary")
 text = "3x"
 
 [node name="OptionsButton" type="Button" parent="UILayer/TopBar/TopBarRow"]
+theme_override_styles/normal = SubResource("button_secondary")
+theme_override_styles/hover = SubResource("button_primary")
 text = "Options"
 
 [node name="LeftPanel" type="PanelContainer" parent="UILayer"]
 anchors_preset = 9
 anchor_bottom = 1.0
-offset_left = 12.0
-offset_top = 68.0
-offset_right = 220.0
-offset_bottom = -88.0
+offset_left = 16.0
+offset_top = 88.0
+offset_right = 280.0
+offset_bottom = -156.0
+theme_override_styles/panel = SubResource("panel_shell")
 
 [node name="VBox" type="VBoxContainer" parent="UILayer/LeftPanel"]
 anchors_preset = 15
@@ -137,100 +240,100 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 10
 
 [node name="Header" type="HBoxContainer" parent="UILayer/LeftPanel/VBox"]
 
 [node name="TitleLabel" type="Label" parent="UILayer/LeftPanel/VBox/Header"]
 size_flags_horizontal = 3
-text = "Build"
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.95, 0.91, 0.73, 1)
+text = "Town Works"
 
 [node name="CollapseButton" type="Button" parent="UILayer/LeftPanel/VBox/Header"]
+custom_minimum_size = Vector2(34, 0)
+theme_override_styles/normal = SubResource("button_secondary")
+theme_override_styles/hover = SubResource("button_primary")
 text = "<"
 
 [node name="BuildRail" type="VBoxContainer" parent="UILayer/LeftPanel/VBox"]
-theme_override_constants/separation = 6
+theme_override_constants/separation = 8
 
 [node name="BuildButton" type="Button" parent="UILayer/LeftPanel/VBox/BuildRail"]
-text = "Build Tavern  (50g)"
+custom_minimum_size = Vector2(0, 46)
+alignment = 0
 icon_alignment = 0
+theme_override_styles/normal = SubResource("button_secondary")
+theme_override_styles/hover = SubResource("button_primary")
+text = "Build Inn"
 
 [node name="BuildWeaponsShopButton" type="Button" parent="UILayer/LeftPanel/VBox/BuildRail"]
-text = "Build Weapons Shop  (80g)"
+custom_minimum_size = Vector2(0, 46)
+alignment = 0
 icon_alignment = 0
+theme_override_styles/normal = SubResource("button_secondary")
+theme_override_styles/hover = SubResource("button_primary")
+text = "Build General Store"
 
 [node name="BuildTempleButton" type="Button" parent="UILayer/LeftPanel/VBox/BuildRail"]
-text = "Build Temple  (70g)"
+custom_minimum_size = Vector2(0, 46)
+alignment = 0
 icon_alignment = 0
+theme_override_styles/normal = SubResource("button_secondary")
+theme_override_styles/hover = SubResource("button_primary")
+text = "Build Temple"
 
 [node name="ContextUpgradeButton" type="Button" parent="UILayer/LeftPanel/VBox"]
+custom_minimum_size = Vector2(0, 40)
+theme_override_styles/normal = SubResource("button_primary")
+theme_override_styles/hover = SubResource("button_secondary")
 text = "Upgrade Selected"
 visible = false
 
 [node name="SaveLoadRow" type="HBoxContainer" parent="UILayer/LeftPanel/VBox"]
+theme_override_constants/separation = 8
 
 [node name="SaveButton" type="Button" parent="UILayer/LeftPanel/VBox/SaveLoadRow"]
-text = "Save"
+size_flags_horizontal = 3
+theme_override_styles/normal = SubResource("button_secondary")
+theme_override_styles/hover = SubResource("button_primary")
+text = "Save  (F1)"
 
 [node name="LoadButton" type="Button" parent="UILayer/LeftPanel/VBox/SaveLoadRow"]
-text = "Load"
+size_flags_horizontal = 3
+theme_override_styles/normal = SubResource("button_secondary")
+theme_override_styles/hover = SubResource("button_primary")
+text = "Load  (F2)"
 
-[node name="StatusLabel" type="Label" parent="UILayer/LeftPanel/VBox"]
-size_flags_vertical = 3
-text = "LMB place/select  RMB rotate build  Q/E cycle  Del remove"
+[node name="StatusCard" type="PanelContainer" parent="UILayer/LeftPanel/VBox"]
+theme_override_styles/panel = SubResource("panel_card")
+
+[node name="StatusLabel" type="Label" parent="UILayer/LeftPanel/VBox/StatusCard"]
+theme_override_colors/font_color = Color(0.13, 0.17, 0.21, 1)
 autowrap_mode = 3
+text = "LMB place/select  RMB rotate build  Q/E cycle  Del remove"
 
 [node name="LeftPanelTab" type="Button" parent="UILayer"]
-offset_left = 12.0
-offset_top = 92.0
-offset_right = 44.0
-offset_bottom = 136.0
+offset_left = 16.0
+offset_top = 112.0
+offset_right = 52.0
+offset_bottom = 160.0
+theme_override_styles/normal = SubResource("button_secondary")
+theme_override_styles/hover = SubResource("button_primary")
 text = ">"
 visible = false
-
-[node name="EventLogPanel" type="PanelContainer" parent="UILayer"]
-anchor_left = 0.0
-anchor_top = 1.0
-anchor_right = 0.0
-anchor_bottom = 1.0
-offset_left = 12.0
-offset_top = -84.0
-offset_right = 420.0
-offset_bottom = -12.0
-script = ExtResource("8_eventlog")
-
-[node name="VBox" type="VBoxContainer" parent="UILayer/EventLogPanel"]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="Header" type="HBoxContainer" parent="UILayer/EventLogPanel/VBox"]
-
-[node name="TitleLabel" type="Label" parent="UILayer/EventLogPanel/VBox/Header"]
-size_flags_horizontal = 3
-text = "Town Feed"
-
-[node name="ExpandButton" type="Button" parent="UILayer/EventLogPanel/VBox/Header"]
-text = "More"
-
-[node name="EventLog" type="RichTextLabel" parent="UILayer/EventLogPanel/VBox"]
-anchor_right = 1.0
-anchor_bottom = 1.0
-scroll_following = true
 
 [node name="RightPanel" type="PanelContainer" parent="UILayer"]
 anchor_left = 1.0
 anchor_top = 0.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -324.0
-offset_top = 68.0
-offset_right = -12.0
-offset_bottom = -88.0
+offset_left = -404.0
+offset_top = 88.0
+offset_right = -16.0
+offset_bottom = -156.0
 visible = false
+theme_override_styles/panel = SubResource("panel_shell")
 
 [node name="VBox" type="VBoxContainer" parent="UILayer/RightPanel"]
 anchors_preset = 15
@@ -238,54 +341,72 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 10
 
 [node name="Header" type="HBoxContainer" parent="UILayer/RightPanel/VBox"]
 
 [node name="EntityTitle" type="Label" parent="UILayer/RightPanel/VBox/Header"]
 size_flags_horizontal = 3
-text = "Details"
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.95, 0.91, 0.73, 1)
+text = "Inspector"
 
 [node name="CollapseButton" type="Button" parent="UILayer/RightPanel/VBox/Header"]
+custom_minimum_size = Vector2(34, 0)
+theme_override_styles/normal = SubResource("button_secondary")
+theme_override_styles/hover = SubResource("button_primary")
 text = ">"
 
-[node name="SummaryRow" type="HBoxContainer" parent="UILayer/RightPanel/VBox"]
+[node name="SummaryCard" type="PanelContainer" parent="UILayer/RightPanel/VBox"]
+theme_override_styles/panel = SubResource("panel_card")
+
+[node name="SummaryRow" type="HBoxContainer" parent="UILayer/RightPanel/VBox/SummaryCard"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 theme_override_constants/separation = 10
 
-[node name="PortraitPanel" type="PanelContainer" parent="UILayer/RightPanel/VBox/SummaryRow"]
-custom_minimum_size = Vector2(88, 88)
+[node name="PortraitPanel" type="PanelContainer" parent="UILayer/RightPanel/VBox/SummaryCard/SummaryRow"]
+custom_minimum_size = Vector2(96, 96)
+theme_override_styles/panel = SubResource("panel_soft")
 
-[node name="PortraitMargin" type="MarginContainer" parent="UILayer/RightPanel/VBox/SummaryRow/PortraitPanel"]
-theme_override_constants/margin_left = 6
-theme_override_constants/margin_top = 6
-theme_override_constants/margin_right = 6
-theme_override_constants/margin_bottom = 6
+[node name="PortraitMargin" type="MarginContainer" parent="UILayer/RightPanel/VBox/SummaryCard/SummaryRow/PortraitPanel"]
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
 
-[node name="PortraitTexture" type="TextureRect" parent="UILayer/RightPanel/VBox/SummaryRow/PortraitPanel/PortraitMargin"]
-custom_minimum_size = Vector2(76, 76)
+[node name="PortraitTexture" type="TextureRect" parent="UILayer/RightPanel/VBox/SummaryCard/SummaryRow/PortraitPanel/PortraitMargin"]
+custom_minimum_size = Vector2(80, 80)
 expand_mode = 1
 stretch_mode = 5
 
-[node name="SummaryText" type="VBoxContainer" parent="UILayer/RightPanel/VBox/SummaryRow"]
+[node name="SummaryText" type="VBoxContainer" parent="UILayer/RightPanel/VBox/SummaryCard/SummaryRow"]
 size_flags_horizontal = 3
 theme_override_constants/separation = 4
 
-[node name="NameLabel" type="Label" parent="UILayer/RightPanel/VBox/SummaryRow/SummaryText"]
+[node name="NameLabel" type="Label" parent="UILayer/RightPanel/VBox/SummaryCard/SummaryRow/SummaryText"]
+theme_override_colors/font_color = Color(0.13, 0.17, 0.21, 1)
+theme_override_font_sizes/font_size = 18
 text = "Hero Name"
-theme_override_font_sizes/font_size = 16
 
-[node name="CareerLabel" type="Label" parent="UILayer/RightPanel/VBox/SummaryRow/SummaryText"]
+[node name="CareerLabel" type="Label" parent="UILayer/RightPanel/VBox/SummaryCard/SummaryRow/SummaryText"]
+theme_override_colors/font_color = Color(0.23, 0.31, 0.39, 1)
 text = "Career"
 
-[node name="StateLabel" type="Label" parent="UILayer/RightPanel/VBox/SummaryRow/SummaryText"]
+[node name="StateLabel" type="Label" parent="UILayer/RightPanel/VBox/SummaryCard/SummaryRow/SummaryText"]
+theme_override_colors/font_color = Color(0.23, 0.31, 0.39, 1)
 text = "State"
 
-[node name="SummaryMetaLabel" type="Label" parent="UILayer/RightPanel/VBox/SummaryRow/SummaryText"]
-text = "Summary"
+[node name="SummaryMetaLabel" type="Label" parent="UILayer/RightPanel/VBox/SummaryCard/SummaryRow/SummaryText"]
+theme_override_colors/font_color = Color(0.23, 0.31, 0.39, 1)
 autowrap_mode = 3
+text = "Summary"
 
 [node name="HealthSectionLabel" type="Label" parent="UILayer/RightPanel/VBox"]
+theme_override_colors/font_color = Color(0.95, 0.91, 0.73, 1)
 text = "Health"
 
 [node name="HealthBar" type="ProgressBar" parent="UILayer/RightPanel/VBox"]
@@ -295,6 +416,7 @@ show_percentage = false
 text = "Health"
 
 [node name="XpSectionLabel" type="Label" parent="UILayer/RightPanel/VBox"]
+theme_override_colors/font_color = Color(0.95, 0.91, 0.73, 1)
 text = "Experience"
 
 [node name="XpBar" type="ProgressBar" parent="UILayer/RightPanel/VBox"]
@@ -303,27 +425,50 @@ show_percentage = false
 [node name="LevelLabel" type="Label" parent="UILayer/RightPanel/VBox"]
 text = "Level"
 
-[node name="PrimaryFactsLabel" type="Label" parent="UILayer/RightPanel/VBox"]
+[node name="PrimaryFactsCard" type="PanelContainer" parent="UILayer/RightPanel/VBox"]
+theme_override_styles/panel = SubResource("panel_card")
+
+[node name="PrimaryFactsLabel" type="Label" parent="UILayer/RightPanel/VBox/PrimaryFactsCard"]
+theme_override_colors/font_color = Color(0.13, 0.17, 0.21, 1)
+autowrap_mode = 3
 text = "Core facts"
-autowrap_mode = 3
 
-[node name="ActionStateLabel" type="Label" parent="UILayer/RightPanel/VBox"]
+[node name="ActionCard" type="PanelContainer" parent="UILayer/RightPanel/VBox"]
+theme_override_styles/panel = SubResource("panel_soft")
+
+[node name="ActionVBox" type="VBoxContainer" parent="UILayer/RightPanel/VBox/ActionCard"]
+theme_override_constants/separation = 6
+
+[node name="ActionStateLabel" type="Label" parent="UILayer/RightPanel/VBox/ActionCard/ActionVBox"]
+theme_override_colors/font_color = Color(0.93, 0.95, 0.98, 1)
+autowrap_mode = 3
 text = "Current Action"
-autowrap_mode = 3
 
-[node name="OutputStateLabel" type="Label" parent="UILayer/RightPanel/VBox"]
+[node name="OutputStateLabel" type="Label" parent="UILayer/RightPanel/VBox/ActionCard/ActionVBox"]
+theme_override_colors/font_color = Color(0.79, 0.88, 0.8, 1)
+autowrap_mode = 3
 text = "Output"
-autowrap_mode = 3
 
-[node name="OutputActionButton" type="Button" parent="UILayer/RightPanel/VBox"]
+[node name="ActionButtons" type="HBoxContainer" parent="UILayer/RightPanel/VBox/ActionCard/ActionVBox"]
+theme_override_constants/separation = 8
+
+[node name="OutputActionButton" type="Button" parent="UILayer/RightPanel/VBox/ActionCard/ActionVBox/ActionButtons"]
+size_flags_horizontal = 3
+theme_override_styles/normal = SubResource("button_secondary")
+theme_override_styles/hover = SubResource("button_primary")
 text = "Produce Output"
 visible = false
 
-[node name="BuildingActionButton" type="Button" parent="UILayer/RightPanel/VBox"]
+[node name="BuildingActionButton" type="Button" parent="UILayer/RightPanel/VBox/ActionCard/ActionVBox/ActionButtons"]
+size_flags_horizontal = 3
+theme_override_styles/normal = SubResource("button_primary")
+theme_override_styles/hover = SubResource("button_secondary")
 text = "Start Upgrade"
 visible = false
 
 [node name="MoreDetailsButton" type="Button" parent="UILayer/RightPanel/VBox"]
+theme_override_styles/normal = SubResource("button_secondary")
+theme_override_styles/hover = SubResource("button_primary")
 text = "More Details"
 
 [node name="ExtraDetails" type="VBoxContainer" parent="UILayer/RightPanel/VBox"]
@@ -334,115 +479,302 @@ visible = false
 text = "Gold"
 
 [node name="BiasLabel" type="Label" parent="UILayer/RightPanel/VBox/ExtraDetails"]
-text = "Bias"
 autowrap_mode = 3
+text = "Bias"
 
 [node name="StatsLabel" type="Label" parent="UILayer/RightPanel/VBox/ExtraDetails"]
-text = "Stats"
 autowrap_mode = 3
+text = "Stats"
 
 [node name="SkillsLabel" type="Label" parent="UILayer/RightPanel/VBox/ExtraDetails"]
-text = "Skills"
 autowrap_mode = 3
+text = "Skills"
 
 [node name="TrappingsLabel" type="Label" parent="UILayer/RightPanel/VBox/ExtraDetails"]
-text = "Trappings"
 autowrap_mode = 3
+text = "Trappings"
 
 [node name="TalentsLabel" type="Label" parent="UILayer/RightPanel/VBox/ExtraDetails"]
-text = "Talents"
 autowrap_mode = 3
+text = "Talents"
 
 [node name="TagsLabel" type="Label" parent="UILayer/RightPanel/VBox/ExtraDetails"]
-text = "Tags"
 autowrap_mode = 3
+text = "Tags"
 
 [node name="CurrentQuestLabel" type="Label" parent="UILayer/RightPanel/VBox/ExtraDetails"]
-text = "Current Quest"
 autowrap_mode = 3
+text = "Current Quest"
 
 [node name="DescriptionLabel" type="Label" parent="UILayer/RightPanel/VBox/ExtraDetails"]
-text = "Description"
 autowrap_mode = 3
+text = "Description"
 
 [node name="RightPanelTab" type="Button" parent="UILayer"]
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -44.0
-offset_top = 92.0
-offset_right = -12.0
-offset_bottom = 136.0
+offset_left = -52.0
+offset_top = 112.0
+offset_right = -16.0
+offset_bottom = 160.0
+theme_override_styles/normal = SubResource("button_secondary")
+theme_override_styles/hover = SubResource("button_primary")
 text = "<"
 visible = true
 
-[node name="QuestDrawer" type="PanelContainer" parent="UILayer"]
-anchor_left = 1.0
-anchor_top = 0.0
-anchor_right = 1.0
+[node name="EventLogPanel" type="PanelContainer" parent="UILayer"]
+anchor_left = 0.0
+anchor_top = 1.0
+anchor_right = 0.0
 anchor_bottom = 1.0
-offset_left = -420.0
-offset_top = 68.0
-offset_right = -12.0
-offset_bottom = -88.0
-visible = false
+offset_left = 16.0
+offset_top = -128.0
+offset_right = 456.0
+offset_bottom = -16.0
+theme_override_styles/panel = SubResource("panel_shell")
+script = ExtResource("8_eventlog")
 
-[node name="QuestVBox" type="VBoxContainer" parent="UILayer/QuestDrawer"]
+[node name="VBox" type="VBoxContainer" parent="UILayer/EventLogPanel"]
+anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_constants/separation = 6
+
+[node name="Header" type="HBoxContainer" parent="UILayer/EventLogPanel/VBox"]
+
+[node name="TitleLabel" type="Label" parent="UILayer/EventLogPanel/VBox/Header"]
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.95, 0.91, 0.73, 1)
+text = "Town Feed"
+
+[node name="ExpandButton" type="Button" parent="UILayer/EventLogPanel/VBox/Header"]
+theme_override_styles/normal = SubResource("button_secondary")
+theme_override_styles/hover = SubResource("button_primary")
+text = "More"
+
+[node name="EventLog" type="RichTextLabel" parent="UILayer/EventLogPanel/VBox"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+scroll_following = true
+
+[node name="RosterPanel" type="PanelContainer" parent="UILayer"]
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -320.0
+offset_top = -128.0
+offset_right = 320.0
+offset_bottom = -16.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_styles/panel = SubResource("panel_shell")
+
+[node name="RosterVBox" type="VBoxContainer" parent="UILayer/RosterPanel"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 6
+
+[node name="RosterTitle" type="Label" parent="UILayer/RosterPanel/RosterVBox"]
+theme_override_colors/font_color = Color(0.95, 0.91, 0.73, 1)
+text = "Adventurers"
+
+[node name="RosterStripScroll" type="ScrollContainer" parent="UILayer/RosterPanel/RosterVBox"]
+horizontal_scroll_mode = 1
+vertical_scroll_mode = 0
+
+[node name="RosterStrip" type="HBoxContainer" parent="UILayer/RosterPanel/RosterVBox/RosterStripScroll"]
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="QuestDrawer" type="PanelContainer" parent="UILayer"]
+anchor_left = 0.15
+anchor_top = 0.12
+anchor_right = 0.88
+anchor_bottom = 0.88
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 0.0
+offset_bottom = 0.0
+visible = false
+theme_override_styles/panel = SubResource("panel_shell")
+
+[node name="QuestVBox" type="VBoxContainer" parent="UILayer/QuestDrawer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 10
 
 [node name="QuestHeader" type="HBoxContainer" parent="UILayer/QuestDrawer/QuestVBox"]
 
 [node name="QuestTitle" type="Label" parent="UILayer/QuestDrawer/QuestVBox/QuestHeader"]
 size_flags_horizontal = 3
-text = "Quest Menu"
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 22
+theme_override_colors/font_color = Color(0.95, 0.91, 0.73, 1)
+text = "Quest Board"
 
 [node name="QuestCloseButton" type="Button" parent="UILayer/QuestDrawer/QuestVBox/QuestHeader"]
+custom_minimum_size = Vector2(42, 0)
+theme_override_styles/normal = SubResource("button_secondary")
+theme_override_styles/hover = SubResource("button_primary")
 text = "X"
 
 [node name="QuestHelp" type="Label" parent="UILayer/QuestDrawer/QuestVBox"]
-text = "Select which quest templates can appear and watch active expeditions."
+theme_override_colors/font_color = Color(0.87, 0.9, 0.95, 1)
 autowrap_mode = 3
+text = "Choose which rumours stay pinned to the board and inspect likely rewards, risks, and interested adventurers."
 
-[node name="QuestFilterSummaryLabel" type="Label" parent="UILayer/QuestDrawer/QuestVBox"]
+[node name="QuestContent" type="HBoxContainer" parent="UILayer/QuestDrawer/QuestVBox"]
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+
+[node name="QuestListColumn" type="VBoxContainer" parent="UILayer/QuestDrawer/QuestVBox/QuestContent"]
+custom_minimum_size = Vector2(280, 0)
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="QuestFilterSummaryLabel" type="Label" parent="UILayer/QuestDrawer/QuestVBox/QuestContent/QuestListColumn"]
+theme_override_colors/font_color = Color(0.95, 0.91, 0.73, 1)
 text = "Enabled Templates: 0/0"
 
-[node name="QuestFilterControls" type="HBoxContainer" parent="UILayer/QuestDrawer/QuestVBox"]
+[node name="QuestFilterControls" type="HBoxContainer" parent="UILayer/QuestDrawer/QuestVBox/QuestContent/QuestListColumn"]
+theme_override_constants/separation = 8
 
-[node name="EnableAllQuestsButton" type="Button" parent="UILayer/QuestDrawer/QuestVBox/QuestFilterControls"]
+[node name="EnableAllQuestsButton" type="Button" parent="UILayer/QuestDrawer/QuestVBox/QuestContent/QuestListColumn/QuestFilterControls"]
+size_flags_horizontal = 3
+theme_override_styles/normal = SubResource("button_secondary")
+theme_override_styles/hover = SubResource("button_primary")
 text = "Enable All"
 
-[node name="DisableAllQuestsButton" type="Button" parent="UILayer/QuestDrawer/QuestVBox/QuestFilterControls"]
+[node name="DisableAllQuestsButton" type="Button" parent="UILayer/QuestDrawer/QuestVBox/QuestContent/QuestListColumn/QuestFilterControls"]
+size_flags_horizontal = 3
+theme_override_styles/normal = SubResource("button_secondary")
+theme_override_styles/hover = SubResource("button_primary")
 text = "Disable All"
 
-[node name="QuestFilterList" type="VBoxContainer" parent="UILayer/QuestDrawer/QuestVBox"]
+[node name="QuestFilterList" type="VBoxContainer" parent="UILayer/QuestDrawer/QuestVBox/QuestContent/QuestListColumn"]
+theme_override_constants/separation = 4
 
-[node name="QuestOffersTitle" type="Label" parent="UILayer/QuestDrawer/QuestVBox"]
-text = "Available Offers"
+[node name="QuestOffersTitle" type="Label" parent="UILayer/QuestDrawer/QuestVBox/QuestContent/QuestListColumn"]
+theme_override_colors/font_color = Color(0.95, 0.91, 0.73, 1)
+text = "Quest Cards"
 
-[node name="QuestOffersLabel" type="Label" parent="UILayer/QuestDrawer/QuestVBox"]
+[node name="QuestOffersList" type="VBoxContainer" parent="UILayer/QuestDrawer/QuestVBox/QuestContent/QuestListColumn"]
+size_flags_vertical = 3
+theme_override_constants/separation = 6
+
+[node name="QuestOffersLabel" type="Label" parent="UILayer/QuestDrawer/QuestVBox/QuestContent/QuestListColumn"]
+visible = false
 text = "No quests yet."
-autowrap_mode = 3
 
-[node name="ActiveQuestTitle" type="Label" parent="UILayer/QuestDrawer/QuestVBox"]
+[node name="QuestDetailColumn" type="VBoxContainer" parent="UILayer/QuestDrawer/QuestVBox/QuestContent"]
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="QuestDetailHeader" type="PanelContainer" parent="UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn"]
+theme_override_styles/panel = SubResource("panel_card")
+
+[node name="QuestDetailHeaderVBox" type="VBoxContainer" parent="UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestDetailHeader"]
+theme_override_constants/separation = 4
+
+[node name="QuestDetailKicker" type="Label" parent="UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestDetailHeader/QuestDetailHeaderVBox"]
+theme_override_colors/font_color = Color(0.23, 0.31, 0.39, 1)
+text = "Selected Quest"
+
+[node name="QuestDetailTitleLabel" type="Label" parent="UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestDetailHeader/QuestDetailHeaderVBox"]
+theme_override_colors/font_color = Color(0.13, 0.17, 0.21, 1)
+theme_override_font_sizes/font_size = 22
+text = "Quest name"
+
+[node name="QuestDetailSummaryLabel" type="Label" parent="UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestDetailHeader/QuestDetailHeaderVBox"]
+theme_override_colors/font_color = Color(0.23, 0.31, 0.39, 1)
+autowrap_mode = 3
+text = "Quest summary"
+
+[node name="QuestMetaCard" type="PanelContainer" parent="UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn"]
+theme_override_styles/panel = SubResource("panel_soft")
+
+[node name="QuestMetaVBox" type="VBoxContainer" parent="UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestMetaCard"]
+theme_override_constants/separation = 6
+
+[node name="QuestRewardLabel" type="Label" parent="UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestMetaCard/QuestMetaVBox"]
+theme_override_colors/font_color = Color(0.97, 0.9, 0.66, 1)
+text = "Gold reward"
+
+[node name="QuestXpLabel" type="Label" parent="UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestMetaCard/QuestMetaVBox"]
+theme_override_colors/font_color = Color(0.87, 0.93, 0.99, 1)
+text = "XP reward"
+
+[node name="QuestRiskLabel" type="Label" parent="UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestMetaCard/QuestMetaVBox"]
+theme_override_colors/font_color = Color(0.98, 0.8, 0.56, 1)
+text = "Risk"
+
+[node name="QuestRequirementLabel" type="Label" parent="UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestMetaCard/QuestMetaVBox"]
+theme_override_colors/font_color = Color(0.79, 0.88, 0.8, 1)
+autowrap_mode = 3
+text = "Requirements"
+
+[node name="QuestSuitabilityCard" type="PanelContainer" parent="UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn"]
+theme_override_styles/panel = SubResource("panel_card")
+
+[node name="QuestSuitabilityLabel" type="Label" parent="UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestSuitabilityCard"]
+theme_override_colors/font_color = Color(0.13, 0.17, 0.21, 1)
+autowrap_mode = 3
+text = "Likely interested adventurers"
+
+[node name="QuestActionButton" type="Button" parent="UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn"]
+custom_minimum_size = Vector2(0, 44)
+theme_override_styles/normal = SubResource("button_primary")
+theme_override_styles/hover = SubResource("button_secondary")
+text = "Pin to Board"
+
+[node name="QuestLowerRow" type="HBoxContainer" parent="UILayer/QuestDrawer/QuestVBox"]
+theme_override_constants/separation = 12
+
+[node name="ActiveQuestCard" type="PanelContainer" parent="UILayer/QuestDrawer/QuestVBox/QuestLowerRow"]
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("panel_soft")
+
+[node name="ActiveQuestVBox" type="VBoxContainer" parent="UILayer/QuestDrawer/QuestVBox/QuestLowerRow/ActiveQuestCard"]
+theme_override_constants/separation = 4
+
+[node name="ActiveQuestTitle" type="Label" parent="UILayer/QuestDrawer/QuestVBox/QuestLowerRow/ActiveQuestCard/ActiveQuestVBox"]
+theme_override_colors/font_color = Color(0.95, 0.91, 0.73, 1)
 text = "Active Expeditions"
 
-[node name="ActiveQuestSummaryLabel" type="Label" parent="UILayer/QuestDrawer/QuestVBox"]
+[node name="ActiveQuestSummaryLabel" type="Label" parent="UILayer/QuestDrawer/QuestVBox/QuestLowerRow/ActiveQuestCard/ActiveQuestVBox"]
+theme_override_colors/font_color = Color(0.87, 0.93, 0.99, 1)
+autowrap_mode = 3
 text = "No heroes are out on quests."
-autowrap_mode = 3
 
-[node name="ActiveQuestListLabel" type="Label" parent="UILayer/QuestDrawer/QuestVBox"]
+[node name="ActiveQuestListLabel" type="Label" parent="UILayer/QuestDrawer/QuestVBox/QuestLowerRow/ActiveQuestCard/ActiveQuestVBox"]
+theme_override_colors/font_color = Color(0.87, 0.93, 0.99, 1)
+autowrap_mode = 3
 text = "No active expeditions."
-autowrap_mode = 3
 
-[node name="CompletedQuestTitle" type="Label" parent="UILayer/QuestDrawer/QuestVBox"]
+[node name="CompletedQuestCard" type="PanelContainer" parent="UILayer/QuestDrawer/QuestVBox/QuestLowerRow"]
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("panel_card")
+
+[node name="CompletedQuestVBox" type="VBoxContainer" parent="UILayer/QuestDrawer/QuestVBox/QuestLowerRow/CompletedQuestCard"]
+theme_override_constants/separation = 4
+
+[node name="CompletedQuestTitle" type="Label" parent="UILayer/QuestDrawer/QuestVBox/QuestLowerRow/CompletedQuestCard/CompletedQuestVBox"]
+theme_override_colors/font_color = Color(0.13, 0.17, 0.21, 1)
 text = "Recent Completed Quests"
 
-[node name="CompletedQuestListLabel" type="Label" parent="UILayer/QuestDrawer/QuestVBox"]
-text = "No quests have been completed yet."
+[node name="CompletedQuestListLabel" type="Label" parent="UILayer/QuestDrawer/QuestVBox/QuestLowerRow/CompletedQuestCard/CompletedQuestVBox"]
+theme_override_colors/font_color = Color(0.23, 0.31, 0.39, 1)
 autowrap_mode = 3
+text = "No quests have been completed yet."
 
 [node name="MenuHost" type="Control" parent="UILayer"]
 anchors_preset = 15
