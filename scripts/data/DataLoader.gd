@@ -181,7 +181,7 @@ func generate_wfrp_starting_profile(career_id: String, rng: RandomNumberGenerato
 		"max_health": int(stats["W"]),
 		"health": int(stats["W"]),
 		"xp": 0,
-		"gold": rng.randi_range(8, 18),
+		"gold": rng.randi_range(12, 22),
 		"wound_state": "healthy",
 		"starting_trappings": get_wfrp_trappings(career_id),
 		"starting_talents": get_wfrp_talents(career_id)

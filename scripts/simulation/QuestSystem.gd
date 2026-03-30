@@ -17,7 +17,7 @@ func reset(seed_value: int) -> void:
 
 func step(building_system: Object) -> void:
 	_refresh_available_quests(building_system)
-	_assign_quests()
+	_assign_quests(building_system)
 	_step_active_quests(building_system)
 	_step_recovery()
 
@@ -87,13 +87,13 @@ func _quest_is_unlocked(quest: Dictionary, building_system: Object) -> bool:
 		and _building_level(building_system, "temple") >= int(quest.get("min_temple_level", 0))
 	)
 
-func _assign_quests() -> void:
+func _assign_quests(building_system: Object) -> void:
 	if GameState.quests.is_empty():
 		return
 
 	var updated_quests: Array = GameState.quests.duplicate(true)
 	var changed: bool = false
-	var available_heroes: Array = _available_idle_heroes()
+	var available_heroes: Array = _available_idle_heroes(building_system)
 	while not updated_quests.is_empty() and available_heroes.size() >= 3:
 		var picked: Dictionary = _choose_party_assignment(available_heroes, updated_quests)
 		if picked.is_empty():
@@ -137,20 +137,30 @@ func _assign_quests() -> void:
 				"quest_name": quest.get("name", "?"),
 				"party_size": party_size
 			})
-		available_heroes = _available_idle_heroes()
+		available_heroes = _available_idle_heroes(building_system)
 
 	if changed:
 		GameState.set_available_quests(updated_quests)
 
-func _available_idle_heroes() -> Array:
+func _available_idle_heroes(building_system: Object) -> Array:
 	var hero_ids: Array = []
+	var shop: Dictionary = building_system.get_building_of_type("weapons_shop")
+	var shop_has_stock: bool = not shop.is_empty() and int(shop.get("output_stock", 0)) > 0
+	var best_gear_offer: Dictionary = DataLoader.get_best_gear_offer(int(shop.get("level", 1))) if not shop.is_empty() else {}
+	var required_gear_cost: int = int(best_gear_offer.get("cost", 0))
 	for hero_id in GameState.heroes.keys():
 		var hero: Dictionary = GameState.heroes[hero_id]
 		if hero.get("state", "") != "idling":
 			continue
+		if str(hero.get("wound_state", "healthy")) != "healthy":
+			continue
+		if int(hero.get("health", 0)) < int(hero.get("max_health", 0)):
+			continue
 		if int(hero.get("idle_ticks_remaining", 0)) > 120:
 			continue
 		if not hero.get("current_quest", {}).is_empty():
+			continue
+		if shop_has_stock and int(hero.get("gear_bonus", 0)) <= 0 and int(hero.get("gold", 0)) >= required_gear_cost:
 			continue
 		hero_ids.append(int(hero_id))
 	return hero_ids
@@ -273,7 +283,7 @@ func _resolve_party_member(hero_id: int, quest: Dictionary, tavern: Vector3, bui
 		return
 	var hero: Dictionary = GameState.heroes[hero_id]
 	if not succeeded:
-		var wound_chance: float = clamp(0.45 + 0.12 * float(quest.get("risk_level", 1)) - 0.05 * float(survival_bonus), 0.2, 0.9)
+		var wound_chance: float = clamp(0.6 + 0.1 * float(quest.get("risk_level", 1)) - 0.05 * float(survival_bonus), 0.3, 0.95)
 		if _rng.randf() < wound_chance:
 			var damage: int = max(1, int(quest.get("risk_level", 1)))
 			GameState.heroes[hero_id]["health"] = max(1, int(hero.get("health", 1)) - damage)
@@ -287,8 +297,8 @@ func _resolve_party_member(hero_id: int, quest: Dictionary, tavern: Vector3, bui
 			GameState.heroes[hero_id]["post_quest_state"] = "idling"
 			GameState.heroes[hero_id]["return_idle_ticks"] = 180
 	else:
-		var wound_chance: float = 0.24 * float(quest.get("risk_level", 1))
-		wound_chance = max(0.05, wound_chance - 0.04 * float(survival_bonus))
+		var wound_chance: float = 0.12 + 0.08 * float(quest.get("risk_level", 1))
+		wound_chance = clamp(wound_chance - 0.03 * float(survival_bonus), 0.08, 0.45)
 		if _rng.randf() < wound_chance:
 			var chip_damage: int = max(1, int(quest.get("risk_level", 1)))
 			GameState.heroes[hero_id]["health"] = max(1, int(hero.get("health", 1)) - chip_damage)

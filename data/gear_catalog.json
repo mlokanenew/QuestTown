@@ -4,7 +4,7 @@
     "name": "Basic Blade",
     "building_type": "weapons_shop",
     "category": "weapon",
-    "cost": 4,
+    "cost": 6,
     "gear_bonus": 1,
     "min_building_level": 1,
     "source_table": "table_5_missile_weapons"
@@ -14,7 +14,7 @@
     "name": "Sturdy Bow",
     "building_type": "weapons_shop",
     "category": "weapon",
-    "cost": 5,
+    "cost": 8,
     "gear_bonus": 2,
     "min_building_level": 2,
     "source_table": "table_5_missile_weapons"
@@ -24,7 +24,7 @@
     "name": "Mail and Shield",
     "building_type": "weapons_shop",
     "category": "armour",
-    "cost": 6,
+    "cost": 11,
     "gear_bonus": 3,
     "min_building_level": 3,
     "source_table": "table_5_6_advanced_armour"

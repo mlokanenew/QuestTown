@@ -65,7 +65,7 @@ func _handle_lodging(hero_id: int, building_system: Object) -> bool:
 	}, func() -> void:
 		GameState.heroes[hero_id]["needs_lodging"] = false
 		GameState.heroes[hero_id]["needs_meal"] = true
-		GameState.heroes[hero_id]["service_cooldown_ticks"] = 20
+		GameState.heroes[hero_id]["service_cooldown_ticks"] = 10
 	)
 
 func _handle_meal(hero_id: int, building_system: Object) -> bool:
@@ -83,7 +83,7 @@ func _handle_meal(hero_id: int, building_system: Object) -> bool:
 		"service_id": service.get("id", "tavern_meal")
 	}, func() -> void:
 		GameState.heroes[hero_id]["needs_meal"] = false
-		GameState.heroes[hero_id]["service_cooldown_ticks"] = 30
+		GameState.heroes[hero_id]["service_cooldown_ticks"] = 10
 	)
 
 func _handle_gear_purchase(hero_id: int, building_system: Object) -> bool:
@@ -147,7 +147,7 @@ func _handle_blessing(hero_id: int, building_system: Object) -> bool:
 		return false
 	var service: Dictionary = DataLoader.get_service("temple_blessing")
 	var spend: int = max(1, int(service.get("base_cost", 1)) + _building_effect(building_system, "temple", "recovery_bonus") - 1)
-	if int(hero.get("xp", 0)) < 6 or int(hero.get("gold", 0)) < spend + 4:
+	if int(hero.get("xp", 0)) < 8 or int(hero.get("gold", 0)) < spend + 6:
 		return false
 	var survival_bonus: int = max(1, _building_effect(building_system, "temple", "survival_bonus") + 1)
 	return _send_hero_to_service(hero_id, "temple", building_system, {
