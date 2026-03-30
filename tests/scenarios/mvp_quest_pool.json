@@ -11,6 +11,6 @@
   ],
   "assertions": [
     {"assert": "quest_count_gte", "value": 1},
-    {"assert": "quest_templates_only", "value": ["clear_rats_cellar", "gather_rare_herbs", "drive_off_roadside_menace"]}
+    {"assert": "quest_templates_only", "value": ["clear_rats_cellar", "gather_rare_herbs", "investigate_strange_lights"]}
   ]
 }

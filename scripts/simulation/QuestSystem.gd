@@ -133,11 +133,16 @@ func _choose_quest_index(hero: Dictionary, quests: Array) -> int:
 		score -= float(quest.get("difficulty", 1)) * 2.0
 		if quest.get("type", "") == hero.get("quest_bias", ""):
 			score += 6.0
+		var preferred_careers: Array = quest.get("preferred_careers", [])
+		if preferred_careers.has(hero.get("career_id", "")):
+			score += 7.0
 		if hero.get("career_archetype", "") == "martial" and quest.get("type", "") == "combat":
 			score += 3.0
 		if hero.get("career_archetype", "") == "faith" and quest.get("type", "") == "spiritual":
 			score += 3.0
-		if hero.get("career_archetype", "") == "scout" and quest.get("type", "") in ["beast", "escort"]:
+		if hero.get("career_archetype", "") == "scout" and quest.get("type", "") in ["beast", "escort", "forage"]:
+			score += 2.0
+		if hero.get("career_archetype", "") == "rogue" and quest.get("type", "") in ["combat", "forage"]:
 			score += 2.0
 		score += _rng.randf_range(0.0, 1.0)
 		if score > best_score:
@@ -165,20 +170,33 @@ func _resolve_quest(hero_id: int, building_system: Object) -> void:
 
 	var power: int = int(hero.get("level", 1))
 	var stats: Dictionary = hero.get("stats", {})
-	match quest.get("type", ""):
-		"combat":
+	var resolution_stat: String = String(quest.get("resolution_stat", ""))
+	match resolution_stat:
+		"might":
 			power += int(stats.get("might", 0))
-		"beast":
+		"agility":
 			power += int(stats.get("agility", 0))
-		"spiritual":
+		"spirit":
 			power += int(stats.get("spirit", 0))
-		"escort":
+		"wits":
 			power += int(stats.get("wits", 0)) + 1
 		_:
-			power += int(stats.get("wits", 0))
+			match quest.get("type", ""):
+				"combat":
+					power += int(stats.get("might", 0))
+				"beast":
+					power += int(stats.get("agility", 0))
+				"spiritual":
+					power += int(stats.get("spirit", 0))
+				"escort", "forage":
+					power += int(stats.get("wits", 0)) + 1
+				_:
+					power += int(stats.get("wits", 0))
 
 	var success_bonus: int = _building_bonus(building_system, "weapons_shop", "quest_success_bonus")
 	var survival_bonus: int = _building_bonus(building_system, "temple", "survival_bonus")
+	if quest.get("preferred_careers", []).has(hero.get("career_id", "")):
+		success_bonus += 2
 	success_bonus += int(hero.get("gear_bonus", 0))
 	survival_bonus += int(hero.get("blessing_bonus", 0))
 	var roll: int = _rng.randi_range(1, 6)
@@ -192,11 +210,20 @@ func _resolve_quest(hero_id: int, building_system: Object) -> void:
 		xp_gain = int(max(1, xp_gain / 2))
 		var damage: int = int(quest.get("risk_level", 1)) + max(0, 2 - survival_bonus)
 		GameState.heroes[hero_id]["health"] = max(1, int(hero.get("health", 1)) - damage)
+		GameState.heroes[hero_id]["wound_state"] = "minor_wounded"
 		var recovery_bonus: int = _building_bonus(building_system, "temple", "recovery_bonus")
 		GameState.heroes[hero_id]["recovery_ticks_remaining"] = max(120, 360 + int(quest.get("risk_level", 1)) * 120 - recovery_bonus * 60)
 		GameState.heroes[hero_id]["post_quest_state"] = "recovering"
 		GameState.heroes[hero_id]["return_idle_ticks"] = 0
 	else:
+		var wound_chance: float = 0.12 * float(quest.get("risk_level", 1))
+		wound_chance = max(0.0, wound_chance - 0.05 * float(survival_bonus))
+		if _rng.randf() < wound_chance:
+			var chip_damage: int = max(1, int(quest.get("risk_level", 1)))
+			GameState.heroes[hero_id]["health"] = max(1, int(hero.get("health", 1)) - chip_damage)
+			GameState.heroes[hero_id]["wound_state"] = "minor_wounded"
+		else:
+			GameState.heroes[hero_id]["wound_state"] = "healthy"
 		GameState.heroes[hero_id]["post_quest_state"] = "idling"
 		GameState.heroes[hero_id]["return_idle_ticks"] = 180
 
@@ -215,6 +242,7 @@ func _resolve_quest(hero_id: int, building_system: Object) -> void:
 		"quest_name": quest.get("name", "?"),
 		"template_id": quest.get("template_id", ""),
 		"success": succeeded,
+		"wound_state": GameState.heroes[hero_id].get("wound_state", "healthy"),
 		"gold_reward": gold_gain,
 		"xp_reward": xp_gain,
 		"completed_tick": GameState.tick
@@ -230,7 +258,8 @@ func _resolve_quest(hero_id: int, building_system: Object) -> void:
 		"quest_name": quest.get("name", "?"),
 		"success": succeeded,
 		"gold_reward": gold_gain,
-		"xp_reward": xp_gain
+		"xp_reward": xp_gain,
+		"wound_state": GameState.heroes[hero_id].get("wound_state", "healthy")
 	})
 
 func _step_recovery() -> void:
@@ -241,6 +270,7 @@ func _step_recovery() -> void:
 		GameState.heroes[hero_id]["recovery_ticks_remaining"] = int(hero.get("recovery_ticks_remaining", 0)) - 1
 		if int(GameState.heroes[hero_id]["recovery_ticks_remaining"]) <= 0:
 			GameState.heroes[hero_id]["health"] = int(hero.get("max_health", hero.get("health", 1)))
+			GameState.heroes[hero_id]["wound_state"] = "healthy"
 			GameState.heroes[hero_id]["idle_ticks_remaining"] = 180
 			GameState.heroes[hero_id].erase("recovery_ticks_remaining")
 			GameState.set_hero_state(hero_id, "idling")

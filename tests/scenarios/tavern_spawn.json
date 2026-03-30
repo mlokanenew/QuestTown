@@ -8,7 +8,7 @@
   ],
   "assertions": [
     {"assert": "hero_count_gte",  "value": 1},
-    {"assert": "any_hero_state",  "value": "idling"},
+    {"assert": "event_type_seen", "value": "hero_arrived_at_tavern"},
     {"assert": "building_count_gte", "value": 1}
   ]
 }

@@ -92,6 +92,28 @@ func _handle(cmd: Dictionary) -> void:
 			else:
 				_respond({"ok": true, "result": upgrade_result})
 
+		"start_building_upgrade":
+			var start_upgrade_id: int = int(cmd.get("id", -1))
+			if start_upgrade_id < 0 and cmd.has("type"):
+				var upgrade_building: Dictionary = _sim.get_building_of_type(cmd.get("type", ""))
+				start_upgrade_id = int(upgrade_building.get("id", -1))
+			var start_result: Variant = _sim.start_building_upgrade(start_upgrade_id)
+			if start_result.is_empty():
+				_respond({"ok": false, "error": "upgrade start failed"})
+			else:
+				_respond({"ok": true, "result": start_result})
+
+		"set_building_output_mode":
+			var output_mode_id: int = int(cmd.get("id", -1))
+			if output_mode_id < 0 and cmd.has("type"):
+				var output_building: Dictionary = _sim.get_building_of_type(cmd.get("type", ""))
+				output_mode_id = int(output_building.get("id", -1))
+			var output_result: Variant = _sim.set_building_output_mode(output_mode_id)
+			if output_result.is_empty():
+				_respond({"ok": false, "error": "set output mode failed"})
+			else:
+				_respond({"ok": true, "result": output_result})
+
 		"step_ticks":
 			_sim.step_ticks(cmd.get("n", 1))
 			_respond({"ok": true, "tick": GameState.tick})

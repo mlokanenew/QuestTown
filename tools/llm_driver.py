@@ -57,6 +57,8 @@ Allowed commands:
 {"cmd":"upgrade_building","type":"tavern"}
 {"cmd":"upgrade_building","type":"weapons_shop"}
 {"cmd":"upgrade_building","type":"temple"}
+{"cmd":"start_building_upgrade","type":"tavern"}
+{"cmd":"set_building_output_mode","type":"tavern"}
 {"cmd":"set_quest_enabled","id":"clear_rats_cellar","enabled":true}
 {"cmd":"step_ticks","n":600}
 {"cmd":"run_until","event":"hero_arrived_at_tavern","max_ticks":1800}
@@ -108,6 +110,9 @@ def check_assertions(assertions: list, state: dict) -> tuple[bool, list]:
         elif kind == "quest_count_gte":
             if len(state.get("quests", [])) < assertion.get("value", 1):
                 failures.append(assertion)
+        elif kind == "quest_count_eq":
+            if len(state.get("quests", [])) != int(assertion.get("value", 0)):
+                failures.append(assertion)
         elif kind == "completed_quest_count_gte":
             if len(state.get("completed_quests", [])) < assertion.get("value", 1):
                 failures.append(assertion)
@@ -120,11 +125,31 @@ def check_assertions(assertions: list, state: dict) -> tuple[bool, list]:
             match = next((b for b in buildings if b.get("type") == target_type), None)
             if match is None or int(match.get("level", 1)) != target_level:
                 failures.append(assertion)
+        elif kind == "building_action_eq":
+            target_type = assertion.get("type", "")
+            target_action = str(assertion.get("value", ""))
+            match = next((b for b in buildings if b.get("type") == target_type), None)
+            if match is None or str(match.get("current_action", "")) != target_action:
+                failures.append(assertion)
+        elif kind == "building_output_stock_gte":
+            target_type = assertion.get("type", "")
+            target_value = int(assertion.get("value", 1))
+            match = next((b for b in buildings if b.get("type") == target_type), None)
+            if match is None or int(match.get("output_stock", 0)) < target_value:
+                failures.append(assertion)
         elif kind == "gold_eq":
             if int(gold) != int(assertion.get("value", gold)):
                 failures.append(assertion)
         elif kind == "gold_gte":
             if int(gold) < int(assertion.get("value", 0)):
+                failures.append(assertion)
+        elif kind == "any_hero_wound_state":
+            target = assertion.get("value", "")
+            if not any(str(hero.get("wound_state", "")) == target for hero in heroes):
+                failures.append(assertion)
+        elif kind == "completed_success_wound_seen":
+            completed = state.get("completed_quests", [])
+            if not any(bool(entry.get("success", False)) and str(entry.get("wound_state", "")) == "minor_wounded" for entry in completed):
                 failures.append(assertion)
         elif kind == "event_type_seen":
             target = assertion.get("value", "")
@@ -237,6 +262,16 @@ def normalize_command(cmd: dict) -> dict | None:
         if building_type not in {"tavern", "weapons_shop", "temple"}:
             return None
         return {"cmd": "upgrade_building", "type": building_type}
+    if name == "start_building_upgrade":
+        building_type = cmd.get("type", "")
+        if building_type not in {"tavern", "weapons_shop", "temple"}:
+            return None
+        return {"cmd": "start_building_upgrade", "type": building_type}
+    if name == "set_building_output_mode":
+        building_type = cmd.get("type", "")
+        if building_type not in {"tavern", "weapons_shop", "temple"}:
+            return None
+        return {"cmd": "set_building_output_mode", "type": building_type}
     if name == "step_ticks":
         n = max(1, min(int(cmd.get("n", 60)), 3600))
         return {"cmd": "step_ticks", "n": n}

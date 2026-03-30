@@ -78,6 +78,18 @@ func _execute_command(sim: Node, cmd: Dictionary) -> void:
 				var building: Dictionary = sim.get_building_of_type(cmd.get("type", ""))
 				building_id = int(building.get("id", -1))
 			sim.upgrade_building(building_id)
+		"start_building_upgrade":
+			var target_building_id: int = int(cmd.get("id", -1))
+			if target_building_id < 0:
+				var target_building: Dictionary = sim.get_building_of_type(cmd.get("type", ""))
+				target_building_id = int(target_building.get("id", -1))
+			sim.start_building_upgrade(target_building_id)
+		"set_building_output_mode":
+			var output_building_id: int = int(cmd.get("id", -1))
+			if output_building_id < 0:
+				var output_building: Dictionary = sim.get_building_of_type(cmd.get("type", ""))
+				output_building_id = int(output_building.get("id", -1))
+			sim.set_building_output_mode(output_building_id)
 		"step_ticks":
 			sim.step_ticks(cmd.get("n", 1))
 		"set_quest_enabled":
@@ -115,6 +127,8 @@ func _check(assertion: Dictionary, state: Dictionary) -> bool:
 			return count == int(assertion.get("value", 0))
 		"quest_count_gte":
 			return state.get("quests", []).size() >= int(assertion.get("value", 1))
+		"quest_count_eq":
+			return state.get("quests", []).size() == int(assertion.get("value", 0))
 		"completed_quest_count_gte":
 			return state.get("completed_quests", []).size() >= int(assertion.get("value", 1))
 		"building_exists":
@@ -127,10 +141,30 @@ func _check(assertion: Dictionary, state: Dictionary) -> bool:
 				if b["type"] == assertion.get("type", ""):
 					return int(b.get("level", 1)) == int(assertion.get("value", 1))
 			return false
+		"building_action_eq":
+			for b in state["buildings"]:
+				if b["type"] == assertion.get("type", ""):
+					return String(b.get("current_action", "")) == String(assertion.get("value", ""))
+			return false
+		"building_output_stock_gte":
+			for b in state["buildings"]:
+				if b["type"] == assertion.get("type", ""):
+					return int(b.get("output_stock", 0)) >= int(assertion.get("value", 1))
+			return false
 		"gold_eq":
 			return int(state.get("gold", -1)) == int(assertion.get("value", -1))
 		"gold_gte":
 			return int(state.get("gold", -1)) >= int(assertion.get("value", 0))
+		"any_hero_wound_state":
+			for hero in state["heroes"]:
+				if String(hero.get("wound_state", "")) == String(assertion.get("value", "")):
+					return true
+			return false
+		"completed_success_wound_seen":
+			for entry in state.get("completed_quests", []):
+				if bool(entry.get("success", false)) and String(entry.get("wound_state", "")) == "minor_wounded":
+					return true
+			return false
 		"event_type_seen":
 			for event in state.get("events", []):
 				if event.get("type", "") == assertion.get("value", ""):

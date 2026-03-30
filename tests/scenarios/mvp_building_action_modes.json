@@ -1,0 +1,17 @@
+{
+  "name": "MVP building action modes spend gold up front",
+  "goal": "Verify buildings expose upgrade versus output mode in state and that starting upgrade work spends gold immediately.",
+  "seed": 42,
+  "commands": [
+    {"cmd": "place_building", "type": "tavern", "x": 0, "z": 0},
+    {"cmd": "place_building", "type": "weapons_shop", "x": 3, "z": 0},
+    {"cmd": "place_building", "type": "temple", "x": -3, "z": 0},
+    {"cmd": "start_building_upgrade", "type": "tavern"},
+    {"cmd": "set_building_output_mode", "type": "weapons_shop"}
+  ],
+  "assertions": [
+    {"assert": "building_action_eq", "type": "tavern", "value": "upgrading"},
+    {"assert": "building_action_eq", "type": "weapons_shop", "value": "output"},
+    {"assert": "gold_eq", "value": 280}
+  ]
+}

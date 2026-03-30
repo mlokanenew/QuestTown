@@ -100,6 +100,7 @@ func _handle_healing(hero_id: int, building_system: Object) -> bool:
 		GameState.consume_building_output_stock(int(temple.get("id", 0)), 1)
 		var max_health: int = int(GameState.heroes[hero_id].get("max_health", 0))
 		GameState.heroes[hero_id]["health"] = max_health
+		GameState.heroes[hero_id]["wound_state"] = "healthy"
 		if GameState.heroes[hero_id].get("state", "") == "recovering":
 			var remaining: int = int(GameState.heroes[hero_id].get("recovery_ticks_remaining", 0))
 			GameState.heroes[hero_id]["recovery_ticks_remaining"] = max(0, remaining - recovery_bonus * 120)
