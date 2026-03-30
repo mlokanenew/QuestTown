@@ -142,39 +142,39 @@ func _apply_button_theme(button: Button, variant: String, selected: bool = false
 			text_color = UI_TEXT_PRIMARY
 		_:
 			pass
-	button.theme_override_styles.normal = _make_style(normal_bg, normal_border, RADIUS_BUTTON, 1, 12)
-	button.theme_override_styles.hover = _make_style(hover_bg, hover_border, RADIUS_BUTTON, 1, 12)
-	button.theme_override_styles.pressed = _make_style(pressed_bg, pressed_border, RADIUS_BUTTON, 1, 12)
-	button.theme_override_styles.disabled = _make_style(disabled_bg, normal_border, RADIUS_BUTTON, 1, 12)
-	button.theme_override_colors.font_color = text_color
-	button.theme_override_colors.font_hover_color = text_color
-	button.theme_override_colors.font_pressed_color = text_color
-	button.theme_override_colors.font_disabled_color = disabled_text
-	button.theme_override_font_sizes.font_size = TYPE_BODY
+	button.set("theme_override_styles/normal", _make_style(normal_bg, normal_border, RADIUS_BUTTON, 1, 12))
+	button.set("theme_override_styles/hover", _make_style(hover_bg, hover_border, RADIUS_BUTTON, 1, 12))
+	button.set("theme_override_styles/pressed", _make_style(pressed_bg, pressed_border, RADIUS_BUTTON, 1, 12))
+	button.set("theme_override_styles/disabled", _make_style(disabled_bg, normal_border, RADIUS_BUTTON, 1, 12))
+	button.set("theme_override_colors/font_color", text_color)
+	button.set("theme_override_colors/font_hover_color", text_color)
+	button.set("theme_override_colors/font_pressed_color", text_color)
+	button.set("theme_override_colors/font_disabled_color", disabled_text)
+	button.set("theme_override_font_sizes/font_size", TYPE_BODY)
 
 func _apply_label_role(label: Label, role: String, dark: bool = false) -> void:
 	if label == null:
 		return
 	match role:
 		"screen_title":
-			label.theme_override_font_sizes.font_size = TYPE_SCREEN_TITLE
-			label.theme_override_colors.font_color = UI_TEXT_PRIMARY if not dark else UI_TEXT_DARK
+			label.set("theme_override_font_sizes/font_size", TYPE_SCREEN_TITLE)
+			label.set("theme_override_colors/font_color", UI_TEXT_PRIMARY if not dark else UI_TEXT_DARK)
 		"panel_title":
-			label.theme_override_font_sizes.font_size = TYPE_PANEL_TITLE
-			label.theme_override_colors.font_color = UI_TEXT_PRIMARY if not dark else UI_TEXT_DARK
+			label.set("theme_override_font_sizes/font_size", TYPE_PANEL_TITLE)
+			label.set("theme_override_colors/font_color", UI_TEXT_PRIMARY if not dark else UI_TEXT_DARK)
 		"quest_title":
-			label.theme_override_font_sizes.font_size = TYPE_QUEST_TITLE
-			label.theme_override_colors.font_color = UI_TEXT_PRIMARY if not dark else UI_TEXT_DARK
+			label.set("theme_override_font_sizes/font_size", TYPE_QUEST_TITLE)
+			label.set("theme_override_colors/font_color", UI_TEXT_PRIMARY if not dark else UI_TEXT_DARK)
 		"section":
-			label.theme_override_font_sizes.font_size = TYPE_SECTION_LABEL
-			label.theme_override_colors.font_color = UI_TEXT_MUTED if not dark else Color(UI_TEXT_DARK, 0.7)
+			label.set("theme_override_font_sizes/font_size", TYPE_SECTION_LABEL)
+			label.set("theme_override_colors/font_color", UI_TEXT_MUTED if not dark else Color(UI_TEXT_DARK, 0.7))
 			label.uppercase = true
 		"meta":
-			label.theme_override_font_sizes.font_size = TYPE_META
-			label.theme_override_colors.font_color = UI_TEXT_MUTED if not dark else Color(UI_TEXT_DARK, 0.68)
+			label.set("theme_override_font_sizes/font_size", TYPE_META)
+			label.set("theme_override_colors/font_color", UI_TEXT_MUTED if not dark else Color(UI_TEXT_DARK, 0.68))
 		_:
-			label.theme_override_font_sizes.font_size = TYPE_BODY
-			label.theme_override_colors.font_color = UI_TEXT_PRIMARY if not dark else UI_TEXT_DARK
+			label.set("theme_override_font_sizes/font_size", TYPE_BODY)
+			label.set("theme_override_colors/font_color", UI_TEXT_PRIMARY if not dark else UI_TEXT_DARK)
 
 func _ensure_quest_scrim() -> void:
 	var ui_layer := get_node_or_null("UILayer")
@@ -196,51 +196,51 @@ func _apply_visual_design_system() -> void:
 	_ensure_quest_scrim()
 	var top_bar := get_node_or_null("UILayer/TopBar")
 	if top_bar:
-		top_bar.theme_override_styles.panel = _make_style(Color(UI_SURFACE_1, 0.90), Color(UI_ACCENT, 0.28), 20, 1, 10)
+		top_bar.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_1, 0.90), Color(UI_ACCENT, 0.28), 20, 1, 10))
 		top_bar.offset_top = 18.0
 		top_bar.offset_bottom = 70.0
 	var left_panel := get_node_or_null("UILayer/LeftPanel")
 	if left_panel:
-		left_panel.theme_override_styles.panel = _make_style(Color(UI_SURFACE_1, 0.78), Color(UI_BORDER_SUBTLE, 0.8), 20, 1, 12)
+		left_panel.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_1, 0.78), Color(UI_BORDER_SUBTLE, 0.8), 20, 1, 12))
 	var right_panel := get_node_or_null("UILayer/RightPanel")
 	if right_panel:
-		right_panel.theme_override_styles.panel = _make_style(Color(UI_SURFACE_1, 0.74), Color(UI_BORDER_SUBTLE, 0.7), 20, 1, 12)
+		right_panel.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_1, 0.74), Color(UI_BORDER_SUBTLE, 0.7), 20, 1, 12))
 	var event_panel := get_node_or_null("UILayer/EventLogPanel")
 	if event_panel:
-		event_panel.theme_override_styles.panel = _make_style(Color(UI_SURFACE_1, 0.78), Color(UI_BORDER_SUBTLE, 0.7), 18, 1, 10)
+		event_panel.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_1, 0.78), Color(UI_BORDER_SUBTLE, 0.7), 18, 1, 10))
 	var roster_panel := get_node_or_null("UILayer/RosterPanel")
 	if roster_panel:
-		roster_panel.theme_override_styles.panel = _make_style(Color(UI_SURFACE_1, 0.82), Color(UI_ACCENT, 0.24), 18, 1, 10)
+		roster_panel.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_1, 0.82), Color(UI_ACCENT, 0.24), 18, 1, 10))
 	var quest_drawer := get_node_or_null("UILayer/QuestDrawer")
 	if quest_drawer:
-		quest_drawer.theme_override_styles.panel = _make_style(Color(0.09, 0.12, 0.16, 0.96), Color(UI_ACCENT, 0.28), 24, 1, 16)
+		quest_drawer.set("theme_override_styles/panel", _make_style(Color(0.09, 0.12, 0.16, 0.96), Color(UI_ACCENT, 0.28), 24, 1, 16))
 	var summary_card := get_node_or_null("UILayer/RightPanel/VBox/SummaryCard")
 	if summary_card:
-		summary_card.theme_override_styles.panel = _make_style(Color(UI_SURFACE_PAPER, 0.94), Color(UI_BORDER_SUBTLE, 0.72), 18, 1, 12)
+		summary_card.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_PAPER, 0.94), Color(UI_BORDER_SUBTLE, 0.72), 18, 1, 12))
 	var facts_card := get_node_or_null("UILayer/RightPanel/VBox/PrimaryFactsCard")
 	if facts_card:
-		facts_card.theme_override_styles.panel = _make_style(Color(UI_SURFACE_PAPER, 0.92), Color(UI_BORDER_SUBTLE, 0.6), 16, 1, 12)
+		facts_card.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_PAPER, 0.92), Color(UI_BORDER_SUBTLE, 0.6), 16, 1, 12))
 	var action_card := get_node_or_null("UILayer/RightPanel/VBox/ActionCard")
 	if action_card:
-		action_card.theme_override_styles.panel = _make_style(Color(UI_SURFACE_2, 0.92), Color(UI_ACCENT, 0.35), 16, 1, 12)
+		action_card.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_2, 0.92), Color(UI_ACCENT, 0.35), 16, 1, 12))
 	var quest_header := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestDetailHeader")
 	if quest_header:
-		quest_header.theme_override_styles.panel = _make_style(Color(UI_SURFACE_PAPER, 0.97), Color(UI_BORDER_SUBTLE, 0.84), 20, 1, 14)
+		quest_header.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_PAPER, 0.97), Color(UI_BORDER_SUBTLE, 0.84), 20, 1, 14))
 	var quest_meta := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestMetaCard")
 	if quest_meta:
-		quest_meta.theme_override_styles.panel = _make_style(Color(UI_SURFACE_2, 0.94), Color(UI_ACCENT, 0.22), 18, 1, 14)
+		quest_meta.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_2, 0.94), Color(UI_ACCENT, 0.22), 18, 1, 14))
 	var quest_suitability := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestSuitabilityCard")
 	if quest_suitability:
-		quest_suitability.theme_override_styles.panel = _make_style(Color(UI_SURFACE_PAPER, 0.92), Color(UI_BORDER_SUBTLE, 0.62), 18, 1, 14)
+		quest_suitability.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_PAPER, 0.92), Color(UI_BORDER_SUBTLE, 0.62), 18, 1, 14))
 	var active_card := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestLowerRow/ActiveQuestCard")
 	if active_card:
-		active_card.theme_override_styles.panel = _make_style(Color(UI_SURFACE_2, 0.92), Color(UI_ACCENT, 0.22), 18, 1, 12)
+		active_card.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_2, 0.92), Color(UI_ACCENT, 0.22), 18, 1, 12))
 	var completed_card := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestLowerRow/CompletedQuestCard")
 	if completed_card:
-		completed_card.theme_override_styles.panel = _make_style(Color(UI_SURFACE_PAPER, 0.92), Color(UI_BORDER_SUBTLE, 0.6), 18, 1, 12)
+		completed_card.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_PAPER, 0.92), Color(UI_BORDER_SUBTLE, 0.6), 18, 1, 12))
 	var status_card := get_node_or_null("UILayer/LeftPanel/VBox/StatusCard")
 	if status_card:
-		status_card.theme_override_styles.panel = _make_style(Color(UI_SURFACE_2, 0.86), Color(UI_BORDER_SUBTLE, 0.55), 14, 1, 10)
+		status_card.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_2, 0.86), Color(UI_BORDER_SUBTLE, 0.55), 14, 1, 10))
 
 	for path in [
 		"UILayer/TopBar/TopBarRow/QuestDrawerButton",
@@ -285,8 +285,8 @@ func _apply_visual_design_system() -> void:
 
 	var help := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestHelp")
 	if help:
-		help.theme_override_colors.font_color = UI_TEXT_MUTED
-		help.theme_override_font_sizes.font_size = TYPE_BODY
+		help.set("theme_override_colors/font_color", UI_TEXT_MUTED)
+		help.set("theme_override_font_sizes/font_size", TYPE_BODY)
 
 	for path in [
 		"UILayer/RightPanel/VBox/HealthSectionLabel",
@@ -298,12 +298,12 @@ func _apply_visual_design_system() -> void:
 
 	var health_bar := get_node_or_null("UILayer/RightPanel/VBox/HealthBar")
 	if health_bar:
-		health_bar.theme_override_styles.background = _make_style(Color(UI_SURFACE_2, 0.8), Color(UI_BORDER_SUBTLE, 0.5), 999, 1, 4)
-		health_bar.theme_override_styles.fill = _make_style(Color(0.72, 0.31, 0.27, 1.0), Color(0.85, 0.53, 0.47, 1.0), 999, 0, 4)
+		health_bar.set("theme_override_styles/background", _make_style(Color(UI_SURFACE_2, 0.8), Color(UI_BORDER_SUBTLE, 0.5), 999, 1, 4))
+		health_bar.set("theme_override_styles/fill", _make_style(Color(0.72, 0.31, 0.27, 1.0), Color(0.85, 0.53, 0.47, 1.0), 999, 0, 4))
 	var xp_bar := get_node_or_null("UILayer/RightPanel/VBox/XpBar")
 	if xp_bar:
-		xp_bar.theme_override_styles.background = _make_style(Color(UI_SURFACE_2, 0.8), Color(UI_BORDER_SUBTLE, 0.5), 999, 1, 4)
-		xp_bar.theme_override_styles.fill = _make_style(UI_ACCENT, UI_ACCENT.lightened(0.16), 999, 0, 4)
+		xp_bar.set("theme_override_styles/background", _make_style(Color(UI_SURFACE_2, 0.8), Color(UI_BORDER_SUBTLE, 0.5), 999, 1, 4))
+		xp_bar.set("theme_override_styles/fill", _make_style(UI_ACCENT, UI_ACCENT.lightened(0.16), 999, 0, 4))
 
 func _ready() -> void:
 	cmd_server.set_sim(sim)
