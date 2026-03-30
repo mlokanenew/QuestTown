@@ -2,20 +2,39 @@ extends Node3D
 ## Root scene script. Wires SimulationRoot, CommandServer, and ScenarioRunner together.
 
 const OPTIONS_SCENE := preload("res://scenes/ui/OptionsMenu.tscn")
+const FONT_HEADING_PATH := "res://assets/fonts/KenneyFuture.ttf"
+const FONT_BODY_PATH := "res://assets/fonts/KenneyFutureNarrow.ttf"
+const FRAME_ORNATE_PATH := "res://assets/ui/theme/frame_ornate.png"
+const FRAME_SIMPLE_PATH := "res://assets/ui/theme/frame_simple.png"
+const THEME_DIVIDER_PATH := "res://assets/ui/theme/divider.png"
+const BUTTON_BLUE_PATH := "res://assets/ui/theme/button_blue.png"
+const BUTTON_BLUE_OUTLINE_PATH := "res://assets/ui/theme/button_blue_outline.png"
+const BUTTON_BLUE_FLAT_PATH := "res://assets/ui/theme/button_blue_flat.png"
+const ICON_AWARD_PATH := "res://assets/ui/icons/award.png"
+const ICON_BOOK_PATH := "res://assets/ui/icons/book_open.png"
+const ICON_CHARACTER_PATH := "res://assets/ui/icons/character.png"
+const ICON_CAMPFIRE_PATH := "res://assets/ui/icons/campfire.png"
+const ICON_SHIELD_PATH := "res://assets/ui/icons/shield.png"
+const ICON_SWORD_PATH := "res://assets/ui/icons/sword.png"
+const ICON_SKULL_PATH := "res://assets/ui/icons/skull.png"
+const UI_SOUND_CLICK_PATH := "res://assets/audio/ui/click.ogg"
+const UI_SOUND_OPEN_PATH := "res://assets/audio/ui/open.ogg"
+const UI_SOUND_CLOSE_PATH := "res://assets/audio/ui/close.ogg"
+const UI_SOUND_CONFIRM_PATH := "res://assets/audio/ui/confirm.ogg"
 
 const UI_BACKGROUND := Color(0.06, 0.08, 0.10, 0.0)
-const UI_SURFACE_1 := Color(0.07, 0.10, 0.14, 0.84)
-const UI_SURFACE_2 := Color(0.12, 0.16, 0.21, 0.92)
-const UI_SURFACE_PAPER := Color(0.91, 0.87, 0.78, 0.95)
-const UI_SURFACE_PAPER_SOFT := Color(0.84, 0.79, 0.69, 0.92)
-const UI_BORDER_SUBTLE := Color(0.49, 0.41, 0.29, 0.42)
+const UI_SURFACE_1 := Color(0.07, 0.10, 0.15, 0.88)
+const UI_SURFACE_2 := Color(0.11, 0.15, 0.21, 0.95)
+const UI_SURFACE_PAPER := Color(0.90, 0.86, 0.77, 0.96)
+const UI_SURFACE_PAPER_SOFT := Color(0.83, 0.78, 0.68, 0.93)
+const UI_BORDER_SUBTLE := Color(0.58, 0.48, 0.30, 0.44)
 const UI_TEXT_PRIMARY := Color(0.96, 0.94, 0.89, 1.0)
-const UI_TEXT_MUTED := Color(0.71, 0.75, 0.79, 1.0)
-const UI_TEXT_DARK := Color(0.15, 0.18, 0.22, 1.0)
-const UI_ACCENT := Color(0.23, 0.52, 0.72, 1.0)
-const UI_ACCENT_SOFT := Color(0.33, 0.61, 0.80, 0.22)
-const UI_WARNING := Color(0.90, 0.66, 0.33, 1.0)
-const UI_SUCCESS := Color(0.52, 0.73, 0.61, 1.0)
+const UI_TEXT_MUTED := Color(0.72, 0.76, 0.81, 1.0)
+const UI_TEXT_DARK := Color(0.16, 0.18, 0.22, 1.0)
+const UI_ACCENT := Color(0.77, 0.63, 0.28, 1.0)
+const UI_ACCENT_SOFT := Color(0.77, 0.63, 0.28, 0.18)
+const UI_WARNING := Color(0.86, 0.53, 0.28, 1.0)
+const UI_SUCCESS := Color(0.49, 0.70, 0.58, 1.0)
 
 const TYPE_SCREEN_TITLE := 26
 const TYPE_PANEL_TITLE := 18
@@ -47,6 +66,9 @@ var _event_feed_expanded: bool = false
 var _selected_entity_kind: String = ""
 var _details_expanded: bool = false
 var _selected_quest_id: String = ""
+var _ui_sfx: Dictionary = {}
+var _ui_textures: Dictionary = {}
+var _ui_fonts: Dictionary = {}
 
 const BUILDING_ICONS := {
 	"tavern": "res://assets/ui/tavern_icon.svg",
@@ -79,6 +101,151 @@ func _make_style(bg: Color, border: Color, radius: int = RADIUS_PANEL, border_wi
 	style.content_margin_right = padding
 	style.content_margin_bottom = padding
 	return style
+
+func _resource_path_to_absolute(path: String) -> String:
+	if path.begins_with("res://"):
+		return ProjectSettings.globalize_path(path)
+	return path
+
+func _load_runtime_texture(path: String) -> Texture2D:
+	if _ui_textures.has(path):
+		return _ui_textures[path]
+	var absolute := _resource_path_to_absolute(path)
+	var image := Image.load_from_file(absolute)
+	if image == null or image.is_empty():
+		return null
+	var texture := ImageTexture.create_from_image(image)
+	_ui_textures[path] = texture
+	return texture
+
+func _load_runtime_font(path: String) -> FontFile:
+	if _ui_fonts.has(path):
+		return _ui_fonts[path]
+	var font := FontFile.new()
+	if font.load_dynamic_font(_resource_path_to_absolute(path)) != OK:
+		return null
+	_ui_fonts[path] = font
+	return font
+
+func _load_runtime_sound(path: String) -> AudioStreamOggVorbis:
+	return AudioStreamOggVorbis.load_from_file(_resource_path_to_absolute(path))
+
+func _make_texture_style(texture: Texture2D, texture_margin: int, padding: int, draw_center: bool = true, tint: Color = Color.WHITE) -> StyleBoxTexture:
+	var style := StyleBoxTexture.new()
+	style.texture = texture
+	style.texture_margin_left = texture_margin
+	style.texture_margin_top = texture_margin
+	style.texture_margin_right = texture_margin
+	style.texture_margin_bottom = texture_margin
+	style.content_margin_left = padding
+	style.content_margin_top = padding
+	style.content_margin_right = padding
+	style.content_margin_bottom = padding
+	style.draw_center = draw_center
+	style.modulate_color = tint
+	return style
+
+func _ensure_ornament_frame(control: Control, texture: Texture2D, patch_margin: int = 16, expand: int = 8, tint: Color = Color(1, 1, 1, 0.78)) -> void:
+	if control == null or texture == null:
+		return
+	var frame := control.get_node_or_null("ThemeFrame") as NinePatchRect
+	if frame == null:
+		frame = NinePatchRect.new()
+		frame.name = "ThemeFrame"
+		frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		frame.show_behind_parent = true
+		frame.anchors_preset = Control.PRESET_FULL_RECT
+		control.add_child(frame)
+		control.move_child(frame, 0)
+	frame.texture = texture
+	frame.draw_center = false
+	frame.patch_margin_left = patch_margin
+	frame.patch_margin_top = patch_margin
+	frame.patch_margin_right = patch_margin
+	frame.patch_margin_bottom = patch_margin
+	frame.offset_left = -expand
+	frame.offset_top = -expand
+	frame.offset_right = expand
+	frame.offset_bottom = expand
+	frame.modulate = tint
+
+func _ensure_divider_texture(parent: Control, name: String = "ThemeDivider") -> void:
+	if parent == null:
+		return
+	var divider := parent.get_node_or_null(name) as TextureRect
+	if divider == null:
+		divider = TextureRect.new()
+		divider.name = name
+		divider.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		divider.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		divider.stretch_mode = TextureRect.STRETCH_TILE
+		divider.custom_minimum_size = Vector2(0, 8)
+		parent.add_child(divider)
+		parent.move_child(divider, 0)
+	divider.texture = _load_runtime_texture(THEME_DIVIDER_PATH)
+	divider.modulate = Color(1, 1, 1, 0.72)
+
+func _ensure_ui_sound_players() -> void:
+	if not _ui_sfx.is_empty():
+		return
+	for key in ["hover", "click", "open", "close", "confirm"]:
+		var player := AudioStreamPlayer.new()
+		player.name = "UISfx_%s" % key
+		match key:
+			"hover":
+				player.stream = _load_runtime_sound(UI_SOUND_CLICK_PATH)
+				player.volume_db = -11.0
+			"click":
+				player.stream = _load_runtime_sound(UI_SOUND_CLICK_PATH)
+				player.volume_db = -7.0
+			"open":
+				player.stream = _load_runtime_sound(UI_SOUND_OPEN_PATH)
+				player.volume_db = -6.0
+			"close":
+				player.stream = _load_runtime_sound(UI_SOUND_CLOSE_PATH)
+				player.volume_db = -6.0
+			"confirm":
+				player.stream = _load_runtime_sound(UI_SOUND_CONFIRM_PATH)
+				player.volume_db = -5.0
+		add_child(player)
+		_ui_sfx[key] = player
+
+func _play_ui_sound(kind: String) -> void:
+	var player: Variant = _ui_sfx.get(kind)
+	if player is AudioStreamPlayer:
+		(player as AudioStreamPlayer).play()
+
+func _wire_button_sfx(button: BaseButton, pressed_kind: String = "click") -> void:
+	if button == null:
+		return
+	if not button.mouse_entered.is_connected(_on_any_ui_button_hover):
+		button.mouse_entered.connect(_on_any_ui_button_hover)
+	if pressed_kind == "confirm":
+		if not button.pressed.is_connected(_on_any_ui_button_confirm):
+			button.pressed.connect(_on_any_ui_button_confirm)
+	elif pressed_kind == "open":
+		if not button.pressed.is_connected(_on_any_ui_button_open):
+			button.pressed.connect(_on_any_ui_button_open)
+	elif pressed_kind == "close":
+		if not button.pressed.is_connected(_on_any_ui_button_close):
+			button.pressed.connect(_on_any_ui_button_close)
+	elif not button.pressed.is_connected(_on_any_ui_button_click):
+		button.pressed.connect(_on_any_ui_button_click)
+
+func _on_any_ui_button_hover() -> void:
+	_play_ui_sound("hover")
+
+func _on_any_ui_button_click() -> void:
+	_play_ui_sound("click")
+
+func _on_any_ui_button_open() -> void:
+	_play_ui_sound("open")
+
+func _on_any_ui_button_close() -> void:
+	_play_ui_sound("close")
+
+func _on_any_ui_button_confirm() -> void:
+	_play_ui_sound("confirm")
 
 func _apply_button_theme(button: Button, variant: String, selected: bool = false) -> void:
 	if button == null:
@@ -151,18 +318,46 @@ func _apply_button_theme(button: Button, variant: String, selected: bool = false
 	button.set("theme_override_colors/font_pressed_color", text_color)
 	button.set("theme_override_colors/font_disabled_color", disabled_text)
 	button.set("theme_override_font_sizes/font_size", TYPE_BODY)
+	button.set("theme_override_fonts/font", _load_runtime_font(FONT_BODY_PATH))
+	button.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	var button_blue := _load_runtime_texture(BUTTON_BLUE_PATH)
+	var button_blue_outline := _load_runtime_texture(BUTTON_BLUE_OUTLINE_PATH)
+	var button_blue_flat := _load_runtime_texture(BUTTON_BLUE_FLAT_PATH)
+	match variant:
+		"accent":
+			button.set("theme_override_styles/normal", _make_texture_style(button_blue, 18, 14, true, UI_ACCENT.lightened(0.10)))
+			button.set("theme_override_styles/hover", _make_texture_style(button_blue, 18, 14, true, UI_ACCENT.lightened(0.22)))
+			button.set("theme_override_styles/pressed", _make_texture_style(button_blue_outline, 18, 14, true, UI_ACCENT.darkened(0.08)))
+			button.set("theme_override_styles/disabled", _make_texture_style(button_blue_flat, 18, 14, true, Color(UI_SURFACE_2.lightened(0.10), 0.58)))
+			button.set("theme_override_colors/font_color", UI_TEXT_PRIMARY)
+			button.set("theme_override_colors/font_hover_color", UI_TEXT_PRIMARY)
+			button.set("theme_override_colors/font_pressed_color", UI_TEXT_PRIMARY)
+			button.set("theme_override_colors/font_disabled_color", Color(UI_TEXT_MUTED, 0.62))
+		"chrome":
+			button.set("theme_override_styles/normal", _make_texture_style(button_blue_flat, 18, 12, true, Color(0.31, 0.43, 0.54, 0.92)))
+			button.set("theme_override_styles/hover", _make_texture_style(button_blue, 18, 12, true, Color(0.39, 0.51, 0.62, 0.96)))
+			button.set("theme_override_styles/pressed", _make_texture_style(button_blue_outline, 18, 12, true, Color(0.27, 0.37, 0.47, 0.96)))
+			button.set("theme_override_styles/disabled", _make_texture_style(button_blue_flat, 18, 12, true, Color(0.24, 0.29, 0.35, 0.48)))
+			button.set("theme_override_colors/font_color", UI_TEXT_PRIMARY)
+			button.set("theme_override_colors/font_hover_color", UI_TEXT_PRIMARY)
+			button.set("theme_override_colors/font_pressed_color", UI_TEXT_PRIMARY)
+			button.set("theme_override_colors/font_disabled_color", Color(UI_TEXT_MUTED, 0.54))
 
 func _apply_label_role(label: Label, role: String, dark: bool = false) -> void:
 	if label == null:
 		return
+	label.set("theme_override_fonts/font", _load_runtime_font(FONT_BODY_PATH))
 	match role:
 		"screen_title":
+			label.set("theme_override_fonts/font", _load_runtime_font(FONT_HEADING_PATH))
 			label.set("theme_override_font_sizes/font_size", TYPE_SCREEN_TITLE)
 			label.set("theme_override_colors/font_color", UI_TEXT_PRIMARY if not dark else UI_TEXT_DARK)
 		"panel_title":
+			label.set("theme_override_fonts/font", _load_runtime_font(FONT_HEADING_PATH))
 			label.set("theme_override_font_sizes/font_size", TYPE_PANEL_TITLE)
 			label.set("theme_override_colors/font_color", UI_TEXT_PRIMARY if not dark else UI_TEXT_DARK)
 		"quest_title":
+			label.set("theme_override_fonts/font", _load_runtime_font(FONT_HEADING_PATH))
 			label.set("theme_override_font_sizes/font_size", TYPE_QUEST_TITLE)
 			label.set("theme_override_colors/font_color", UI_TEXT_PRIMARY if not dark else UI_TEXT_DARK)
 		"section":
@@ -194,38 +389,53 @@ func _ensure_quest_scrim() -> void:
 
 func _apply_visual_design_system() -> void:
 	_ensure_quest_scrim()
+	var frame_simple := _load_runtime_texture(FRAME_SIMPLE_PATH)
+	var frame_ornate := _load_runtime_texture(FRAME_ORNATE_PATH)
+	var icon_book := _load_runtime_texture(ICON_BOOK_PATH)
+	var icon_campfire := _load_runtime_texture(ICON_CAMPFIRE_PATH)
+	var icon_character := _load_runtime_texture(ICON_CHARACTER_PATH)
+	var icon_sword := _load_runtime_texture(ICON_SWORD_PATH)
 	var top_bar := get_node_or_null("UILayer/TopBar")
 	if top_bar:
 		top_bar.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_1, 0.90), Color(UI_ACCENT, 0.28), 20, 1, 10))
 		top_bar.offset_top = 18.0
 		top_bar.offset_bottom = 70.0
+		_ensure_ornament_frame(top_bar, frame_simple, 16, 4, Color(1, 1, 1, 0.42))
 	var left_panel := get_node_or_null("UILayer/LeftPanel")
 	if left_panel:
 		left_panel.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_1, 0.78), Color(UI_BORDER_SUBTLE, 0.8), 20, 1, 12))
+		_ensure_ornament_frame(left_panel, frame_simple, 16, 4, Color(1, 1, 1, 0.30))
 	var right_panel := get_node_or_null("UILayer/RightPanel")
 	if right_panel:
 		right_panel.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_1, 0.74), Color(UI_BORDER_SUBTLE, 0.7), 20, 1, 12))
+		_ensure_ornament_frame(right_panel, frame_simple, 16, 4, Color(1, 1, 1, 0.34))
 	var event_panel := get_node_or_null("UILayer/EventLogPanel")
 	if event_panel:
 		event_panel.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_1, 0.78), Color(UI_BORDER_SUBTLE, 0.7), 18, 1, 10))
+		_ensure_ornament_frame(event_panel, frame_simple, 16, 3, Color(1, 1, 1, 0.28))
 	var roster_panel := get_node_or_null("UILayer/RosterPanel")
 	if roster_panel:
 		roster_panel.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_1, 0.82), Color(UI_ACCENT, 0.24), 18, 1, 10))
+		_ensure_ornament_frame(roster_panel, frame_ornate, 16, 5, Color(1, 1, 1, 0.44))
 	var quest_drawer := get_node_or_null("UILayer/QuestDrawer")
 	if quest_drawer:
 		quest_drawer.set("theme_override_styles/panel", _make_style(Color(0.09, 0.12, 0.16, 0.96), Color(UI_ACCENT, 0.28), 24, 1, 16))
+		_ensure_ornament_frame(quest_drawer, frame_ornate, 16, 8, Color(1, 1, 1, 0.55))
 	var summary_card := get_node_or_null("UILayer/RightPanel/VBox/SummaryCard")
 	if summary_card:
 		summary_card.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_PAPER, 0.94), Color(UI_BORDER_SUBTLE, 0.72), 18, 1, 12))
+		_ensure_ornament_frame(summary_card, frame_simple, 16, 3, Color(1, 1, 1, 0.30))
 	var facts_card := get_node_or_null("UILayer/RightPanel/VBox/PrimaryFactsCard")
 	if facts_card:
 		facts_card.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_PAPER, 0.92), Color(UI_BORDER_SUBTLE, 0.6), 16, 1, 12))
 	var action_card := get_node_or_null("UILayer/RightPanel/VBox/ActionCard")
 	if action_card:
 		action_card.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_2, 0.92), Color(UI_ACCENT, 0.35), 16, 1, 12))
+		_ensure_ornament_frame(action_card, frame_simple, 16, 3, Color(1, 1, 1, 0.24))
 	var quest_header := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestDetailHeader")
 	if quest_header:
 		quest_header.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_PAPER, 0.97), Color(UI_BORDER_SUBTLE, 0.84), 20, 1, 14))
+		_ensure_ornament_frame(quest_header, frame_ornate, 16, 4, Color(1, 1, 1, 0.42))
 	var quest_meta := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestMetaCard")
 	if quest_meta:
 		quest_meta.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_2, 0.94), Color(UI_ACCENT, 0.22), 18, 1, 14))
@@ -241,6 +451,9 @@ func _apply_visual_design_system() -> void:
 	var status_card := get_node_or_null("UILayer/LeftPanel/VBox/StatusCard")
 	if status_card:
 		status_card.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_2, 0.86), Color(UI_BORDER_SUBTLE, 0.55), 14, 1, 10))
+	var quest_header_box := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestHeader") as Control
+	if quest_header_box:
+		_ensure_divider_texture(quest_header_box)
 
 	for path in [
 		"UILayer/TopBar/TopBarRow/QuestDrawerButton",
@@ -269,6 +482,18 @@ func _apply_visual_design_system() -> void:
 	_apply_button_theme(get_node_or_null("UILayer/RightPanel/VBox/ActionCard/ActionVBox/ActionButtons/BuildingActionButton"), "accent")
 	_apply_button_theme(get_node_or_null("UILayer/RightPanel/VBox/ActionCard/ActionVBox/ActionButtons/OutputActionButton"), "paper")
 	_apply_button_theme(get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestActionButton"), "accent")
+	var quest_button := get_node_or_null("UILayer/TopBar/TopBarRow/QuestDrawerButton")
+	if quest_button:
+		quest_button.icon = icon_book
+	var build_toggle := get_node_or_null("UILayer/TopBar/TopBarRow/BuildPanelToggleButton")
+	if build_toggle:
+		build_toggle.icon = icon_campfire
+	var details_toggle := get_node_or_null("UILayer/TopBar/TopBarRow/DetailsPanelToggleButton")
+	if details_toggle:
+		details_toggle.icon = icon_character
+	var quest_action_button := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestActionButton")
+	if quest_action_button:
+		quest_action_button.icon = icon_sword
 
 	_apply_label_role(get_node_or_null("UILayer/TopBar/TopBarRow/GoldLabel"), "panel_title")
 	_apply_label_role(get_node_or_null("UILayer/TopBar/TopBarRow/HeroSummaryLabel"), "body")
@@ -287,6 +512,7 @@ func _apply_visual_design_system() -> void:
 	if help:
 		help.set("theme_override_colors/font_color", UI_TEXT_MUTED)
 		help.set("theme_override_font_sizes/font_size", TYPE_BODY)
+		help.set("theme_override_fonts/font", _load_runtime_font(FONT_BODY_PATH))
 
 	for path in [
 		"UILayer/RightPanel/VBox/HealthSectionLabel",
@@ -304,6 +530,10 @@ func _apply_visual_design_system() -> void:
 	if xp_bar:
 		xp_bar.set("theme_override_styles/background", _make_style(Color(UI_SURFACE_2, 0.8), Color(UI_BORDER_SUBTLE, 0.5), 999, 1, 4))
 		xp_bar.set("theme_override_styles/fill", _make_style(UI_ACCENT, UI_ACCENT.lightened(0.16), 999, 0, 4))
+	var portrait_panel := get_node_or_null("UILayer/RightPanel/VBox/SummaryCard/SummaryRow/PortraitPanel")
+	if portrait_panel:
+		portrait_panel.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_2, 0.88), Color(UI_ACCENT, 0.28), 16, 1, 8))
+		_ensure_ornament_frame(portrait_panel, frame_simple, 16, 3, Color(1, 1, 1, 0.28))
 
 func _ready() -> void:
 	cmd_server.set_sim(sim)
@@ -316,81 +546,107 @@ func _ready() -> void:
 		return
 
 	if not RuntimeConfig.is_headless():
+		_ensure_ui_sound_players()
 		var btn := get_node_or_null("UILayer/LeftPanel/VBox/BuildRail/BuildButton")
 		if btn:
 			btn.pressed.connect(_on_build_tavern_pressed)
+			_wire_button_sfx(btn)
 		var btn2 := get_node_or_null("UILayer/LeftPanel/VBox/BuildRail/BuildWeaponsShopButton")
 		if btn2:
 			btn2.pressed.connect(_on_build_weapons_shop_pressed)
+			_wire_button_sfx(btn2)
 		var btn3 := get_node_or_null("UILayer/LeftPanel/VBox/BuildRail/BuildTempleButton")
 		if btn3:
 			btn3.pressed.connect(_on_build_temple_pressed)
+			_wire_button_sfx(btn3)
 		var upgrade_btn := get_node_or_null("UILayer/LeftPanel/VBox/ContextUpgradeButton")
 		if upgrade_btn:
 			upgrade_btn.pressed.connect(_start_selected_building_upgrade)
+			_wire_button_sfx(upgrade_btn, "confirm")
 		var save_btn := get_node_or_null("UILayer/LeftPanel/VBox/SaveLoadRow/SaveButton")
 		if save_btn:
 			save_btn.pressed.connect(_save_world)
+			_wire_button_sfx(save_btn)
 		var load_btn := get_node_or_null("UILayer/LeftPanel/VBox/SaveLoadRow/LoadButton")
 		if load_btn:
 			load_btn.pressed.connect(_load_world)
+			_wire_button_sfx(load_btn)
 		var enable_all_btn := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestListColumn/QuestFilterControls/EnableAllQuestsButton")
 		if enable_all_btn:
 			enable_all_btn.pressed.connect(func() -> void: _set_all_quest_filters(true))
+			_wire_button_sfx(enable_all_btn)
 		var disable_all_btn := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestListColumn/QuestFilterControls/DisableAllQuestsButton")
 		if disable_all_btn:
 			disable_all_btn.pressed.connect(func() -> void: _set_all_quest_filters(false))
+			_wire_button_sfx(disable_all_btn)
 		var quest_btn := get_node_or_null("UILayer/TopBar/TopBarRow/QuestDrawerButton")
 		if quest_btn:
 			quest_btn.pressed.connect(_toggle_quest_drawer)
+			_wire_button_sfx(quest_btn, "open")
 		var quest_close := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestHeader/QuestCloseButton")
 		if quest_close:
 			quest_close.pressed.connect(_toggle_quest_drawer)
+			_wire_button_sfx(quest_close, "close")
 		var build_toggle := get_node_or_null("UILayer/TopBar/TopBarRow/BuildPanelToggleButton")
 		if build_toggle:
 			build_toggle.pressed.connect(_toggle_left_panel)
+			_wire_button_sfx(build_toggle)
 		var details_toggle := get_node_or_null("UILayer/TopBar/TopBarRow/DetailsPanelToggleButton")
 		if details_toggle:
 			details_toggle.pressed.connect(_toggle_right_panel)
+			_wire_button_sfx(details_toggle)
 		var left_collapse := get_node_or_null("UILayer/LeftPanel/VBox/Header/CollapseButton")
 		if left_collapse:
 			left_collapse.pressed.connect(_toggle_left_panel)
+			_wire_button_sfx(left_collapse)
 		var right_collapse := get_node_or_null("UILayer/RightPanel/VBox/Header/CollapseButton")
 		if right_collapse:
 			right_collapse.pressed.connect(_toggle_right_panel)
+			_wire_button_sfx(right_collapse)
 		var left_tab := get_node_or_null("UILayer/LeftPanelTab")
 		if left_tab:
 			left_tab.pressed.connect(_toggle_left_panel)
+			_wire_button_sfx(left_tab)
 		var right_tab := get_node_or_null("UILayer/RightPanelTab")
 		if right_tab:
 			right_tab.pressed.connect(_toggle_right_panel)
+			_wire_button_sfx(right_tab)
 		var expand_log := get_node_or_null("UILayer/EventLogPanel/VBox/Header/ExpandButton")
 		if expand_log:
 			expand_log.pressed.connect(_toggle_event_feed)
+			_wire_button_sfx(expand_log)
 		var speed1 := get_node_or_null("UILayer/TopBar/TopBarRow/Speed1Button")
 		if speed1:
 			speed1.pressed.connect(func() -> void: _set_time_scale(1.0))
+			_wire_button_sfx(speed1)
 		var speed2 := get_node_or_null("UILayer/TopBar/TopBarRow/Speed2Button")
 		if speed2:
 			speed2.pressed.connect(func() -> void: _set_time_scale(2.0))
+			_wire_button_sfx(speed2)
 		var speed3 := get_node_or_null("UILayer/TopBar/TopBarRow/Speed3Button")
 		if speed3:
 			speed3.pressed.connect(func() -> void: _set_time_scale(3.0))
+			_wire_button_sfx(speed3)
 		var options_btn := get_node_or_null("UILayer/TopBar/TopBarRow/OptionsButton")
 		if options_btn:
 			options_btn.pressed.connect(_open_options_menu)
+			_wire_button_sfx(options_btn, "open")
 		var more_details_btn := get_node_or_null("UILayer/RightPanel/VBox/MoreDetailsButton")
 		if more_details_btn:
 			more_details_btn.pressed.connect(_toggle_details_expanded)
+			_wire_button_sfx(more_details_btn)
 		var building_action_btn := get_node_or_null("UILayer/RightPanel/VBox/ActionCard/ActionVBox/ActionButtons/BuildingActionButton")
 		if building_action_btn:
 			building_action_btn.pressed.connect(_start_selected_building_upgrade)
+			_wire_button_sfx(building_action_btn, "confirm")
 		var output_action_btn := get_node_or_null("UILayer/RightPanel/VBox/ActionCard/ActionVBox/ActionButtons/OutputActionButton")
 		if output_action_btn:
 			output_action_btn.pressed.connect(_set_selected_building_output_mode)
+			_wire_button_sfx(output_action_btn)
 		var quest_action_btn := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestActionButton")
 		if quest_action_btn:
 			quest_action_btn.pressed.connect(_accept_selected_quest)
+			_wire_button_sfx(quest_action_btn, "confirm")
 		get_viewport().size_changed.connect(_fit_ui_to_viewport)
 		GameState.gold_changed.connect(_on_gold_changed)
 		GameState.building_placed.connect(_on_building_state_changed)
@@ -1097,16 +1353,19 @@ func _refresh_quest_offer_cards() -> void:
 			state_text
 		]
 		_apply_button_theme(button, "offer", offer_id == _selected_quest_id)
+		button.icon = _load_runtime_texture(ICON_BOOK_PATH) if bool(preview.get("can_accept", false)) else _load_runtime_texture(ICON_SKULL_PATH)
 		var local_offer_id := offer_id
 		button.pressed.connect(func() -> void:
 			_selected_quest_id = local_offer_id
 			_refresh_quest_ui()
 		)
+		_wire_button_sfx(button)
 		list.add_child(button)
 	if GameState.quests.is_empty():
 		var empty := Label.new()
 		empty.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		empty.text = "No quests are available. Produce rumours at the Inn to discover work."
+		_apply_label_role(empty, "body", true)
 		list.add_child(empty)
 	elif not has_selected:
 		_selected_quest_id = str(GameState.quests[0].get("offer_id", ""))
@@ -1154,6 +1413,7 @@ func _refresh_selected_quest_detail() -> void:
 	if action_button:
 		action_button.disabled = not bool(preview.get("can_accept", false))
 		action_button.text = "Accept Quest" if bool(preview.get("can_accept", false)) else str(preview.get("reason", "Need party"))
+		action_button.icon = _load_runtime_texture(ICON_SWORD_PATH) if bool(preview.get("can_accept", false)) else _load_runtime_texture(ICON_SHIELD_PATH)
 
 func _get_quest_offer(offer_id: String) -> Dictionary:
 	for quest: Dictionary in GameState.quests:
@@ -1520,6 +1780,9 @@ func _refresh_top_bar() -> void:
 	var summary := get_node_or_null("UILayer/TopBar/TopBarRow/HeroSummaryLabel")
 	if summary == null:
 		return
+	var gold_label := get_node_or_null("UILayer/TopBar/TopBarRow/GoldLabel")
+	if gold_label:
+		gold_label.text = "Treasury  %dg" % GameState.gold
 	var active_expeditions := 0
 	for hero in GameState.heroes.values():
 		var state: String = hero.get("state", "")
@@ -1556,10 +1819,12 @@ func _refresh_roster_strip() -> void:
 		]
 		var local_hero_id := int(hero_id)
 		_apply_button_theme(button, "roster", local_hero_id == _selected_hero_id)
+		button.icon = _load_runtime_texture(ICON_CHARACTER_PATH)
 		button.pressed.connect(func() -> void:
 			_show_hero_panel(local_hero_id)
 			_set_status("Selected %s" % hero_name)
 		)
+		_wire_button_sfx(button)
 		roster.add_child(button)
 
 func _set_time_scale(value: float) -> void:
