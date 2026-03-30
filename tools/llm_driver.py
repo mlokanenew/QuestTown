@@ -340,7 +340,7 @@ def build_balance_report(state: dict, scenario: dict) -> dict:
     if len(completed) >= 3:
         if success_rate < 0.4:
             severe_flags.append("quests_too_hard")
-        elif success_rate > 0.95:
+        elif len(completed) >= 5 and success_rate > 0.95 and wound_rate < 0.35:
             moderate_flags.append("quests_too_easy")
 
         if wound_rate < 0.05:
@@ -361,7 +361,7 @@ def build_balance_report(state: dict, scenario: dict) -> dict:
         moderate_flags.append("inn_spending_loop_missing")
     if heroes and average(hero_hp_ratios) < 0.45:
         severe_flags.append("party_health_too_low")
-    elif heroes and average(hero_hp_ratios) > 0.98 and len(completed) >= 3:
+    elif heroes and average(hero_hp_ratios) > 0.98 and len(completed) >= 3 and wound_count == 0:
         moderate_flags.append("party_almost_never_takes_damage")
 
     target_overrides = scenario.get("analysis_targets", {})

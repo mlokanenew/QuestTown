@@ -12,6 +12,6 @@
   "assertions": [
     {"assert": "building_action_eq", "type": "tavern", "value": "upgrading"},
     {"assert": "building_action_eq", "type": "weapons_shop", "value": "output"},
-    {"assert": "gold_eq", "value": 380}
+    {"assert": "gold_eq", "value": 407}
   ]
 }

@@ -5,9 +5,9 @@ class_name BuildingSystem
 
 const CELL_SIZE := 1.0  # world units per grid cell
 const OUTPUT_TICKS := {
-	"tavern": 780,
-	"weapons_shop": 720,
-	"temple": 720,
+	"tavern": 660,
+	"weapons_shop": 600,
+	"temple": 600,
 }
 const UPGRADE_TICKS := {
 	"tavern": 420,

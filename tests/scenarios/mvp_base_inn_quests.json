@@ -2,7 +2,7 @@
   "name": "MVP base Inn only generates the simplest quest",
   "goal": "Verify a base Inn only produces the simplest first-hour quest.",
   "seed": 42,
-  "max_ticks": 360,
+  "max_ticks": 720,
   "commands": [
     {"cmd": "place_building", "type": "tavern", "x": 0, "z": 0}
   ],

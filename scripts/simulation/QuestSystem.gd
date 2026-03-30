@@ -253,7 +253,9 @@ func _resolve_quest_party(leader_id: int, building_system: Object) -> void:
 		success_bonus += int(hero.get("gear_bonus", 0))
 		survival_bonus += int(hero.get("blessing_bonus", 0))
 	var roll: int = _rng.randi_range(1, 6)
-	var threshold: int = int(quest.get("difficulty", 1)) * 4 * party_members.size() + int(quest.get("risk_level", 1)) * 2
+	var threshold: int = int(quest.get("difficulty", 1)) * 3 * party_members.size()
+	threshold += int(quest.get("risk_level", 1)) * 2
+	threshold += max(0, party_members.size() - 3)
 	var succeeded: bool = power + success_bonus + survival_bonus + roll >= threshold
 	var party_gold_gain: int = int(quest.get("gold_reward", 0))
 	var party_xp_gain: int = int(quest.get("xp_reward", 0))
@@ -432,7 +434,7 @@ func _building_bonus(building_system: Object, building_type: String, effect_key:
 
 func _pick_quest_destination() -> Vector3:
 	var direction := -1.0 if _rng.randf() < 0.5 else 1.0
-	return Vector3(direction * _rng.randf_range(22.0, 30.0), 0.0, -_rng.randf_range(18.0, 28.0))
+	return Vector3(direction * _rng.randf_range(18.0, 24.0), 0.0, -_rng.randf_range(14.0, 22.0))
 
 func _tavern_position() -> Vector3:
 	for building in GameState.buildings.values():

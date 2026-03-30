@@ -15,6 +15,6 @@
     {"assert": "building_exists", "type": "weapons_shop"},
     {"assert": "building_level_eq", "type": "tavern", "value": 2},
     {"assert": "building_level_eq", "type": "weapons_shop", "value": 1},
-    {"assert": "gold_eq", "value": 415}
+    {"assert": "gold_eq", "value": 432}
   ]
 }

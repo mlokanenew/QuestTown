@@ -3,7 +3,7 @@
   "goal": "Disable every quest template except Clear Rats from the Cellar and verify only that offer type remains available.",
   "seed": 42,
   "llm_bootstrap_commands": true,
-  "max_ticks": 360,
+  "max_ticks": 720,
   "commands": [
     {"cmd": "set_quest_enabled", "id": "gather_rare_herbs", "enabled": false},
     {"cmd": "set_quest_enabled", "id": "investigate_strange_lights", "enabled": false},

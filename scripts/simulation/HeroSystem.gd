@@ -134,8 +134,9 @@ func _finish_return(id: int) -> void:
 		GameState.heroes[id]["idle_ticks_remaining"] = int(hero.get("return_idle_ticks", 180))
 		GameState.heroes[id]["needs_lodging"] = true
 		GameState.heroes[id]["needs_meal"] = true
-		GameState.heroes[id]["service_cooldown_ticks"] = 30
-		GameState.heroes[id]["wound_state"] = "minor_wounded" if int(GameState.heroes[id].get("health", 0)) < int(GameState.heroes[id].get("max_health", 0)) else "healthy"
+		var wounded_on_return: bool = int(GameState.heroes[id].get("health", 0)) < int(GameState.heroes[id].get("max_health", 0))
+		GameState.heroes[id]["service_cooldown_ticks"] = 5 if wounded_on_return else 30
+		GameState.heroes[id]["wound_state"] = "minor_wounded" if wounded_on_return else "healthy"
 		GameState.set_hero_state(id, "idling")
 	GameState.log_event("hero_returned_from_quest", {
 		"hero_id": id,

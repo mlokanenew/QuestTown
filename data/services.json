@@ -4,7 +4,7 @@
     "name": "Lodging",
     "building_type": "tavern",
     "category": "hospitality",
-    "base_cost": 2,
+    "base_cost": 4,
     "source_table": "table_5_18_services"
   },
   {
@@ -12,7 +12,7 @@
     "name": "Meal and Ale",
     "building_type": "tavern",
     "category": "food",
-    "base_cost": 1,
+    "base_cost": 3,
     "source_table": "table_5_8_food_drink"
   },
   {
@@ -20,7 +20,7 @@
     "name": "Temple Healing",
     "building_type": "temple",
     "category": "medical",
-    "base_cost": 3,
+    "base_cost": 5,
     "source_table": "table_5_18_services"
   },
   {
@@ -28,7 +28,7 @@
     "name": "Temple Blessing",
     "building_type": "temple",
     "category": "devotion",
-    "base_cost": 2,
+    "base_cost": 3,
     "source_table": "table_5_19_special_equipment"
   },
   {
