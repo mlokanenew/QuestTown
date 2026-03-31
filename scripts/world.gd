@@ -1981,7 +1981,7 @@ func _refresh_roster_strip() -> void:
 		var row := HBoxContainer.new()
 		row.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		row.theme_override_constants["separation"] = 10
+		row.add_theme_constant_override("separation", 10)
 		button.add_child(row)
 
 		var portrait := TextureRect.new()
@@ -1994,7 +1994,7 @@ func _refresh_roster_strip() -> void:
 
 		var info := VBoxContainer.new()
 		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		info.theme_override_constants["separation"] = 2
+		info.add_theme_constant_override("separation", 2)
 		info.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		row.add_child(info)
 
@@ -2013,7 +2013,7 @@ func _refresh_roster_strip() -> void:
 		var status_box := VBoxContainer.new()
 		status_box.custom_minimum_size = Vector2(92, 0)
 		status_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		status_box.theme_override_constants["separation"] = 4
+		status_box.add_theme_constant_override("separation", 4)
 		row.add_child(status_box)
 
 		var health_ratio := 0.0
