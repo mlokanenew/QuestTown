@@ -8,7 +8,8 @@
   "quests": {
     "max_visible": 4,
     "base_visible": 2,
-    "urgent_chance": 0.2,
+    "offers_expire": false,
+    "urgent_chance": 0.0,
     "default_expiry_min": 480,
     "default_expiry_max": 660,
     "urgent_expiry_min": 300,

@@ -1676,13 +1676,18 @@ func _quest_expiry_minutes(expiry_ticks: int) -> float:
 
 func _quest_expiry_text(quest: Dictionary) -> String:
 	var expiry_ticks := int(quest.get("expiry_ticks_remaining", 0))
+	if expiry_ticks <= 0:
+		return "No expiry. This contract stays on the board until you act on it."
 	var minutes_left := _quest_expiry_minutes(expiry_ticks)
 	if bool(quest.get("urgent", false)):
 		return "Urgent offer. Expires in %.1f in-game minutes." % minutes_left
 	return "Time left: %.1f in-game minutes." % minutes_left
 
 func _quest_expiry_short_label(quest: Dictionary) -> String:
-	var minutes_left := _quest_expiry_minutes(int(quest.get("expiry_ticks_remaining", 0)))
+	var expiry_ticks := int(quest.get("expiry_ticks_remaining", 0))
+	if expiry_ticks <= 0:
+		return "No expiry"
+	var minutes_left := _quest_expiry_minutes(expiry_ticks)
 	return "Expires in %.1fm" % minutes_left
 
 func _risk_label(risk_level: int) -> String:
@@ -1938,7 +1943,7 @@ func _apply_panel_state() -> void:
 
 func _fit_ui_to_viewport() -> void:
 	var viewport_size: Vector2 = get_viewport().get_visible_rect().size
-	var margin: float = 28.0
+	var margin: float = 34.0
 	var left_panel := get_node_or_null("UILayer/LeftPanel")
 	if left_panel:
 		var left_width: float = clamp(viewport_size.x * 0.135, 188.0, 214.0)
@@ -1948,16 +1953,16 @@ func _fit_ui_to_viewport() -> void:
 		left_panel.offset_bottom = -118.0
 	var right_panel := get_node_or_null("UILayer/RightPanel")
 	if right_panel:
-		var desired_width: float = clamp(viewport_size.x * 0.158, 252.0, 300.0)
-		right_panel.offset_left = -desired_width - margin - 10.0
-		right_panel.offset_right = -margin - 10.0
+		var desired_width: float = clamp(viewport_size.x * 0.148, 232.0, 276.0)
+		right_panel.offset_left = -desired_width - margin - 18.0
+		right_panel.offset_right = -margin - 18.0
 		right_panel.offset_top = 94.0
 		right_panel.offset_bottom = -118.0
 		right_panel.clip_contents = true
 	var right_tab := get_node_or_null("UILayer/RightPanelTab")
 	if right_tab:
-		right_tab.offset_left = -margin - 46.0
-		right_tab.offset_right = -margin - 10.0
+		right_tab.offset_left = -margin - 54.0
+		right_tab.offset_right = -margin - 18.0
 		right_tab.offset_top = 108.0
 		right_tab.offset_bottom = 156.0
 	var left_tab := get_node_or_null("UILayer/LeftPanelTab")

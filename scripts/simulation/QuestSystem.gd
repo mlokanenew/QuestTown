@@ -551,6 +551,9 @@ func import_state(data: Dictionary) -> void:
 	_next_offer_id = int(data.get("next_offer_id", 1))
 
 func _tick_offer_expiry() -> void:
+	var quest_config: Dictionary = DataLoader.get_quest_config()
+	if not bool(quest_config.get("offers_expire", true)):
+		return
 	if GameState.quests.is_empty():
 		return
 	var next_quests: Array = []
@@ -576,6 +579,8 @@ func _tick_offer_expiry() -> void:
 
 func _roll_expiry_ticks(urgent: bool) -> int:
 	var quest_config: Dictionary = DataLoader.get_quest_config()
+	if not bool(quest_config.get("offers_expire", true)):
+		return 0
 	if urgent:
 		return _rng.randi_range(
 			int(quest_config.get("urgent_expiry_min", 180)),
