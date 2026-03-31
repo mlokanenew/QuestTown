@@ -496,9 +496,16 @@ func _apply_visual_design_system() -> void:
 		quest_action_button.icon = icon_sword
 
 	_apply_label_role(get_node_or_null("UILayer/TopBar/TopBarRow/GoldLabel"), "panel_title")
+	_apply_label_role(get_node_or_null("UILayer/TopBar/TopBarRow/TownTitleStack/TownTitleLabel"), "screen_title")
+	_apply_label_role(get_node_or_null("UILayer/TopBar/TopBarRow/TownTitleStack/TownSubtitleLabel"), "meta")
 	_apply_label_role(get_node_or_null("UILayer/TopBar/TopBarRow/HeroSummaryLabel"), "body")
 	_apply_label_role(get_node_or_null("UILayer/LeftPanel/VBox/Header/TitleLabel"), "panel_title")
+	_apply_label_role(get_node_or_null("UILayer/LeftPanel/VBox/BuildSectionLabel"), "section")
+	_apply_label_role(get_node_or_null("UILayer/LeftPanel/VBox/BuildSectionHint"), "meta")
+	_apply_label_role(get_node_or_null("UILayer/LeftPanel/VBox/UtilitySectionLabel"), "section")
 	_apply_label_role(get_node_or_null("UILayer/RightPanel/VBox/Header/EntityTitle"), "panel_title")
+	_apply_label_role(get_node_or_null("UILayer/RightPanel/VBox/InspectorLeadLabel"), "meta")
+	_apply_label_role(get_node_or_null("UILayer/RightPanel/VBox/ActionSectionLabel"), "section")
 	_apply_label_role(get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestHeader/QuestTitle"), "screen_title")
 	_apply_label_role(get_node_or_null("UILayer/RosterPanel/RosterVBox/RosterTitle"), "section")
 	_apply_label_role(get_node_or_null("UILayer/EventLogPanel/VBox/Header/TitleLabel"), "section")
@@ -797,6 +804,7 @@ func _refresh_hero_panel(hero_id: int) -> void:
 	var h: Dictionary = GameState.heroes[hero_id]
 	var portrait := get_node_or_null("UILayer/RightPanel/VBox/SummaryCard/SummaryRow/PortraitPanel/PortraitMargin/PortraitTexture")
 	var title_lbl := get_node_or_null("UILayer/RightPanel/VBox/Header/EntityTitle")
+	var lead_lbl := get_node_or_null("UILayer/RightPanel/VBox/InspectorLeadLabel")
 	var name_lbl := get_node_or_null("UILayer/RightPanel/VBox/SummaryCard/SummaryRow/SummaryText/NameLabel")
 	var career_lbl := get_node_or_null("UILayer/RightPanel/VBox/SummaryCard/SummaryRow/SummaryText/CareerLabel")
 	var state_lbl := get_node_or_null("UILayer/RightPanel/VBox/SummaryCard/SummaryRow/SummaryText/StateLabel")
@@ -823,7 +831,9 @@ func _refresh_hero_panel(hero_id: int) -> void:
 	var xp := int(h.get("xp", 0))
 	var xp_progress := xp % 100
 	if title_lbl:
-		title_lbl.text = "Hero"
+		title_lbl.text = "Adventurer"
+	if lead_lbl:
+		lead_lbl.text = "Field record, readiness, and WFRP starter profile."
 	if portrait:
 		var archetype: String = str(h.get("career_archetype", "commoner")).to_lower()
 		portrait.texture = load(HERO_PORTRAITS.get(archetype, HERO_PORTRAITS["commoner"]))
@@ -936,6 +946,7 @@ func _refresh_building_panel(building_id: int) -> void:
 		return
 	var portrait := get_node_or_null("UILayer/RightPanel/VBox/SummaryCard/SummaryRow/PortraitPanel/PortraitMargin/PortraitTexture")
 	var title_lbl := get_node_or_null("UILayer/RightPanel/VBox/Header/EntityTitle")
+	var lead_lbl := get_node_or_null("UILayer/RightPanel/VBox/InspectorLeadLabel")
 	var name_lbl := get_node_or_null("UILayer/RightPanel/VBox/SummaryCard/SummaryRow/SummaryText/NameLabel")
 	var career_lbl := get_node_or_null("UILayer/RightPanel/VBox/SummaryCard/SummaryRow/SummaryText/CareerLabel")
 	var state_lbl := get_node_or_null("UILayer/RightPanel/VBox/SummaryCard/SummaryRow/SummaryText/StateLabel")
@@ -963,6 +974,8 @@ func _refresh_building_panel(building_id: int) -> void:
 		level_name = str(levels[level - 1].get("name", ""))
 	if title_lbl:
 		title_lbl.text = "Building Ledger"
+	if lead_lbl:
+		lead_lbl.text = "Current work, town role, and the next unlock in the chain."
 	if portrait:
 		portrait.texture = load(BUILDING_ICONS.get(building_type, ""))
 	if name_lbl:
@@ -989,7 +1002,7 @@ func _refresh_building_panel(building_id: int) -> void:
 	if health_lbl:
 		health_lbl.text = "Footprint %s" % str(data.get("footprint", [1, 1]))
 	if primary_lbl:
-		primary_lbl.text = "%s\n\nProjected upgrade effect: %s" % [
+		primary_lbl.text = "Current role: %s\n\nNext unlock: %s" % [
 			data.get("description", ""),
 			_next_upgrade_summary(building)
 		]
@@ -1262,7 +1275,7 @@ func _setup_quest_menu() -> void:
 func _refresh_quest_ui() -> void:
 	var summary_label := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestListColumn/QuestFilterSummaryLabel")
 	if summary_label:
-		summary_label.text = "Available Quests: %d" % GameState.quests.size()
+		summary_label.text = "%d contracts on the board. Select one to inspect the party fit and launch window." % GameState.quests.size()
 
 	_refresh_quest_offer_cards()
 	_refresh_selected_quest_detail()
@@ -1298,10 +1311,10 @@ func _refresh_quest_ui() -> void:
 		])
 
 	if active_lines.is_empty():
-		active_summary.text = "No heroes are out on quests."
+		active_summary.text = "No expeditions are currently in the field."
 		active_list.text = "No active expeditions."
 	else:
-		active_summary.text = "Departing: %d   On Quest: %d   Returning: %d" % [
+		active_summary.text = "Departing %d   In the field %d   Returning %d" % [
 			departing_count,
 			on_quest_count,
 			returning_count
@@ -1339,7 +1352,7 @@ func _refresh_quest_offer_cards() -> void:
 		if offer_id == _selected_quest_id:
 			has_selected = true
 		var button := Button.new()
-		button.custom_minimum_size = Vector2(0, 74)
+		button.custom_minimum_size = Vector2(0, 86)
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		var preview: Dictionary = sim.get_quest_acceptance_preview(int(quest_offer.get("offer_id", -1)))
@@ -1387,7 +1400,7 @@ func _refresh_selected_quest_detail() -> void:
 		if detail_summary:
 			detail_summary.text = "Produce rumours at the Inn before the board can offer expeditions."
 		if detail_kicker:
-			detail_kicker.text = "Quest Board"
+			detail_kicker.text = "Mission Board"
 		if action_button:
 			action_button.disabled = true
 			action_button.text = "Accept Quest"
@@ -1395,15 +1408,15 @@ func _refresh_selected_quest_detail() -> void:
 	var template_id := str(quest.get("template_id", ""))
 	var preview: Dictionary = sim.get_quest_acceptance_preview(int(quest.get("offer_id", -1)))
 	if detail_kicker:
-		detail_kicker.text = "Available Now"
+		detail_kicker.text = "Ready for Review"
 	if detail_title:
 		detail_title.text = str(quest.get("name", template_id))
 	if detail_summary:
 		detail_summary.text = _quest_summary_text(quest)
 	if reward_label:
-		reward_label.text = "Reward  %dg" % int(quest.get("gold_reward", 0))
+		reward_label.text = "Reward  %dg treasury flow through adventurers" % int(quest.get("gold_reward", 0))
 	if xp_label:
-		xp_label.text = "Experience  %dxp" % int(quest.get("xp_reward", 0))
+		xp_label.text = "Experience  %dxp to the party" % int(quest.get("xp_reward", 0))
 	if risk_label:
 		risk_label.text = "Risk  Wound %s   Party %d   Death deferred for MVP" % [_risk_label(int(quest.get("risk_level", 1))), int(quest.get("party_size", 3))]
 	if requirement_label:
@@ -1715,18 +1728,18 @@ func _fit_ui_to_viewport() -> void:
 	var margin: float = 28.0
 	var left_panel := get_node_or_null("UILayer/LeftPanel")
 	if left_panel:
-		var left_width: float = clamp(viewport_size.x * 0.145, 196.0, 228.0)
+		var left_width: float = clamp(viewport_size.x * 0.135, 188.0, 214.0)
 		left_panel.offset_left = margin
 		left_panel.offset_right = margin + left_width
-		left_panel.offset_top = 92.0
-		left_panel.offset_bottom = -124.0
+		left_panel.offset_top = 94.0
+		left_panel.offset_bottom = -118.0
 	var right_panel := get_node_or_null("UILayer/RightPanel")
 	if right_panel:
-		var desired_width: float = clamp(viewport_size.x * 0.20, 280.0, 340.0)
+		var desired_width: float = clamp(viewport_size.x * 0.18, 258.0, 316.0)
 		right_panel.offset_left = -desired_width - margin
 		right_panel.offset_right = -margin
-		right_panel.offset_top = 92.0
-		right_panel.offset_bottom = -124.0
+		right_panel.offset_top = 94.0
+		right_panel.offset_bottom = -118.0
 		right_panel.clip_contents = true
 	var right_tab := get_node_or_null("UILayer/RightPanelTab")
 	if right_tab:
@@ -1742,23 +1755,23 @@ func _fit_ui_to_viewport() -> void:
 		left_tab.offset_bottom = 156.0
 	var roster_panel := get_node_or_null("UILayer/RosterPanel")
 	if roster_panel:
-		var roster_width: float = clamp(viewport_size.x * 0.42, 560.0, 860.0)
+		var roster_width: float = clamp(viewport_size.x * 0.48, 720.0, 1080.0)
 		roster_panel.offset_left = -roster_width * 0.5
 		roster_panel.offset_right = roster_width * 0.5
-		roster_panel.offset_top = -110.0
+		roster_panel.offset_top = -94.0
 		roster_panel.offset_bottom = -18.0
 	var event_panel := get_node_or_null("UILayer/EventLogPanel")
 	if event_panel:
 		event_panel.offset_left = margin
-		event_panel.offset_right = margin + (460.0 if _event_feed_expanded else 360.0)
+		event_panel.offset_right = margin + (500.0 if _event_feed_expanded else 340.0)
 		event_panel.offset_bottom = -18.0
-		event_panel.offset_top = -166.0 if _event_feed_expanded else -92.0
+		event_panel.offset_top = -172.0 if _event_feed_expanded else -88.0
 	var quest_drawer := get_node_or_null("UILayer/QuestDrawer")
 	if quest_drawer:
-		quest_drawer.anchor_left = 0.11
-		quest_drawer.anchor_top = 0.10
-		quest_drawer.anchor_right = 0.89
-		quest_drawer.anchor_bottom = 0.90
+		quest_drawer.anchor_left = 0.09
+		quest_drawer.anchor_top = 0.09
+		quest_drawer.anchor_right = 0.91
+		quest_drawer.anchor_bottom = 0.89
 
 func _toggle_event_feed(expanded: Variant = null) -> void:
 	if expanded == null:
@@ -1783,6 +1796,7 @@ func _refresh_top_bar() -> void:
 	var gold_label := get_node_or_null("UILayer/TopBar/TopBarRow/GoldLabel")
 	if gold_label:
 		gold_label.text = "Treasury  %dg" % GameState.gold
+	var subtitle := get_node_or_null("UILayer/TopBar/TopBarRow/TownTitleStack/TownSubtitleLabel")
 	var active_expeditions := 0
 	for hero in GameState.heroes.values():
 		var state: String = hero.get("state", "")
@@ -1794,6 +1808,11 @@ func _refresh_top_bar() -> void:
 		100.0 * _get_camera_zoom_fraction(),
 		Engine.time_scale
 	]
+	if subtitle:
+		subtitle.text = "%d contracts live   %d buildings placed   click to inspect, launch, and cycle the loop" % [
+			GameState.quests.size(),
+			GameState.buildings.size()
+		]
 	var quest_button := get_node_or_null("UILayer/TopBar/TopBarRow/QuestDrawerButton")
 	if quest_button:
 		quest_button.text = "Quest Board  (K)   %d" % GameState.quests.size()

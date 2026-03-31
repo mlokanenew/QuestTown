@@ -175,9 +175,23 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 14
+
+[node name="TownTitleStack" type="VBoxContainer" parent="UILayer/TopBar/TopBarRow"]
+custom_minimum_size = Vector2(220, 0)
+theme_override_constants/separation = 0
+
+[node name="TownTitleLabel" type="Label" parent="UILayer/TopBar/TopBarRow/TownTitleStack"]
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.97, 0.9, 0.66, 1)
+text = "QuestTown"
+
+[node name="TownSubtitleLabel" type="Label" parent="UILayer/TopBar/TopBarRow/TownTitleStack"]
+theme_override_colors/font_color = Color(0.84, 0.88, 0.92, 1)
+text = "First-hour town loop"
 
 [node name="GoldLabel" type="Label" parent="UILayer/TopBar/TopBarRow"]
+custom_minimum_size = Vector2(170, 0)
 theme_override_colors/font_color = Color(0.97, 0.9, 0.66, 1)
 theme_override_font_sizes/font_size = 20
 text = "Gold: 100"
@@ -240,7 +254,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 12
 
 [node name="Header" type="HBoxContainer" parent="UILayer/LeftPanel/VBox"]
 
@@ -255,6 +269,15 @@ custom_minimum_size = Vector2(34, 0)
 theme_override_styles/normal = SubResource("button_secondary")
 theme_override_styles/hover = SubResource("button_primary")
 text = "<"
+
+[node name="BuildSectionLabel" type="Label" parent="UILayer/LeftPanel/VBox"]
+theme_override_colors/font_color = Color(0.84, 0.88, 0.92, 1)
+text = "Build Rail"
+
+[node name="BuildSectionHint" type="Label" parent="UILayer/LeftPanel/VBox"]
+theme_override_colors/font_color = Color(0.74, 0.78, 0.82, 1)
+autowrap_mode = 3
+text = "Choose a site, then place one of the three town anchors."
 
 [node name="BuildRail" type="VBoxContainer" parent="UILayer/LeftPanel/VBox"]
 theme_override_constants/separation = 8
@@ -289,6 +312,10 @@ theme_override_styles/normal = SubResource("button_primary")
 theme_override_styles/hover = SubResource("button_secondary")
 text = "Upgrade Selected"
 visible = false
+
+[node name="UtilitySectionLabel" type="Label" parent="UILayer/LeftPanel/VBox"]
+theme_override_colors/font_color = Color(0.84, 0.88, 0.92, 1)
+text = "Town File"
 
 [node name="SaveLoadRow" type="HBoxContainer" parent="UILayer/LeftPanel/VBox"]
 theme_override_constants/separation = 8
@@ -341,7 +368,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 12
 
 [node name="Header" type="HBoxContainer" parent="UILayer/RightPanel/VBox"]
 
@@ -356,6 +383,11 @@ custom_minimum_size = Vector2(34, 0)
 theme_override_styles/normal = SubResource("button_secondary")
 theme_override_styles/hover = SubResource("button_primary")
 text = ">"
+
+[node name="InspectorLeadLabel" type="Label" parent="UILayer/RightPanel/VBox"]
+theme_override_colors/font_color = Color(0.74, 0.78, 0.82, 1)
+autowrap_mode = 3
+text = "Selected hero or building details."
 
 [node name="SummaryCard" type="PanelContainer" parent="UILayer/RightPanel/VBox"]
 theme_override_styles/panel = SubResource("panel_card")
@@ -432,6 +464,10 @@ theme_override_styles/panel = SubResource("panel_card")
 theme_override_colors/font_color = Color(0.13, 0.17, 0.21, 1)
 autowrap_mode = 3
 text = "Core facts"
+
+[node name="ActionSectionLabel" type="Label" parent="UILayer/RightPanel/VBox"]
+theme_override_colors/font_color = Color(0.84, 0.88, 0.92, 1)
+text = "Available Orders"
 
 [node name="ActionCard" type="PanelContainer" parent="UILayer/RightPanel/VBox"]
 theme_override_styles/panel = SubResource("panel_soft")
@@ -572,19 +608,21 @@ grow_horizontal = 2
 grow_vertical = 0
 theme_override_styles/panel = SubResource("panel_shell")
 
-[node name="RosterVBox" type="VBoxContainer" parent="UILayer/RosterPanel"]
+[node name="RosterVBox" type="HBoxContainer" parent="UILayer/RosterPanel"]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 6
+theme_override_constants/separation = 12
 
 [node name="RosterTitle" type="Label" parent="UILayer/RosterPanel/RosterVBox"]
+custom_minimum_size = Vector2(164, 0)
 theme_override_colors/font_color = Color(0.95, 0.91, 0.73, 1)
-text = "Adventurers"
+text = "Party and Expeditions"
 
 [node name="RosterStripScroll" type="ScrollContainer" parent="UILayer/RosterPanel/RosterVBox"]
+size_flags_horizontal = 3
 horizontal_scroll_mode = 1
 vertical_scroll_mode = 0
 
@@ -629,22 +667,23 @@ text = "X"
 [node name="QuestHelp" type="Label" parent="UILayer/QuestDrawer/QuestVBox"]
 theme_override_colors/font_color = Color(0.87, 0.9, 0.95, 1)
 autowrap_mode = 3
-text = "Gather rumours at the Inn, inspect the likely party, and explicitly accept the quest when you are ready to send them."
+text = "Gather rumours at the Inn, inspect the likely party, and explicitly launch expeditions when the town is ready."
 
 [node name="QuestContent" type="HBoxContainer" parent="UILayer/QuestDrawer/QuestVBox"]
 size_flags_vertical = 3
-theme_override_constants/separation = 12
+theme_override_constants/separation = 18
 
 [node name="QuestListColumn" type="VBoxContainer" parent="UILayer/QuestDrawer/QuestVBox/QuestContent"]
-custom_minimum_size = Vector2(280, 0)
+custom_minimum_size = Vector2(320, 0)
 size_flags_vertical = 3
-theme_override_constants/separation = 8
+theme_override_constants/separation = 10
 
 [node name="QuestFilterSummaryLabel" type="Label" parent="UILayer/QuestDrawer/QuestVBox/QuestContent/QuestListColumn"]
 theme_override_colors/font_color = Color(0.95, 0.91, 0.73, 1)
-text = "Enabled Templates: 0/0"
+text = "Board Status"
 
 [node name="QuestFilterControls" type="HBoxContainer" parent="UILayer/QuestDrawer/QuestVBox/QuestContent/QuestListColumn"]
+visible = false
 theme_override_constants/separation = 8
 
 [node name="EnableAllQuestsButton" type="Button" parent="UILayer/QuestDrawer/QuestVBox/QuestContent/QuestListColumn/QuestFilterControls"]
@@ -660,11 +699,12 @@ theme_override_styles/hover = SubResource("button_primary")
 text = "Disable All"
 
 [node name="QuestFilterList" type="VBoxContainer" parent="UILayer/QuestDrawer/QuestVBox/QuestContent/QuestListColumn"]
+visible = false
 theme_override_constants/separation = 4
 
 [node name="QuestOffersTitle" type="Label" parent="UILayer/QuestDrawer/QuestVBox/QuestContent/QuestListColumn"]
 theme_override_colors/font_color = Color(0.95, 0.91, 0.73, 1)
-text = "Quest Cards"
+text = "Available Contracts"
 
 [node name="QuestOffersList" type="VBoxContainer" parent="UILayer/QuestDrawer/QuestVBox/QuestContent/QuestListColumn"]
 size_flags_vertical = 3
@@ -737,7 +777,7 @@ theme_override_styles/hover = SubResource("button_secondary")
 text = "Accept Quest"
 
 [node name="QuestLowerRow" type="HBoxContainer" parent="UILayer/QuestDrawer/QuestVBox"]
-theme_override_constants/separation = 12
+theme_override_constants/separation = 16
 
 [node name="ActiveQuestCard" type="PanelContainer" parent="UILayer/QuestDrawer/QuestVBox/QuestLowerRow"]
 size_flags_horizontal = 3
