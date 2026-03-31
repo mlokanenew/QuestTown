@@ -1134,17 +1134,17 @@ func _refresh_building_panel(building_id: int) -> void:
 		name_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	if career_lbl:
-		career_lbl.text = "Town anchor\n%s" % str(building_type).replace("_", " ").capitalize()
+		career_lbl.text = "Town anchor"
 		career_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		career_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	if state_lbl:
-		state_lbl.text = "Current mode  %s" % _building_mode_name(building)
+		state_lbl.text = "%s" % _building_mode_name(building)
+		state_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		state_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	if summary_lbl:
-		summary_lbl.text = "Tier %s  •  Base %dg  •  Site %.0f, %.0f" % [
+		summary_lbl.text = "%s  •  Base %dg" % [
 			level_name if level_name != "" else "Base",
-			int(data.get("base_cost", 0)),
-			float(building.get("position", {}).get("x", 0.0)),
-			float(building.get("position", {}).get("z", 0.0))
+			int(data.get("base_cost", 0))
 		]
 		summary_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		summary_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -1163,12 +1163,15 @@ func _refresh_building_panel(building_id: int) -> void:
 			data.get("description", ""),
 			_next_upgrade_summary(building)
 		]
+		primary_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	if action_lbl:
 		action_lbl.visible = true
 		action_lbl.text = _building_action_summary(building)
+		action_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	if output_lbl:
 		output_lbl.visible = true
 		output_lbl.text = _building_output_summary(building)
+		output_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	if gold_lbl:
 		gold_lbl.text = "Base cost  %dg" % int(data.get("base_cost", 0))
 	if bias_lbl:
@@ -1750,11 +1753,11 @@ func _building_output_summary(building: Dictionary) -> String:
 	var stock: int = int(building.get("output_stock", 0))
 	match building_type:
 		"tavern":
-			return "Stored Rumours: %d   Producing rumours is manual and each click gathers one fresh lead." % stock
+			return "Rumours %d. Manual batch: each click gathers 1 fresh lead." % stock
 		"weapons_shop":
-			return "Supplies In Stock: %d   Producing supplies is manual and stocks one batch for the next expedition." % stock
+			return "Supplies %d. Manual batch: each click stocks 1 supply bundle." % stock
 		"temple":
-			return "Healing Charges Ready: %d   Producing healing is manual and stores one charge for recovery." % stock
+			return "Healing charges %d. Manual batch: each click prepares 1 recovery use." % stock
 		_:
 			return "Stored Output: %d" % stock
 
