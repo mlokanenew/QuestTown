@@ -86,6 +86,12 @@ const HERO_PORTRAITS := {
 	"commoner": "res://assets/characters/barbarian_texture.png",
 }
 
+const QUEST_TYPE_ICONS := {
+	"combat": ICON_SWORD_PATH,
+	"forage": ICON_AWARD_PATH,
+	"spiritual": ICON_CAMPFIRE_PATH,
+}
+
 func _make_style(bg: Color, border: Color, radius: int = RADIUS_PANEL, border_width: int = 1, padding: int = 12) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
 	style.bg_color = bg
@@ -1526,7 +1532,9 @@ func _refresh_quest_offer_cards() -> void:
 			state_text
 		]
 		_apply_button_theme(button, "offer", offer_id == _selected_quest_id)
-		button.icon = _load_runtime_texture(ICON_BOOK_PATH) if bool(preview.get("can_accept", false)) else _load_runtime_texture(ICON_SKULL_PATH)
+		var quest_type := str(quest_offer.get("type", ""))
+		var quest_icon_path := str(QUEST_TYPE_ICONS.get(quest_type, ICON_BOOK_PATH))
+		button.icon = _load_runtime_texture(quest_icon_path) if bool(preview.get("can_accept", false)) else _load_runtime_texture(ICON_SKULL_PATH)
 		var local_offer_id := offer_id
 		button.pressed.connect(func() -> void:
 			_selected_quest_id = local_offer_id
