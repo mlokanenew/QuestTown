@@ -824,7 +824,9 @@ func _ready() -> void:
 		_toggle_event_feed(false)
 		_set_status("LMB place/select  RMB rotate build  Q/E cycle  Del remove  B/C panels  K quests")
 		if RuntimeConfig.is_snapshot():
-			UISnapshotService.notify_world_ready(self)
+			var snapshot_service := get_node_or_null("/root/UISnapshotService")
+			if snapshot_service != null:
+				snapshot_service.notify_world_ready(self)
 
 func _physics_process(delta: float) -> void:
 	if RuntimeConfig.is_headless():
