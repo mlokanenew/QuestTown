@@ -17,11 +17,11 @@ signal event_logged(event: Dictionary)
 signal gold_changed(new_amount: int)
 signal state_reloaded()
 
-const STARTING_GOLD := 500
+const DEFAULT_STARTING_GOLD := 70
 
 var tick: int = 0
 var seed_value: int = 0
-var gold: int = STARTING_GOLD
+var gold: int = DEFAULT_STARTING_GOLD
 
 # Dict[id -> building_dict]
 var buildings: Dictionary = {}
@@ -42,7 +42,7 @@ var _next_hero_id: int = 1
 func reset(p_seed: int) -> void:
 	seed_value = p_seed
 	tick = 0
-	gold = STARTING_GOLD
+	gold = _starting_gold()
 	buildings.clear()
 	heroes.clear()
 	quests.clear()
@@ -253,7 +253,7 @@ func export_state() -> Dictionary:
 func import_state(data: Dictionary) -> void:
 	tick = int(data.get("tick", 0))
 	seed_value = int(data.get("seed_value", 0))
-	gold = int(data.get("gold", STARTING_GOLD))
+	gold = int(data.get("gold", _starting_gold()))
 	buildings.clear()
 	for building: Dictionary in data.get("buildings", []):
 		buildings[int(building.get("id", 0))] = building.duplicate(true)
@@ -271,3 +271,9 @@ func import_state(data: Dictionary) -> void:
 	quest_filters_changed.emit()
 	quest_history_changed.emit()
 	state_reloaded.emit()
+
+func _starting_gold() -> int:
+	var loader: Node = get_node_or_null("/root/DataLoader")
+	if loader != null:
+		return DataLoader.get_starting_gold()
+	return DEFAULT_STARTING_GOLD

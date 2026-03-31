@@ -9,9 +9,12 @@ const IDLE_TICKS  := 300      # ticks to idle at tavern (~5s at 60Hz)
 const LEAVE_DISTANCE := 30.0  # units from map edge to despawn
 
 var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
+var _opening_career_queue: Array = []
 
 func reset(seed_value: int) -> void:
 	_rng.seed = seed_value
+	_opening_career_queue = DataLoader.get_spawn_config().get("opening_careers", DataLoader.MVP_CAREER_IDS).duplicate()
+	_opening_career_queue.shuffle()
 
 func step(delta: float, building_system: Object) -> void:
 	for id in GameState.heroes.keys():
@@ -96,13 +99,19 @@ func _step_hero(id: int, delta: float, building_system: Object) -> void:
 
 func spawn_hero() -> Dictionary:
 	var name := DataLoader.random_hero_name(_rng)
-	var career_data := DataLoader.random_career(_rng)
+	var career_data := _next_career()
 	var h := GameState.add_hero(name, career_data, DataLoader.generate_wfrp_starting_profile(career_data.get("id", ""), _rng))
 	# Start position: random edge of map
 	var spawn_x := _rng.randf_range(-8.0, 8.0)
 	var spawn_pos := Vector3(spawn_x, 0.0, 15.0)
 	_set_position(h["id"], spawn_pos)
 	return h
+
+func _next_career() -> Dictionary:
+	if not _opening_career_queue.is_empty():
+		var career_id: String = str(_opening_career_queue.pop_front())
+		return DataLoader.careers_by_id.get(career_id, DataLoader.random_career(_rng))
+	return DataLoader.random_career(_rng)
 
 func _move_toward(from: Vector3, to: Vector3, delta: float) -> Vector3:
 	var dir := (to - from)

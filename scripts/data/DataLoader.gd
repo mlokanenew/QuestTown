@@ -19,6 +19,7 @@ var services: Array = []
 var gear_catalog: Array = []
 var loot_tables: Array = []
 var hero_names: Dictionary = {"first": [], "last": []}
+var gameplay_config: Dictionary = {}
 var wfrp_source_careers: Array = []
 var wfrp_characteristics: Dictionary = {}
 
@@ -45,6 +46,7 @@ func _ready() -> void:
 	gear_catalog = _load_json("res://data/gear_catalog.json")
 	loot_tables = _load_json("res://data/loot_tables.json")
 	hero_names = _load_json("res://data/hero_names.json")
+	gameplay_config = _load_json("res://data/gameplay_config.json")
 	wfrp_source_careers = _load_json("res://godot_data/wfrp_db/careers.json")
 	wfrp_characteristics = _load_json("res://godot_data/wfrp_db/characteristics.json")
 	careers = _filter_mvp_careers(careers)
@@ -130,6 +132,15 @@ func get_best_gear_offer(building_level: int) -> Dictionary:
 
 func get_wfrp_source_career(career_id: String) -> Dictionary:
 	return wfrp_source_careers_by_id.get(career_id, {})
+
+func get_starting_gold() -> int:
+	return int(gameplay_config.get("starting_gold", 70))
+
+func get_spawn_config() -> Dictionary:
+	return gameplay_config.get("spawn", {})
+
+func get_quest_config() -> Dictionary:
+	return gameplay_config.get("quests", {})
 
 func get_wfrp_trappings(career_id: String) -> Array:
 	return get_wfrp_source_career(career_id).get("trappings", []).duplicate(true)

@@ -2,8 +2,6 @@ extends RefCounted
 class_name SpawnSystem
 ## Decides when to spawn heroes based on world attractiveness.
 
-const SPAWN_INTERVAL  := 180   # ticks between spawns (~3s at 60Hz)
-
 var _ticks_since_spawn: int = 0
 
 func reset() -> void:
@@ -16,7 +14,7 @@ func step(hero_system: Object, economy_system: Object, building_system: Object) 
 		return
 
 	_ticks_since_spawn += 1
-	if _ticks_since_spawn >= SPAWN_INTERVAL:
+	if _ticks_since_spawn >= _spawn_interval():
 		_ticks_since_spawn = 0
 		hero_system.spawn_hero()
 
@@ -25,3 +23,10 @@ func export_state() -> Dictionary:
 
 func import_state(data: Dictionary) -> void:
 	_ticks_since_spawn = int(data.get("ticks_since_spawn", 0))
+
+func _spawn_interval() -> int:
+	var config: Dictionary = DataLoader.get_spawn_config()
+	var opening_count: int = DataLoader.MVP_CAREER_IDS.size()
+	if GameState.heroes.size() < opening_count:
+		return int(config.get("opening_interval_ticks", 45))
+	return int(config.get("regular_interval_ticks", 120))

@@ -35,7 +35,7 @@ DEFAULT_MODEL = "phi3:mini"
 CONNECT_TIMEOUT = 30
 MAX_LLM_TURNS = 24
 OLLAMA_TIMEOUT = 12
-STARTING_GOLD = 500
+STARTING_GOLD = 70
 RUN_UNTIL_EVENTS = {
     "hero_arrived_at_tavern",
     "hero_departed_for_quest",
@@ -207,6 +207,24 @@ def check_assertions(assertions: list, state: dict) -> tuple[bool, list]:
                 and int(hero.get("quest_party_size", 0)) >= target_size
                 for hero in heroes
             ):
+                failures.append(assertion)
+        elif kind == "hero_careers_include":
+            required = set(assertion.get("value", []))
+            seen = {str(hero.get("career_id", "")) for hero in heroes}
+            if not required.issubset(seen):
+                failures.append(assertion)
+        elif kind == "any_urgent_quest":
+            if not any(bool(quest.get("urgent", False)) for quest in state.get("quests", [])):
+                failures.append(assertion)
+        elif kind == "quest_expiry_lte":
+            target = int(assertion.get("value", 0))
+            if not any(int(quest.get("expiry_ticks_remaining", 0)) <= target for quest in state.get("quests", [])):
+                failures.append(assertion)
+        elif kind == "building_required_ticks_eq":
+            target_type = assertion.get("type", "")
+            target_value = int(assertion.get("value", 0))
+            match = next((b for b in buildings if b.get("type") == target_type), None)
+            if match is None or int(match.get("action_required_ticks", 0)) != target_value:
                 failures.append(assertion)
     return len(failures) == 0, failures
 

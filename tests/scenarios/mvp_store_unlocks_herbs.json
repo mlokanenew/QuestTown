@@ -4,6 +4,7 @@
   "seed": 42,
   "max_ticks": 720,
   "commands": [
+    {"cmd": "set_gold", "value": 120},
     {"cmd": "place_building", "type": "tavern", "x": 0, "z": 0},
     {"cmd": "place_building", "type": "weapons_shop", "x": 3, "z": 0},
     {"cmd": "upgrade_building", "type": "tavern"},

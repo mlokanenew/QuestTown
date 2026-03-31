@@ -4,17 +4,6 @@ class_name BuildingSystem
 ## Owned by SimulationRoot. Works entirely with GameState data.
 
 const CELL_SIZE := 1.0  # world units per grid cell
-const OUTPUT_TICKS := {
-	"tavern": 660,
-	"weapons_shop": 600,
-	"temple": 600,
-}
-const UPGRADE_TICKS := {
-	"tavern": 420,
-	"weapons_shop": 420,
-	"temple": 420,
-}
-
 # Occupied grid cells: Dict[Vector2i -> building_id]
 var _occupied: Dictionary = {}
 
@@ -236,7 +225,7 @@ func _produce_output(building_id: int, building: Dictionary) -> void:
 			output_name = "Offer Minor Healing"
 		_:
 			output_name = "Produce Output"
-	var next_stock := GameState.add_building_output_stock(building_id, 1, output_cap)
+	var next_stock := GameState.add_building_output_stock(building_id, _output_yield(building), output_cap)
 	GameState.log_event("building_output_completed", {
 		"building_id": building_id,
 		"building_type": building_type,
@@ -247,10 +236,26 @@ func _produce_output(building_id: int, building: Dictionary) -> void:
 	GameState.set_building_action(building_id, "idle", 0)
 
 func _output_ticks(building_type: String) -> int:
-	return int(OUTPUT_TICKS.get(building_type, 300))
+	var building: Dictionary = get_building_of_type(building_type)
+	var level_data: Dictionary = _level_data(building_type, int(building.get("level", 1)))
+	return int(level_data.get("output_duration_ticks", 300))
 
 func _upgrade_ticks(building_type: String) -> int:
-	return int(UPGRADE_TICKS.get(building_type, 420))
+	var building: Dictionary = get_building_of_type(building_type)
+	var level_data: Dictionary = _level_data(building_type, int(building.get("level", 1)))
+	return int(level_data.get("upgrade_duration_ticks", 420))
 
 func _output_cap(building: Dictionary) -> int:
-	return 1 + int(building.get("level", 1))
+	var level_data: Dictionary = _level_data(str(building.get("type", "")), int(building.get("level", 1)))
+	return int(level_data.get("output_cap", 1 + int(building.get("level", 1))))
+
+func _output_yield(building: Dictionary) -> int:
+	var level_data: Dictionary = _level_data(str(building.get("type", "")), int(building.get("level", 1)))
+	return int(level_data.get("output_yield", 1))
+
+func _level_data(building_type: String, level: int) -> Dictionary:
+	var building_data: Dictionary = DataLoader.buildings_by_id.get(building_type, {})
+	var levels: Array = building_data.get("levels", [])
+	if level <= 0 or level > levels.size():
+		return {}
+	return levels[level - 1]

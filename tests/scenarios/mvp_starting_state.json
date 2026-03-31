@@ -1,0 +1,10 @@
+{
+  "name": "First-hour start state uses scarce gold",
+  "goal": "Verify the first-hour pass starts with constrained town gold before any player actions.",
+  "seed": 42,
+  "max_ticks": 0,
+  "commands": [],
+  "assertions": [
+    {"assert": "gold_eq", "value": 70}
+  ]
+}

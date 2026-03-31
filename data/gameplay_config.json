@@ -1,0 +1,20 @@
+{
+  "starting_gold": 70,
+  "spawn": {
+    "opening_interval_ticks": 45,
+    "regular_interval_ticks": 120,
+    "opening_careers": ["mercenary", "apprentice_wizard", "thief"]
+  },
+  "quests": {
+    "max_visible": 4,
+    "base_visible": 2,
+    "urgent_chance": 0.2,
+    "default_expiry_min": 300,
+    "default_expiry_max": 420,
+    "urgent_expiry_min": 180,
+    "urgent_expiry_max": 240,
+    "urgent_gold_multiplier": 1.25,
+    "urgent_xp_multiplier": 1.2,
+    "urgent_risk_bonus": 1
+  }
+}

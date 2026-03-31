@@ -5,6 +5,12 @@
   "llm_bootstrap_commands": true,
   "max_ticks": 720,
   "commands": [
+    {"cmd": "set_quest_enabled", "id": "escort_peddler_ford", "enabled": false},
+    {"cmd": "set_quest_enabled", "id": "recover_shrine_offerings", "enabled": false},
+    {"cmd": "set_quest_enabled", "id": "search_watch_hut", "enabled": false},
+    {"cmd": "set_quest_enabled", "id": "drive_off_wolves", "enabled": false},
+    {"cmd": "set_quest_enabled", "id": "keep_vigil_graveyard", "enabled": false},
+    {"cmd": "set_quest_enabled", "id": "break_cutpurse_ring", "enabled": false},
     {"cmd": "set_quest_enabled", "id": "gather_rare_herbs", "enabled": false},
     {"cmd": "set_quest_enabled", "id": "investigate_strange_lights", "enabled": false},
     {"cmd": "place_building", "type": "tavern", "x": 0, "z": 0},

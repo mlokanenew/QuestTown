@@ -2,10 +2,9 @@ extends RefCounted
 class_name QuestSystem
 ## Maintains a small pool of available quests and resolves them off-screen.
 
-const MAX_VISIBLE_QUESTS := 4
-const BASE_VISIBLE_QUESTS := 2
+const DEFAULT_MAX_VISIBLE_QUESTS := 4
+const DEFAULT_BASE_VISIBLE_QUESTS := 2
 const LEVEL_UP_XP := 15
-const MAX_STORED_RUMOURS := 4
 
 var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 var _next_offer_id: int = 1
@@ -21,7 +20,11 @@ func step(building_system: Object) -> void:
 	_step_recovery()
 
 func _refresh_available_quests(building_system: Object) -> void:
-	var target_count: int = min(MAX_VISIBLE_QUESTS, BASE_VISIBLE_QUESTS + max(0, _tavern_level() - 1))
+	_tick_offer_expiry()
+	var quest_config: Dictionary = DataLoader.get_quest_config()
+	var max_visible: int = int(quest_config.get("max_visible", DEFAULT_MAX_VISIBLE_QUESTS))
+	var base_visible: int = int(quest_config.get("base_visible", DEFAULT_BASE_VISIBLE_QUESTS))
+	var target_count: int = min(max_visible, base_visible + max(0, _tavern_level() - 1))
 	var current: Array = []
 	for existing: Dictionary in GameState.quests:
 		if not GameState.is_quest_enabled(existing.get("template_id", "")):
@@ -59,6 +62,15 @@ func _generate_offer(existing: Array, building_system: Object) -> Dictionary:
 		return {}
 
 	var template: Dictionary = candidates[_rng.randi() % candidates.size()]
+	var quest_config: Dictionary = DataLoader.get_quest_config()
+	var urgent: bool = _rng.randf() < float(quest_config.get("urgent_chance", 0.2))
+	var gold_reward: int = int(template["gold_reward"])
+	var xp_reward: int = int(template["xp_reward"])
+	var risk_level: int = int(template["risk_level"])
+	if urgent:
+		gold_reward = int(round(float(gold_reward) * float(quest_config.get("urgent_gold_multiplier", 1.25))))
+		xp_reward = int(round(float(xp_reward) * float(quest_config.get("urgent_xp_multiplier", 1.2))))
+		risk_level += int(quest_config.get("urgent_risk_bonus", 1))
 	var offer: Dictionary = {
 		"offer_id": _next_offer_id,
 		"template_id": template["id"],
@@ -67,14 +79,18 @@ func _generate_offer(existing: Array, building_system: Object) -> Dictionary:
 		"difficulty": template["difficulty"],
 		"party_size": template.get("party_size", 3),
 		"duration_ticks": template["duration_ticks"],
-		"gold_reward": template["gold_reward"],
-		"xp_reward": template["xp_reward"],
-		"risk_level": template["risk_level"],
+		"gold_reward": gold_reward,
+		"xp_reward": xp_reward,
+		"risk_level": risk_level,
 		"preferred_careers": template.get("preferred_careers", []).duplicate(true),
 		"resolution_stat": template.get("resolution_stat", ""),
+		"secondary_resolution_stat": template.get("secondary_resolution_stat", ""),
+		"secondary_stat_weight": template.get("secondary_stat_weight", 0.0),
 		"min_tavern_level": template.get("min_tavern_level", 0),
 		"min_weapons_shop_level": template.get("min_weapons_shop_level", 0),
-		"min_temple_level": template.get("min_temple_level", 0)
+		"min_temple_level": template.get("min_temple_level", 0),
+		"urgent": urgent,
+		"expiry_ticks_remaining": _roll_expiry_ticks(urgent)
 	}
 	_next_offer_id += 1
 	return offer
@@ -171,7 +187,7 @@ func _choose_party_assignment(available_heroes: Array, quests: Array) -> Diction
 	var best_score := -INF
 	for idx in range(quests.size()):
 		var quest: Dictionary = quests[idx]
-		var party_size: int = clamp(int(quest.get("party_size", 3)), 3, 5)
+		var party_size: int = clamp(int(quest.get("party_size", 3)), 2, 5)
 		if available_heroes.size() < party_size:
 			continue
 		var scored_heroes: Array = []
@@ -203,7 +219,7 @@ func _choose_party_assignment(available_heroes: Array, quests: Array) -> Diction
 	return best
 
 func _choose_party_for_offer(available_heroes: Array, quest: Dictionary) -> Array:
-	var party_size: int = clamp(int(quest.get("party_size", 3)), 3, 5)
+	var party_size: int = clamp(int(quest.get("party_size", 3)), 2, 5)
 	if available_heroes.size() < party_size:
 		return []
 	var scored_heroes: Array = []
@@ -410,28 +426,35 @@ func _hero_resolution_power(hero: Dictionary, quest: Dictionary) -> int:
 	var power: int = int(hero.get("level", 1))
 	var stats: Dictionary = hero.get("stats", {})
 	var resolution_stat: String = str(quest.get("resolution_stat", ""))
+	power += _stat_contribution(stats, resolution_stat, str(quest.get("type", "")))
+	var secondary_resolution_stat: String = str(quest.get("secondary_resolution_stat", ""))
+	if secondary_resolution_stat != "":
+		var secondary_power: int = _stat_contribution(stats, secondary_resolution_stat, str(quest.get("type", "")))
+		power += int(round(float(secondary_power) * float(quest.get("secondary_stat_weight", 0.0))))
+	return power
+
+func _stat_contribution(stats: Dictionary, resolution_stat: String, quest_type: String) -> int:
 	match resolution_stat:
 		"might":
-			power += int(stats.get("might", 0))
+			return int(stats.get("might", 0))
 		"agility":
-			power += int(stats.get("agility", 0))
+			return int(stats.get("agility", 0))
 		"spirit":
-			power += int(stats.get("spirit", 0))
+			return int(stats.get("spirit", 0))
 		"wits":
-			power += int(stats.get("wits", 0)) + 1
+			return int(stats.get("wits", 0)) + 1
 		_:
-			match quest.get("type", ""):
+			match quest_type:
 				"combat":
-					power += int(stats.get("might", 0))
+					return int(stats.get("might", 0))
 				"beast":
-					power += int(stats.get("agility", 0))
+					return int(stats.get("agility", 0))
 				"spiritual":
-					power += int(stats.get("spirit", 0))
-				"escort", "forage":
-					power += int(stats.get("wits", 0)) + 1
+					return int(stats.get("spirit", 0))
+				"escort", "forage", "road", "scouting", "stealth", "urban":
+					return int(stats.get("wits", 0)) + 1
 				_:
-					power += int(stats.get("wits", 0))
-	return power
+					return int(stats.get("wits", 0))
 
 func _step_recovery() -> void:
 	for hero_id in GameState.heroes.keys():
@@ -484,7 +507,12 @@ func _restore_tavern_rumour() -> void:
 	for building_id in GameState.buildings.keys():
 		var building: Dictionary = GameState.buildings[building_id]
 		if building.get("type", "") == "tavern":
-			GameState.add_building_output_stock(int(building_id), 1, MAX_STORED_RUMOURS + max(0, int(building.get("level", 1)) - 1))
+			var building_data: Dictionary = DataLoader.buildings_by_id.get("tavern", {})
+			var levels: Array = building_data.get("levels", [])
+			var level: int = int(building.get("level", 1))
+			if level > 0 and level <= levels.size():
+				var output_cap: int = int(levels[level - 1].get("output_cap", 1 + level))
+				GameState.add_building_output_stock(int(building_id), 1, output_cap)
 			return
 
 func _building_level(building_system: Object, building_type: String) -> int:
@@ -521,3 +549,39 @@ func export_state() -> Dictionary:
 
 func import_state(data: Dictionary) -> void:
 	_next_offer_id = int(data.get("next_offer_id", 1))
+
+func _tick_offer_expiry() -> void:
+	if GameState.quests.is_empty():
+		return
+	var next_quests: Array = []
+	var changed := false
+	for offer_variant in GameState.quests:
+		var offer: Dictionary = offer_variant
+		var expiry: int = int(offer.get("expiry_ticks_remaining", 0))
+		if expiry > 0:
+			offer["expiry_ticks_remaining"] = expiry - 1
+			if int(offer["expiry_ticks_remaining"]) <= 0:
+				GameState.log_event("quest_offer_expired", {
+					"offer_id": offer.get("offer_id", -1),
+					"quest_name": offer.get("name", "?"),
+					"urgent": bool(offer.get("urgent", false))
+				})
+				changed = true
+				continue
+		next_quests.append(offer)
+	if changed:
+		GameState.set_available_quests(next_quests)
+	else:
+		GameState.quests = next_quests
+
+func _roll_expiry_ticks(urgent: bool) -> int:
+	var quest_config: Dictionary = DataLoader.get_quest_config()
+	if urgent:
+		return _rng.randi_range(
+			int(quest_config.get("urgent_expiry_min", 180)),
+			int(quest_config.get("urgent_expiry_max", 240))
+		)
+	return _rng.randi_range(
+		int(quest_config.get("default_expiry_min", 300)),
+		int(quest_config.get("default_expiry_max", 420))
+	)

@@ -1,0 +1,13 @@
+{
+  "name": "First-hour output pacing is faster and yields larger batches",
+  "goal": "Verify the Tavern starts a faster output job and a single rumour action can feed multiple quest offers at level one.",
+  "seed": 42,
+  "max_ticks": 0,
+  "commands": [
+    {"cmd": "place_building", "type": "tavern", "x": 0, "z": 0},
+    {"cmd": "set_building_output_mode", "type": "tavern"}
+  ],
+  "assertions": [
+    {"assert": "building_required_ticks_eq", "type": "tavern", "value": 150}
+  ]
+}

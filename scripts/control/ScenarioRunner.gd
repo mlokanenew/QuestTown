@@ -211,6 +211,30 @@ func _check(assertion: Dictionary, state: Dictionary) -> bool:
 				if hero.get("state", "") in ["departing_quest", "on_quest", "returning"] and int(hero.get("quest_party_size", 0)) >= target_size:
 					return true
 			return false
+		"hero_careers_include":
+			var required: Array = assertion.get("value", [])
+			var seen := {}
+			for hero in state["heroes"]:
+				seen[str(hero.get("career_id", ""))] = true
+			for career_id in required:
+				if not seen.has(str(career_id)):
+					return false
+			return true
+		"any_urgent_quest":
+			for quest in state.get("quests", []):
+				if bool(quest.get("urgent", false)):
+					return true
+			return false
+		"quest_expiry_lte":
+			for quest in state.get("quests", []):
+				if int(quest.get("expiry_ticks_remaining", 0)) <= int(assertion.get("value", 0)):
+					return true
+			return false
+		"building_required_ticks_eq":
+			for b in state["buildings"]:
+				if b["type"] == assertion.get("type", ""):
+					return int(b.get("action_required_ticks", 0)) == int(assertion.get("value", 0))
+			return false
 	push_warning("ScenarioRunner: unknown assertion type '%s'" % kind)
 	return false
 
