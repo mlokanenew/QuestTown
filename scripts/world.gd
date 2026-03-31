@@ -69,6 +69,7 @@ var _selected_quest_id: String = ""
 var _ui_sfx: Dictionary = {}
 var _ui_textures: Dictionary = {}
 var _ui_fonts: Dictionary = {}
+var _ui_tweens: Dictionary = {}
 
 const BUILDING_ICONS := {
 	"tavern": "res://assets/ui/tavern_icon.svg",
@@ -246,6 +247,103 @@ func _on_any_ui_button_close() -> void:
 
 func _on_any_ui_button_confirm() -> void:
 	_play_ui_sound("confirm")
+
+func _kill_ui_tween(key: String) -> void:
+	if _ui_tweens.has(key):
+		var tween: Variant = _ui_tweens[key]
+		if tween is Tween:
+			(tween as Tween).kill()
+		_ui_tweens.erase(key)
+
+func _animate_panel_slide(panel: Control, show: bool, from_offset: Vector2, key: String) -> void:
+	if panel == null:
+		return
+	_kill_ui_tween(key)
+	if show:
+		panel.visible = true
+		panel.modulate.a = 0.0
+		panel.position += from_offset
+		var tween := create_tween()
+		_ui_tweens[key] = tween
+		tween.set_parallel(true)
+		tween.set_trans(Tween.TRANS_CUBIC)
+		tween.set_ease(Tween.EASE_OUT)
+		tween.tween_property(panel, "modulate:a", 1.0, 0.18)
+		tween.tween_property(panel, "position", panel.position - from_offset, 0.20)
+		tween.finished.connect(func() -> void:
+			_ui_tweens.erase(key)
+		)
+	else:
+		var tween := create_tween()
+		_ui_tweens[key] = tween
+		tween.set_parallel(true)
+		tween.set_trans(Tween.TRANS_CUBIC)
+		tween.set_ease(Tween.EASE_IN)
+		tween.tween_property(panel, "modulate:a", 0.0, 0.14)
+		tween.tween_property(panel, "position", panel.position + from_offset, 0.16)
+		tween.finished.connect(func() -> void:
+			panel.visible = false
+			panel.modulate.a = 1.0
+			panel.position -= from_offset
+			_ui_tweens.erase(key)
+		)
+
+func _pulse_control(control: CanvasItem, key: String, scale_up: Vector2 = Vector2(1.02, 1.02)) -> void:
+	if control == null:
+		return
+	_kill_ui_tween(key)
+	if control is Control:
+		var typed := control as Control
+		typed.pivot_offset = typed.size * 0.5
+	var tween := create_tween()
+	_ui_tweens[key] = tween
+	tween.set_trans(Tween.TRANS_SINE)
+	tween.set_ease(Tween.EASE_OUT)
+	tween.tween_property(control, "scale", scale_up, 0.10)
+	tween.tween_property(control, "scale", Vector2.ONE, 0.14)
+	tween.finished.connect(func() -> void:
+		control.scale = Vector2.ONE
+		_ui_tweens.erase(key)
+	)
+
+func _highlight_status_card() -> void:
+	var card := get_node_or_null("UILayer/LeftPanel/VBox/StatusCard") as Control
+	if card == null:
+		return
+	_pulse_control(card, "status_pulse", Vector2(1.01, 1.01))
+
+func _animate_details_visibility(extra: Control, show: bool) -> void:
+	if extra == null:
+		return
+	_kill_ui_tween("details_visibility")
+	if show:
+		extra.visible = true
+		extra.modulate.a = 0.0
+		extra.position.y += 8.0
+		var tween := create_tween()
+		_ui_tweens["details_visibility"] = tween
+		tween.set_parallel(true)
+		tween.set_trans(Tween.TRANS_CUBIC)
+		tween.set_ease(Tween.EASE_OUT)
+		tween.tween_property(extra, "modulate:a", 1.0, 0.14)
+		tween.tween_property(extra, "position:y", extra.position.y - 8.0, 0.16)
+		tween.finished.connect(func() -> void:
+			_ui_tweens.erase("details_visibility")
+		)
+	else:
+		var tween := create_tween()
+		_ui_tweens["details_visibility"] = tween
+		tween.set_parallel(true)
+		tween.set_trans(Tween.TRANS_CUBIC)
+		tween.set_ease(Tween.EASE_IN)
+		tween.tween_property(extra, "modulate:a", 0.0, 0.10)
+		tween.tween_property(extra, "position:y", extra.position.y + 6.0, 0.12)
+		tween.finished.connect(func() -> void:
+			extra.visible = false
+			extra.modulate.a = 1.0
+			extra.position.y -= 6.0
+			_ui_tweens.erase("details_visibility")
+		)
 
 func _apply_button_theme(button: Button, variant: String, selected: bool = false) -> void:
 	if button == null:
@@ -797,6 +895,7 @@ func _show_hero_panel(hero_id: int) -> void:
 	_right_panel_collapsed = false
 	_refresh_hero_panel(hero_id)
 	_apply_panel_state()
+	_pulse_control(get_node_or_null("UILayer/RightPanel/VBox/SummaryCard") as CanvasItem, "inspector_summary")
 
 func _refresh_hero_panel(hero_id: int) -> void:
 	if not GameState.heroes.has(hero_id):
@@ -939,6 +1038,7 @@ func _show_building_panel(building_id: int) -> void:
 	_refresh_context_upgrade_button()
 	_refresh_output_action_button()
 	_apply_panel_state()
+	_pulse_control(get_node_or_null("UILayer/RightPanel/VBox/SummaryCard") as CanvasItem, "inspector_summary")
 
 func _refresh_building_panel(building_id: int) -> void:
 	var building: Dictionary = GameState.buildings.get(building_id, {})
@@ -1371,6 +1471,7 @@ func _refresh_quest_offer_cards() -> void:
 		button.pressed.connect(func() -> void:
 			_selected_quest_id = local_offer_id
 			_refresh_quest_ui()
+			_pulse_control(get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestDetailHeader") as CanvasItem, "quest_detail_focus", Vector2(1.015, 1.015))
 		)
 		_wire_button_sfx(button)
 		list.add_child(button)
@@ -1533,6 +1634,7 @@ func _set_status(message: String) -> void:
 	var status_label := get_node_or_null("UILayer/LeftPanel/VBox/StatusCard/StatusLabel")
 	if status_label:
 		status_label.text = message
+		_highlight_status_card()
 
 func _toggle_details_expanded() -> void:
 	_details_expanded = not _details_expanded
@@ -1541,7 +1643,7 @@ func _toggle_details_expanded() -> void:
 func _refresh_details_visibility() -> void:
 	var extra := get_node_or_null("UILayer/RightPanel/VBox/ExtraDetails")
 	if extra:
-		extra.visible = _details_expanded
+		_animate_details_visibility(extra, _details_expanded)
 	var button := get_node_or_null("UILayer/RightPanel/VBox/MoreDetailsButton")
 	if button:
 		button.text = "Less Details" if _details_expanded else "More Details"
@@ -1681,24 +1783,32 @@ func _toggle_quest_drawer() -> void:
 	if opening:
 		drawer.visible = true
 		drawer.modulate.a = 0.0
+		drawer.scale = Vector2(0.985, 0.985)
 		if scrim:
 			scrim.visible = true
 			scrim.modulate.a = 0.0
 		var tween := create_tween()
 		tween.set_parallel(true)
+		tween.set_trans(Tween.TRANS_CUBIC)
+		tween.set_ease(Tween.EASE_OUT)
 		tween.tween_property(drawer, "modulate:a", 1.0, 0.16)
+		tween.tween_property(drawer, "scale", Vector2.ONE, 0.20)
 		if scrim:
 			tween.tween_property(scrim, "modulate:a", 1.0, 0.14)
 		_refresh_quest_ui()
 	else:
 		var tween := create_tween()
 		tween.set_parallel(true)
+		tween.set_trans(Tween.TRANS_CUBIC)
+		tween.set_ease(Tween.EASE_IN)
 		tween.tween_property(drawer, "modulate:a", 0.0, 0.14)
+		tween.tween_property(drawer, "scale", Vector2(0.99, 0.99), 0.14)
 		if scrim:
 			tween.tween_property(scrim, "modulate:a", 0.0, 0.12)
 		tween.finished.connect(func() -> void:
 			drawer.visible = false
 			drawer.modulate.a = 1.0
+			drawer.scale = Vector2.ONE
 			if scrim:
 				scrim.visible = false
 				scrim.modulate.a = 1.0
@@ -1709,16 +1819,16 @@ func _is_quest_drawer_open() -> bool:
 	return drawer != null and drawer.visible
 
 func _apply_panel_state() -> void:
-	var left_panel := get_node_or_null("UILayer/LeftPanel")
+	var left_panel := get_node_or_null("UILayer/LeftPanel") as Control
 	var left_tab := get_node_or_null("UILayer/LeftPanelTab")
 	if left_panel:
-		left_panel.visible = not _left_panel_collapsed
+		_animate_panel_slide(left_panel, not _left_panel_collapsed, Vector2(-18.0, 0.0), "left_panel")
 	if left_tab:
 		left_tab.visible = _left_panel_collapsed
-	var right_panel := get_node_or_null("UILayer/RightPanel")
+	var right_panel := get_node_or_null("UILayer/RightPanel") as Control
 	var right_tab := get_node_or_null("UILayer/RightPanelTab")
 	if right_panel:
-		right_panel.visible = (not _right_panel_collapsed) and (_selected_entity_kind != "")
+		_animate_panel_slide(right_panel, (not _right_panel_collapsed) and (_selected_entity_kind != ""), Vector2(18.0, 0.0), "right_panel")
 	if right_tab:
 		right_tab.visible = _right_panel_collapsed
 	_fit_ui_to_viewport()
@@ -1788,6 +1898,8 @@ func _toggle_event_feed(expanded: Variant = null) -> void:
 	var event_log := get_node_or_null("UILayer/EventLogPanel")
 	if event_log and event_log.has_method("set_compact_mode"):
 		event_log.set_compact_mode(not _event_feed_expanded)
+	if event_log is CanvasItem:
+		_pulse_control(event_log as CanvasItem, "event_feed_pulse", Vector2(1.01, 1.01))
 
 func _refresh_top_bar() -> void:
 	var summary := get_node_or_null("UILayer/TopBar/TopBarRow/HeroSummaryLabel")
