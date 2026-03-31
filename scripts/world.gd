@@ -575,6 +575,7 @@ func _apply_visual_design_system() -> void:
 		"UILayer/TopBar/TopBarRow/Speed1Button",
 		"UILayer/TopBar/TopBarRow/Speed2Button",
 		"UILayer/TopBar/TopBarRow/Speed3Button",
+		"UILayer/TopBar/TopBarRow/PauseButton",
 		"UILayer/TopBar/TopBarRow/OptionsButton",
 		"UILayer/LeftPanel/VBox/SaveLoadRow/SaveButton",
 		"UILayer/LeftPanel/VBox/SaveLoadRow/LoadButton",
@@ -760,6 +761,10 @@ func _ready() -> void:
 		if speed3:
 			speed3.pressed.connect(func() -> void: _set_time_scale(3.0))
 			_wire_button_sfx(speed3)
+		var pause_btn := get_node_or_null("UILayer/TopBar/TopBarRow/PauseButton")
+		if pause_btn:
+			pause_btn.pressed.connect(_toggle_pause_menu)
+			_wire_button_sfx(pause_btn, "open")
 		var options_btn := get_node_or_null("UILayer/TopBar/TopBarRow/OptionsButton")
 		if options_btn:
 			options_btn.pressed.connect(_open_options_menu)
@@ -1211,6 +1216,7 @@ func _toggle_pause_menu() -> void:
 		_pause_menu.queue_free()
 		_pause_menu = null
 		get_tree().paused = false
+		_refresh_top_bar()
 		return
 	var packed: PackedScene = load("res://scenes/ui/PauseMenu.tscn")
 	if packed == null:
@@ -1218,8 +1224,10 @@ func _toggle_pause_menu() -> void:
 	_pause_menu = packed.instantiate()
 	_pause_menu.tree_exited.connect(func() -> void:
 		_pause_menu = null
+		_refresh_top_bar()
 	)
 	add_child(_pause_menu)
+	_refresh_top_bar()
 
 func _on_hero_state_changed(hero_id: int, _new_state: String) -> void:
 	if hero_id == _selected_hero_id:
@@ -1441,7 +1449,14 @@ func _setup_quest_menu() -> void:
 func _refresh_quest_ui() -> void:
 	var summary_label := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestListColumn/QuestFilterSummaryLabel")
 	if summary_label:
-		summary_label.text = "%d contracts on the board. Select one to inspect the party fit and launch window." % GameState.quests.size()
+		var urgent_count := 0
+		for quest_offer: Dictionary in GameState.quests:
+			if bool(quest_offer.get("urgent", false)):
+				urgent_count += 1
+		var urgent_text := ""
+		if urgent_count > 0:
+			urgent_text = "  %d urgent." % urgent_count
+		summary_label.text = "%d contracts on the board.%s Select one to inspect fit, risk, and time left." % [GameState.quests.size(), urgent_text]
 
 	_refresh_quest_offer_cards()
 	_refresh_selected_quest_detail()
@@ -1518,23 +1533,29 @@ func _refresh_quest_offer_cards() -> void:
 		if offer_id == _selected_quest_id:
 			has_selected = true
 		var button := Button.new()
-		button.custom_minimum_size = Vector2(0, 86)
+		button.custom_minimum_size = Vector2(0, 98)
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		var preview: Dictionary = sim.get_quest_acceptance_preview(int(quest_offer.get("offer_id", -1)))
 		var state_text := "Ready to launch" if bool(preview.get("can_accept", false)) else str(preview.get("reason", "Need party"))
-		button.text = "%s\nParty %d  D%d  %dg  %dxp  %s" % [
+		var urgent: bool = bool(quest_offer.get("urgent", false))
+		var title_prefix := "Urgent  " if urgent else ""
+		var urgency_line := "%s  %s" % [_quest_expiry_text(quest_offer), state_text]
+		button.text = "%s%s\nParty %d  D%d  %dg  %dxp\n%s" % [
+			title_prefix,
 			quest_offer.get("name", offer_id),
 			int(quest_offer.get("party_size", 3)),
 			int(quest_offer.get("difficulty", 1)),
 			int(quest_offer.get("gold_reward", 0)),
 			int(quest_offer.get("xp_reward", 0)),
-			state_text
+			urgency_line
 		]
 		_apply_button_theme(button, "offer", offer_id == _selected_quest_id)
 		var quest_type := str(quest_offer.get("type", ""))
 		var quest_icon_path := str(QUEST_TYPE_ICONS.get(quest_type, ICON_BOOK_PATH))
 		button.icon = _load_runtime_texture(quest_icon_path) if bool(preview.get("can_accept", false)) else _load_runtime_texture(ICON_SKULL_PATH)
+		if urgent:
+			button.modulate = Color(1.0, 0.97, 0.9, 1.0)
 		var local_offer_id := offer_id
 		button.pressed.connect(func() -> void:
 			_selected_quest_id = local_offer_id
@@ -1577,24 +1598,24 @@ func _refresh_selected_quest_detail() -> void:
 	var template_id := str(quest.get("template_id", ""))
 	var preview: Dictionary = sim.get_quest_acceptance_preview(int(quest.get("offer_id", -1)))
 	if detail_kicker:
-		detail_kicker.text = "Ready for Review"
+		detail_kicker.text = "Urgent Contract" if bool(quest.get("urgent", false)) else "Contract Board"
 	if detail_title:
 		detail_title.text = str(quest.get("name", template_id))
 	if detail_summary:
-		detail_summary.text = _quest_summary_text(quest)
+		detail_summary.text = "%s\n%s" % [_quest_summary_text(quest), _quest_expiry_text(quest)]
 	if reward_label:
 		reward_label.text = "Reward  %dg treasury flow through adventurers" % int(quest.get("gold_reward", 0))
 	if xp_label:
 		xp_label.text = "Experience  %dxp to the party" % int(quest.get("xp_reward", 0))
 	if risk_label:
-		risk_label.text = "Risk  Wound %s   Party %d   Death deferred for MVP" % [_risk_label(int(quest.get("risk_level", 1))), int(quest.get("party_size", 3))]
+		risk_label.text = "Risk  %s   Party %d   %s" % [_risk_label(int(quest.get("risk_level", 1))), int(quest.get("party_size", 3)), _quest_expiry_short_label(quest)]
 	if requirement_label:
 		requirement_label.text = "Requirements  %s" % _quest_requirements_text(quest)
 	if suitability_label:
 		suitability_label.text = _quest_suitability_text(quest, preview)
 	if action_button:
 		action_button.disabled = not bool(preview.get("can_accept", false))
-		action_button.text = "Accept Quest" if bool(preview.get("can_accept", false)) else str(preview.get("reason", "Need party"))
+		action_button.text = ("Accept Urgent Quest" if bool(quest.get("urgent", false)) else "Accept Quest") if bool(preview.get("can_accept", false)) else str(preview.get("reason", "Need party"))
 		action_button.icon = _load_runtime_texture(ICON_SWORD_PATH) if bool(preview.get("can_accept", false)) else _load_runtime_texture(ICON_SHIELD_PATH)
 
 func _get_quest_offer(offer_id: String) -> Dictionary:
@@ -1649,6 +1670,20 @@ func _quest_suitability_text(quest: Dictionary, preview: Dictionary) -> String:
 		str(quest.get("resolution_stat", "might")).capitalize(),
 		party_line
 	]
+
+func _quest_expiry_minutes(expiry_ticks: int) -> float:
+	return max(0.0, float(expiry_ticks) / 60.0)
+
+func _quest_expiry_text(quest: Dictionary) -> String:
+	var expiry_ticks := int(quest.get("expiry_ticks_remaining", 0))
+	var minutes_left := _quest_expiry_minutes(expiry_ticks)
+	if bool(quest.get("urgent", false)):
+		return "Urgent offer. Expires in %.1f in-game minutes." % minutes_left
+	return "Time left: %.1f in-game minutes." % minutes_left
+
+func _quest_expiry_short_label(quest: Dictionary) -> String:
+	var minutes_left := _quest_expiry_minutes(int(quest.get("expiry_ticks_remaining", 0)))
+	return "Expires in %.1fm" % minutes_left
 
 func _risk_label(risk_level: int) -> String:
 	match risk_level:
@@ -2004,9 +2039,13 @@ func _refresh_speed_button_states() -> void:
 	var speed1 := get_node_or_null("UILayer/TopBar/TopBarRow/Speed1Button")
 	var speed2 := get_node_or_null("UILayer/TopBar/TopBarRow/Speed2Button")
 	var speed3 := get_node_or_null("UILayer/TopBar/TopBarRow/Speed3Button")
+	var pause_button := get_node_or_null("UILayer/TopBar/TopBarRow/PauseButton")
 	_apply_button_theme(speed1, "chrome", is_equal_approx(Engine.time_scale, 1.0))
 	_apply_button_theme(speed2, "chrome", is_equal_approx(Engine.time_scale, 2.0))
 	_apply_button_theme(speed3, "chrome", is_equal_approx(Engine.time_scale, 3.0))
+	_apply_button_theme(pause_button, "accent", get_tree().paused)
+	if pause_button:
+		pause_button.text = "Paused" if get_tree().paused else "Pause"
 
 func _scroll_roster(delta: int) -> void:
 	var scroll := get_node_or_null("UILayer/RosterPanel/RosterVBox/RosterStripScroll") as ScrollContainer

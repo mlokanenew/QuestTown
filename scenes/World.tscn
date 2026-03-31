@@ -234,6 +234,12 @@ theme_override_styles/normal = SubResource("button_secondary")
 theme_override_styles/hover = SubResource("button_primary")
 text = "3x"
 
+[node name="PauseButton" type="Button" parent="UILayer/TopBar/TopBarRow"]
+custom_minimum_size = Vector2(64, 0)
+theme_override_styles/normal = SubResource("button_secondary")
+theme_override_styles/hover = SubResource("button_primary")
+text = "Pause"
+
 [node name="OptionsButton" type="Button" parent="UILayer/TopBar/TopBarRow"]
 theme_override_styles/normal = SubResource("button_secondary")
 theme_override_styles/hover = SubResource("button_primary")
