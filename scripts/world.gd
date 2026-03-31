@@ -976,7 +976,9 @@ func _refresh_hero_panel(hero_id: int) -> void:
 	if name_lbl:
 		name_lbl.text = h["name"]
 		name_lbl.set("theme_override_fonts/font", _load_runtime_font(FONT_HEADING_PATH))
-		name_lbl.set("theme_override_font_sizes/font_size", 24)
+		name_lbl.set("theme_override_font_sizes/font_size", 21)
+		name_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	if career_lbl:
 		career_lbl.text = "%s\n%s" % [h.get("career_role", h["career"]), h["career"]]
 		career_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -1128,7 +1130,9 @@ func _refresh_building_panel(building_id: int) -> void:
 	if name_lbl:
 		name_lbl.text = data.get("name", building_type.capitalize())
 		name_lbl.set("theme_override_fonts/font", _load_runtime_font(FONT_HEADING_PATH))
-		name_lbl.set("theme_override_font_sizes/font_size", 24)
+		name_lbl.set("theme_override_font_sizes/font_size", 21)
+		name_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	if career_lbl:
 		career_lbl.text = "Town anchor\n%s" % str(building_type).replace("_", " ").capitalize()
 		career_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -1898,16 +1902,16 @@ func _fit_ui_to_viewport() -> void:
 		left_panel.offset_bottom = -118.0
 	var right_panel := get_node_or_null("UILayer/RightPanel")
 	if right_panel:
-		var desired_width: float = clamp(viewport_size.x * 0.165, 268.0, 320.0)
-		right_panel.offset_left = -desired_width - margin
-		right_panel.offset_right = -margin
+		var desired_width: float = clamp(viewport_size.x * 0.158, 252.0, 300.0)
+		right_panel.offset_left = -desired_width - margin - 10.0
+		right_panel.offset_right = -margin - 10.0
 		right_panel.offset_top = 94.0
 		right_panel.offset_bottom = -118.0
 		right_panel.clip_contents = true
 	var right_tab := get_node_or_null("UILayer/RightPanelTab")
 	if right_tab:
-		right_tab.offset_left = -margin - 36.0
-		right_tab.offset_right = -margin
+		right_tab.offset_left = -margin - 46.0
+		right_tab.offset_right = -margin - 10.0
 		right_tab.offset_top = 108.0
 		right_tab.offset_bottom = 156.0
 	var left_tab := get_node_or_null("UILayer/LeftPanelTab")
@@ -2034,7 +2038,7 @@ func _refresh_roster_strip() -> void:
 		var hero: Dictionary = GameState.heroes[hero_id]
 		var hero_name := str(hero.get("name", "adventurer"))
 		var button := Button.new()
-		button.custom_minimum_size = Vector2(254, 72)
+		button.custom_minimum_size = Vector2(212, 68)
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		button.text = ""
 		button.clip_contents = true
@@ -2043,11 +2047,11 @@ func _refresh_roster_strip() -> void:
 		var row := HBoxContainer.new()
 		row.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		row.add_theme_constant_override("separation", 10)
+		row.add_theme_constant_override("separation", 8)
 		button.add_child(row)
 
 		var portrait := TextureRect.new()
-		portrait.custom_minimum_size = Vector2(42, 42)
+		portrait.custom_minimum_size = Vector2(36, 36)
 		portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		portrait.texture = load(HERO_PORTRAITS.get(str(hero.get("career_archetype", "commoner")).to_lower(), HERO_PORTRAITS["commoner"]))
@@ -2064,25 +2068,27 @@ func _refresh_roster_strip() -> void:
 		name_label.text = hero.get("name", "?")
 		_apply_label_role(name_label, "body")
 		name_label.set("theme_override_fonts/font", _load_runtime_font(FONT_HEADING_PATH))
-		name_label.set("theme_override_font_sizes/font_size", 17)
+		name_label.set("theme_override_font_sizes/font_size", 15)
+		name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		info.add_child(name_label)
 
 		var meta_label := Label.new()
-		meta_label.text = "%s  •  L%d" % [hero.get("career_role", hero.get("career", "?")), int(hero.get("level", 1))]
+		meta_label.text = "%s L%d" % [hero.get("career_role", hero.get("career", "?")), int(hero.get("level", 1))]
 		_apply_label_role(meta_label, "meta")
+		meta_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		info.add_child(meta_label)
 
 		var status_box := VBoxContainer.new()
-		status_box.custom_minimum_size = Vector2(92, 0)
+		status_box.custom_minimum_size = Vector2(76, 0)
 		status_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		status_box.add_theme_constant_override("separation", 4)
+		status_box.add_theme_constant_override("separation", 3)
 		row.add_child(status_box)
 
 		var health_ratio := 0.0
 		var max_health: int = max(1, int(hero.get("max_health", 1)))
 		health_ratio = float(int(hero.get("health", max_health))) / float(max_health)
 		var mini_bar := ProgressBar.new()
-		mini_bar.custom_minimum_size = Vector2(92, 12)
+		mini_bar.custom_minimum_size = Vector2(76, 10)
 		mini_bar.show_percentage = false
 		mini_bar.max_value = max_health
 		mini_bar.value = int(hero.get("health", max_health))
@@ -2092,7 +2098,7 @@ func _refresh_roster_strip() -> void:
 		status_box.add_child(mini_bar)
 
 		var status_label := Label.new()
-		status_label.text = "HP %d/%d  •  %s" % [
+		status_label.text = "HP %d/%d\n%s" % [
 			int(hero.get("health", max_health)),
 			max_health,
 			_format_entity_state(str(hero.get("state", "idle")))
@@ -2100,10 +2106,11 @@ func _refresh_roster_strip() -> void:
 		_apply_label_role(status_label, "meta")
 		status_label.set("theme_override_colors/font_color", UI_SUCCESS if health_ratio > 0.65 else UI_WARNING)
 		status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		status_box.add_child(status_label)
 
 		var wound_chip := PanelContainer.new()
-		wound_chip.custom_minimum_size = Vector2(84, 0)
+		wound_chip.custom_minimum_size = Vector2(76, 0)
 		wound_chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		wound_chip.set("theme_override_styles/panel", _make_style(
 			Color(UI_ACCENT_SOFT if local_hero_id == _selected_hero_id else UI_SURFACE_2, 0.92),
