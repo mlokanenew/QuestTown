@@ -8,5 +8,5 @@ func _ready() -> void:
 	call_deferred("_route")
 
 func _route() -> void:
-	var next_scene := WORLD_SCENE if RuntimeConfig.is_headless() else MENU_SCENE
+	var next_scene := WORLD_SCENE if RuntimeConfig.is_headless() or RuntimeConfig.is_snapshot() else MENU_SCENE
 	get_tree().change_scene_to_file(next_scene)

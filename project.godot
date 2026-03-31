@@ -21,6 +21,7 @@ config/icon="res://assets/ui/tavern_icon.svg"
 RuntimeConfig="*res://scripts/autoloads/RuntimeConfig.gd"
 GameState="*res://scripts/autoloads/GameState.gd"
 DataLoader="*res://scripts/data/DataLoader.gd"
+UISnapshotService="*res://scripts/autoloads/UISnapshotService.gd"
 SettingsManager="*res://scripts/autoloads/SettingsManager.gd"
 
 [display]

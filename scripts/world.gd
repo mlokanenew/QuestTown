@@ -2,8 +2,8 @@ extends Node3D
 ## Root scene script. Wires SimulationRoot, CommandServer, and ScenarioRunner together.
 
 const OPTIONS_SCENE := preload("res://scenes/ui/OptionsMenu.tscn")
-const FONT_HEADING_PATH := "res://assets/fonts/KenneyFuture.ttf"
-const FONT_BODY_PATH := "res://assets/fonts/KenneyFutureNarrow.ttf"
+const FONT_HEADING_PATH := "res://assets/fonts/Cinzel.ttf"
+const FONT_BODY_PATH := "res://assets/fonts/NotoSans.ttf"
 const FRAME_ORNATE_PATH := "res://assets/ui/theme/frame_ornate.png"
 const FRAME_SIMPLE_PATH := "res://assets/ui/theme/frame_simple.png"
 const THEME_DIVIDER_PATH := "res://assets/ui/theme/divider.png"
@@ -36,12 +36,12 @@ const UI_ACCENT_SOFT := Color(0.77, 0.63, 0.28, 0.18)
 const UI_WARNING := Color(0.86, 0.53, 0.28, 1.0)
 const UI_SUCCESS := Color(0.49, 0.70, 0.58, 1.0)
 
-const TYPE_SCREEN_TITLE := 26
-const TYPE_PANEL_TITLE := 18
+const TYPE_SCREEN_TITLE := 28
+const TYPE_PANEL_TITLE := 22
 const TYPE_QUEST_TITLE := 28
 const TYPE_SECTION_LABEL := 12
-const TYPE_BODY := 14
-const TYPE_META := 11
+const TYPE_BODY := 15
+const TYPE_META := 12
 
 const SPACE_1 := 6
 const SPACE_2 := 10
@@ -348,6 +348,7 @@ func _animate_details_visibility(extra: Control, show: bool) -> void:
 func _apply_button_theme(button: Button, variant: String, selected: bool = false) -> void:
 	if button == null:
 		return
+	var font_size := TYPE_BODY
 	var normal_bg := UI_SURFACE_2
 	var hover_bg := UI_SURFACE_2.lightened(0.06)
 	var pressed_bg := UI_SURFACE_2.darkened(0.08)
@@ -377,6 +378,7 @@ func _apply_button_theme(button: Button, variant: String, selected: bool = false
 			pressed_border = UI_ACCENT
 			text_color = UI_TEXT_DARK
 			disabled_text = Color(UI_TEXT_DARK, 0.5)
+			font_size = 14
 		"rail":
 			normal_bg = UI_SURFACE_1
 			hover_bg = UI_SURFACE_2
@@ -386,6 +388,7 @@ func _apply_button_theme(button: Button, variant: String, selected: bool = false
 			hover_border = UI_ACCENT
 			pressed_border = UI_ACCENT
 			text_color = UI_TEXT_PRIMARY
+			font_size = 14
 		"offer":
 			normal_bg = UI_SURFACE_PAPER if selected else Color(UI_SURFACE_PAPER, 0.88)
 			hover_bg = UI_SURFACE_PAPER
@@ -396,6 +399,7 @@ func _apply_button_theme(button: Button, variant: String, selected: bool = false
 			pressed_border = UI_ACCENT
 			text_color = UI_TEXT_DARK
 			disabled_text = Color(UI_TEXT_DARK, 0.5)
+			font_size = 14
 		"roster":
 			normal_bg = UI_ACCENT_SOFT if selected else UI_SURFACE_1
 			hover_bg = UI_SURFACE_2
@@ -405,6 +409,7 @@ func _apply_button_theme(button: Button, variant: String, selected: bool = false
 			hover_border = UI_ACCENT
 			pressed_border = UI_ACCENT
 			text_color = UI_TEXT_PRIMARY
+			font_size = 13
 		_:
 			pass
 	button.set("theme_override_styles/normal", _make_style(normal_bg, normal_border, RADIUS_BUTTON, 1, 12))
@@ -415,7 +420,7 @@ func _apply_button_theme(button: Button, variant: String, selected: bool = false
 	button.set("theme_override_colors/font_hover_color", text_color)
 	button.set("theme_override_colors/font_pressed_color", text_color)
 	button.set("theme_override_colors/font_disabled_color", disabled_text)
-	button.set("theme_override_font_sizes/font_size", TYPE_BODY)
+	button.set("theme_override_font_sizes/font_size", font_size)
 	button.set("theme_override_fonts/font", _load_runtime_font(FONT_BODY_PATH))
 	button.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	var button_blue := _load_runtime_texture(BUTTON_BLUE_PATH)
@@ -423,6 +428,7 @@ func _apply_button_theme(button: Button, variant: String, selected: bool = false
 	var button_blue_flat := _load_runtime_texture(BUTTON_BLUE_FLAT_PATH)
 	match variant:
 		"accent":
+			font_size = 15
 			button.set("theme_override_styles/normal", _make_texture_style(button_blue, 18, 14, true, UI_ACCENT.lightened(0.10)))
 			button.set("theme_override_styles/hover", _make_texture_style(button_blue, 18, 14, true, UI_ACCENT.lightened(0.22)))
 			button.set("theme_override_styles/pressed", _make_texture_style(button_blue_outline, 18, 14, true, UI_ACCENT.darkened(0.08)))
@@ -432,6 +438,7 @@ func _apply_button_theme(button: Button, variant: String, selected: bool = false
 			button.set("theme_override_colors/font_pressed_color", UI_TEXT_PRIMARY)
 			button.set("theme_override_colors/font_disabled_color", Color(UI_TEXT_MUTED, 0.62))
 		"chrome":
+			font_size = 13
 			var chrome_normal := Color(0.31, 0.43, 0.54, 0.92)
 			var chrome_hover := Color(0.39, 0.51, 0.62, 0.96)
 			var chrome_pressed := Color(0.27, 0.37, 0.47, 0.96)
@@ -447,6 +454,7 @@ func _apply_button_theme(button: Button, variant: String, selected: bool = false
 			button.set("theme_override_colors/font_hover_color", UI_TEXT_PRIMARY)
 			button.set("theme_override_colors/font_pressed_color", UI_TEXT_PRIMARY)
 			button.set("theme_override_colors/font_disabled_color", Color(UI_TEXT_MUTED, 0.54))
+	button.set("theme_override_font_sizes/font_size", font_size)
 
 func _apply_label_role(label: Label, role: String, dark: bool = false) -> void:
 	if label == null:
@@ -468,7 +476,7 @@ func _apply_label_role(label: Label, role: String, dark: bool = false) -> void:
 		"section":
 			label.set("theme_override_font_sizes/font_size", TYPE_SECTION_LABEL)
 			label.set("theme_override_colors/font_color", UI_TEXT_MUTED if not dark else Color(UI_TEXT_DARK, 0.7))
-			label.uppercase = true
+			label.uppercase = false
 		"meta":
 			label.set("theme_override_font_sizes/font_size", TYPE_META)
 			label.set("theme_override_colors/font_color", UI_TEXT_MUTED if not dark else Color(UI_TEXT_DARK, 0.68))
@@ -502,68 +510,61 @@ func _apply_visual_design_system() -> void:
 	var icon_sword := _load_runtime_texture(ICON_SWORD_PATH)
 	var top_bar := get_node_or_null("UILayer/TopBar")
 	if top_bar:
-		top_bar.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_1, 0.90), Color(UI_ACCENT, 0.28), 20, 1, 10))
+		top_bar.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_1, 0.92), Color(UI_ACCENT, 0.14), 22, 0, 10))
 		top_bar.offset_top = 18.0
 		top_bar.offset_bottom = 70.0
 		_ensure_ornament_frame(top_bar, frame_simple, 16, 4, Color(1, 1, 1, 0.42))
 	var left_panel := get_node_or_null("UILayer/LeftPanel")
 	if left_panel:
-		left_panel.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_1, 0.78), Color(UI_BORDER_SUBTLE, 0.8), 20, 1, 12))
-		_ensure_ornament_frame(left_panel, frame_simple, 16, 4, Color(1, 1, 1, 0.30))
+		left_panel.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_1, 0.74), Color(UI_BORDER_SUBTLE, 0.32), 20, 0, 12))
 	var right_panel := get_node_or_null("UILayer/RightPanel")
 	if right_panel:
-		right_panel.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_1, 0.74), Color(UI_BORDER_SUBTLE, 0.7), 20, 1, 12))
-		_ensure_ornament_frame(right_panel, frame_simple, 16, 4, Color(1, 1, 1, 0.34))
+		right_panel.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_1, 0.72), Color(UI_BORDER_SUBTLE, 0.28), 20, 0, 12))
 	var event_panel := get_node_or_null("UILayer/EventLogPanel")
 	if event_panel:
-		event_panel.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_1, 0.78), Color(UI_BORDER_SUBTLE, 0.7), 18, 1, 10))
-		_ensure_ornament_frame(event_panel, frame_simple, 16, 3, Color(1, 1, 1, 0.28))
+		event_panel.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_1, 0.76), Color(UI_BORDER_SUBTLE, 0.20), 18, 0, 10))
 	var roster_panel := get_node_or_null("UILayer/RosterPanel")
 	if roster_panel:
-		roster_panel.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_1, 0.82), Color(UI_ACCENT, 0.24), 18, 1, 10))
+		roster_panel.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_1, 0.86), Color(UI_ACCENT, 0.18), 18, 0, 10))
 		_ensure_ornament_frame(roster_panel, frame_ornate, 16, 5, Color(1, 1, 1, 0.44))
 	var quest_drawer := get_node_or_null("UILayer/QuestDrawer")
 	if quest_drawer:
-		quest_drawer.set("theme_override_styles/panel", _make_style(Color(0.09, 0.12, 0.16, 0.96), Color(UI_ACCENT, 0.28), 24, 1, 16))
+		quest_drawer.set("theme_override_styles/panel", _make_style(Color(0.09, 0.12, 0.16, 0.97), Color(UI_ACCENT, 0.22), 24, 0, 16))
 		_ensure_ornament_frame(quest_drawer, frame_ornate, 16, 8, Color(1, 1, 1, 0.55))
 	var summary_card := get_node_or_null("UILayer/RightPanel/VBox/SummaryCard")
 	if summary_card:
-		summary_card.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_PAPER, 0.94), Color(UI_BORDER_SUBTLE, 0.72), 18, 1, 12))
-		_ensure_ornament_frame(summary_card, frame_simple, 16, 3, Color(1, 1, 1, 0.30))
+		summary_card.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_PAPER, 0.97), Color(UI_BORDER_SUBTLE, 0.38), 18, 0, 14))
+		_ensure_ornament_frame(summary_card, frame_ornate, 16, 3, Color(1, 1, 1, 0.26))
 	var facts_card := get_node_or_null("UILayer/RightPanel/VBox/PrimaryFactsCard")
 	if facts_card:
-		facts_card.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_PAPER, 0.92), Color(UI_BORDER_SUBTLE, 0.6), 16, 1, 12))
+		facts_card.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_PAPER, 0.93), Color(UI_BORDER_SUBTLE, 0.22), 16, 0, 12))
 	var action_card := get_node_or_null("UILayer/RightPanel/VBox/ActionCard")
 	if action_card:
-		action_card.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_2, 0.92), Color(UI_ACCENT, 0.35), 16, 1, 12))
-		_ensure_ornament_frame(action_card, frame_simple, 16, 3, Color(1, 1, 1, 0.24))
+		action_card.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_2, 0.94), Color(UI_ACCENT, 0.24), 16, 0, 12))
 	var quest_header := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestDetailHeader")
 	if quest_header:
-		quest_header.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_PAPER, 0.97), Color(UI_BORDER_SUBTLE, 0.84), 20, 1, 14))
+		quest_header.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_PAPER, 0.97), Color(UI_BORDER_SUBTLE, 0.40), 20, 0, 14))
 		_ensure_ornament_frame(quest_header, frame_ornate, 16, 4, Color(1, 1, 1, 0.42))
 	var quest_meta := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestMetaCard")
 	if quest_meta:
-		quest_meta.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_2, 0.94), Color(UI_ACCENT, 0.22), 18, 1, 14))
+		quest_meta.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_2, 0.94), Color(UI_ACCENT, 0.18), 18, 0, 14))
 	var quest_suitability := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestSuitabilityCard")
 	if quest_suitability:
-		quest_suitability.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_PAPER, 0.92), Color(UI_BORDER_SUBTLE, 0.62), 18, 1, 14))
+		quest_suitability.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_PAPER, 0.92), Color(UI_BORDER_SUBTLE, 0.20), 18, 0, 14))
 	var active_card := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestLowerRow/ActiveQuestCard")
 	if active_card:
-		active_card.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_2, 0.92), Color(UI_ACCENT, 0.22), 18, 1, 12))
+		active_card.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_2, 0.92), Color(UI_ACCENT, 0.18), 18, 0, 12))
 	var completed_card := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestLowerRow/CompletedQuestCard")
 	if completed_card:
-		completed_card.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_PAPER, 0.92), Color(UI_BORDER_SUBTLE, 0.6), 18, 1, 12))
+		completed_card.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_PAPER, 0.92), Color(UI_BORDER_SUBTLE, 0.18), 18, 0, 12))
 	var status_card := get_node_or_null("UILayer/LeftPanel/VBox/StatusCard")
 	if status_card:
-		status_card.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_2, 0.86), Color(UI_BORDER_SUBTLE, 0.55), 14, 1, 10))
+		status_card.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_2, 0.86), Color(UI_BORDER_SUBTLE, 0.18), 14, 0, 10))
 	var quest_header_box := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestHeader") as Control
 	if quest_header_box:
 		_ensure_divider_texture(quest_header_box)
 
 	for path in [
-		"UILayer/TopBar/TopBarRow/QuestDrawerButton",
-		"UILayer/TopBar/TopBarRow/BuildPanelToggleButton",
-		"UILayer/TopBar/TopBarRow/DetailsPanelToggleButton",
 		"UILayer/TopBar/TopBarRow/Speed1Button",
 		"UILayer/TopBar/TopBarRow/Speed2Button",
 		"UILayer/TopBar/TopBarRow/Speed3Button",
@@ -577,6 +578,9 @@ func _apply_visual_design_system() -> void:
 		"UILayer/RightPanel/VBox/MoreDetailsButton"
 	]:
 		_apply_button_theme(get_node_or_null(path), "chrome")
+	_apply_button_theme(get_node_or_null("UILayer/TopBar/TopBarRow/QuestDrawerButton"), "accent")
+	_apply_button_theme(get_node_or_null("UILayer/TopBar/TopBarRow/BuildPanelToggleButton"), "accent")
+	_apply_button_theme(get_node_or_null("UILayer/TopBar/TopBarRow/DetailsPanelToggleButton"), "paper")
 	for path in [
 		"UILayer/LeftPanel/VBox/BuildRail/BuildButton",
 		"UILayer/LeftPanel/VBox/BuildRail/BuildWeaponsShopButton",
@@ -625,6 +629,12 @@ func _apply_visual_design_system() -> void:
 		help.set("theme_override_colors/font_color", UI_TEXT_MUTED)
 		help.set("theme_override_font_sizes/font_size", TYPE_BODY)
 		help.set("theme_override_fonts/font", _load_runtime_font(FONT_BODY_PATH))
+	var gold_label := get_node_or_null("UILayer/TopBar/TopBarRow/GoldLabel")
+	if gold_label:
+		gold_label.set("theme_override_colors/font_color", Color(1.0, 0.92, 0.70, 1.0))
+	var summary_label := get_node_or_null("UILayer/TopBar/TopBarRow/HeroSummaryLabel")
+	if summary_label:
+		summary_label.set("theme_override_colors/font_color", Color(UI_TEXT_MUTED, 0.92))
 
 	for path in [
 		"UILayer/RightPanel/VBox/HealthSectionLabel",
@@ -648,8 +658,9 @@ func _apply_visual_design_system() -> void:
 		_ensure_ornament_frame(portrait_panel, frame_simple, 16, 3, Color(1, 1, 1, 0.28))
 
 func _ready() -> void:
-	cmd_server.set_sim(sim)
-	cmd_server.start(RuntimeConfig.port)
+	if RuntimeConfig.is_headless():
+		cmd_server.set_sim(sim)
+		cmd_server.start(RuntimeConfig.port)
 
 	if RuntimeConfig.is_test() and RuntimeConfig.scenario_path != "":
 		var runner: Node = load("res://scripts/control/ScenarioRunner.gd").new()
@@ -785,6 +796,8 @@ func _ready() -> void:
 		_refresh_top_bar()
 		_toggle_event_feed(false)
 		_set_status("LMB place/select  RMB rotate build  Q/E cycle  Del remove  B/C panels  K quests")
+		if RuntimeConfig.is_snapshot():
+			UISnapshotService.notify_world_ready(self)
 
 func _physics_process(delta: float) -> void:
 	if RuntimeConfig.is_headless():
@@ -937,20 +950,22 @@ func _refresh_hero_panel(hero_id: int) -> void:
 	var xp := int(h.get("xp", 0))
 	var xp_progress := xp % 100
 	if title_lbl:
-		title_lbl.text = "Adventurer"
+		title_lbl.text = "Adventurer Sheet"
 	if lead_lbl:
-		lead_lbl.text = "Field record, readiness, and WFRP starter profile."
+		lead_lbl.text = "Identity, readiness, and WFRP starter equipment."
 	if portrait:
 		var archetype: String = str(h.get("career_archetype", "commoner")).to_lower()
 		portrait.texture = load(HERO_PORTRAITS.get(archetype, HERO_PORTRAITS["commoner"]))
 	if name_lbl:
 		name_lbl.text = h["name"]
+		name_lbl.set("theme_override_fonts/font", _load_runtime_font(FONT_HEADING_PATH))
+		name_lbl.set("theme_override_font_sizes/font_size", 24)
 	if career_lbl:
-		career_lbl.text = "%s  [WFRP %s]" % [h.get("career_role", h["career"]), h["career"]]
+		career_lbl.text = "%s  •  %s" % [h.get("career_role", h["career"]), h["career"]]
 	if state_lbl:
-		state_lbl.text = "Activity: %s   Wounds: %s" % [_format_entity_state(h["state"]), str(h.get("wound_state", "healthy")).replace("_", " ")]
+		state_lbl.text = "Activity  %s" % _format_entity_state(h["state"])
 	if summary_lbl:
-		summary_lbl.text = "WFRP starter  %s   Personal gold %dg" % [h.get("career", "?"), h.get("gold", 0)]
+		summary_lbl.text = "Level %d  •  %dg on hand  •  %s" % [level, h.get("gold", 0), str(h.get("wound_state", "healthy")).replace("_", " ")]
 	if health_bar:
 		health_bar.max_value = max(1, max_health)
 		health_bar.value = health
@@ -960,16 +975,16 @@ func _refresh_hero_panel(hero_id: int) -> void:
 		xp_bar.value = xp_progress
 		xp_bar.visible = true
 	if level_lbl:
-		level_lbl.text = "Level %d  XP %d / next level" % [level, xp_progress]
+		level_lbl.text = "Level %d  •  %d XP toward the next tier" % [level, xp_progress]
 	if health_lbl:
-		health_lbl.text = "Health %d / %d" % [health, max_health]
+		health_lbl.text = "Health  %d / %d" % [health, max_health]
 	if primary_lbl:
 		var current_quest: Dictionary = h.get("current_quest", {})
 		var activity := _hero_activity_summary(h)
 		if not current_quest.is_empty():
 			activity = "%s (%s)" % [current_quest.get("name", "?"), _format_quest_state(h.get("state", ""))]
 		var wfrp_stats: Dictionary = h.get("wfrp_stats", {})
-		primary_lbl.text = "Current activity: %s\nWFRP  WS %d  BS %d  S %d  T %d  Ag %d  Int %d  WP %d  Fel %d" % [
+		primary_lbl.text = "Current activity  %s\nWFRP spread  WS %d  BS %d  S %d  T %d  Ag %d  Int %d  WP %d  Fel %d" % [
 			activity,
 			wfrp_stats.get("WS", 0),
 			wfrp_stats.get("BS", 0),
@@ -985,13 +1000,13 @@ func _refresh_hero_panel(hero_id: int) -> void:
 	if output_lbl:
 		output_lbl.visible = false
 	if gold_lbl:
-		gold_lbl.text = "Gold %d" % h.get("gold", 0)
+		gold_lbl.text = "Gold  %d" % h.get("gold", 0)
 	if bias_lbl:
-		bias_lbl.text = "Quest Bias: %s   Service Bias: %s   Party: %d" % [h.get("quest_bias", "-"), h.get("service_bias", "-"), int(h.get("quest_party_size", 0))]
+		bias_lbl.text = "Quest bias  %s\nService pull  %s\nParty size  %d" % [h.get("quest_bias", "-"), h.get("service_bias", "-"), int(h.get("quest_party_size", 0))]
 	if stats_lbl:
 		var stats: Dictionary = h.get("stats", {})
 		var wfrp_stats: Dictionary = h.get("wfrp_stats", {})
-		stats_lbl.text = "WFRP  WS %d  BS %d  S %d  T %d  Ag %d  Int %d  WP %d  Fel %d  W %d  Mag %d\nQuestTown  MGT %d  AGI %d  WIT %d  SPR %d  END %d" % [
+		stats_lbl.text = "WFRP  WS %d  BS %d  S %d  T %d  Ag %d  Int %d  WP %d  Fel %d  W %d  Mag %d\nMapped  MGT %d  AGI %d  WIT %d  SPR %d  END %d" % [
 			wfrp_stats.get("WS", 0),
 			wfrp_stats.get("BS", 0),
 			wfrp_stats.get("S", 0),
@@ -1009,21 +1024,21 @@ func _refresh_hero_panel(hero_id: int) -> void:
 			stats.get("endurance", 0)
 		]
 	if skills_lbl:
-		skills_lbl.text = "Skills: %s" % ", ".join(h.get("skill_names", []))
+		skills_lbl.text = "Skills  %s" % _compact_list_text(h.get("skill_names", []), 6)
 	if trappings_lbl:
-		trappings_lbl.text = "Starting Trappings: %s" % ", ".join(h.get("starting_trappings", []))
+		trappings_lbl.text = "Starting trappings  %s" % _compact_list_text(h.get("starting_trappings", []), 6)
 	if talents_lbl:
-		talents_lbl.text = "Starting Talents: %s" % ", ".join(h.get("starting_talents", []))
+		talents_lbl.text = "Starting talents  %s" % _compact_list_text(h.get("starting_talents", []), 5)
 	if tags_lbl:
-		tags_lbl.text = "Tags: %s" % ", ".join(h.get("career_tags", []))
+		tags_lbl.text = "Traits  %s" % _compact_list_text(h.get("career_tags", []), 6)
 	if desc_lbl:
 		desc_lbl.text = h.get("career_description", "")
 	if quest_lbl:
 		var current_quest: Dictionary = h.get("current_quest", {})
 		if current_quest.is_empty():
-			quest_lbl.text = "Current Quest: None"
+			quest_lbl.text = "Current quest  None"
 		else:
-			quest_lbl.text = "Current Quest: %s   Party %d" % [current_quest.get("name", "?"), int(h.get("quest_party_size", 1))]
+			quest_lbl.text = "Current quest  %s  •  Party %d" % [current_quest.get("name", "?"), int(h.get("quest_party_size", 1))]
 	_refresh_details_visibility()
 
 func _hide_hero_panel() -> void:
@@ -1080,19 +1095,21 @@ func _refresh_building_panel(building_id: int) -> void:
 	if level > 0 and level <= levels.size():
 		level_name = str(levels[level - 1].get("name", ""))
 	if title_lbl:
-		title_lbl.text = "Building Ledger"
+		title_lbl.text = "Building Sheet"
 	if lead_lbl:
-		lead_lbl.text = "Current work, town role, and the next unlock in the chain."
+		lead_lbl.text = "Current work, town role, and the next unlock."
 	if portrait:
 		portrait.texture = load(BUILDING_ICONS.get(building_type, ""))
 	if name_lbl:
 		name_lbl.text = data.get("name", building_type.capitalize())
+		name_lbl.set("theme_override_fonts/font", _load_runtime_font(FONT_HEADING_PATH))
+		name_lbl.set("theme_override_font_sizes/font_size", 24)
 	if career_lbl:
-		career_lbl.text = "Type  %s" % str(building_type).replace("_", " ").capitalize()
+		career_lbl.text = "Town anchor  •  %s" % str(building_type).replace("_", " ").capitalize()
 	if state_lbl:
 		state_lbl.text = "Current mode  %s" % _building_mode_name(building)
 	if summary_lbl:
-		summary_lbl.text = "Tier %s   Base %dg   Site %.0f, %.0f" % [
+		summary_lbl.text = "Tier %s  •  Base %dg  •  Site %.0f, %.0f" % [
 			level_name if level_name != "" else "Base",
 			int(data.get("base_cost", 0)),
 			float(building.get("position", {}).get("x", 0.0)),
@@ -1105,11 +1122,11 @@ func _refresh_building_panel(building_id: int) -> void:
 	if xp_bar:
 		xp_bar.visible = false
 	if level_lbl:
-		level_lbl.text = "Level %d / %d  %s" % [level, max(1, levels.size()), level_name]
+		level_lbl.text = "Level %d / %d  •  %s" % [level, max(1, levels.size()), level_name]
 	if health_lbl:
-		health_lbl.text = "Footprint %s" % str(data.get("footprint", [1, 1]))
+		health_lbl.text = "Footprint  %s" % str(data.get("footprint", [1, 1]))
 	if primary_lbl:
-		primary_lbl.text = "Current role: %s\n\nNext unlock: %s" % [
+		primary_lbl.text = "Current role  %s\nNext unlock  %s" % [
 			data.get("description", ""),
 			_next_upgrade_summary(building)
 		]
@@ -1120,20 +1137,20 @@ func _refresh_building_panel(building_id: int) -> void:
 		output_lbl.visible = true
 		output_lbl.text = _building_output_summary(building)
 	if gold_lbl:
-		gold_lbl.text = "Base Cost %dg" % int(data.get("base_cost", 0))
+		gold_lbl.text = "Base cost  %dg" % int(data.get("base_cost", 0))
 	if bias_lbl:
-		bias_lbl.text = "Position: (%.0f, %.0f)" % [float(building.get("position", {}).get("x", 0.0)), float(building.get("position", {}).get("z", 0.0))]
+		bias_lbl.text = "Site  %.0f, %.0f\nStored output  %d" % [float(building.get("position", {}).get("x", 0.0)), float(building.get("position", {}).get("z", 0.0)), int(building.get("output_stock", 0))]
 	if stats_lbl:
-		stats_lbl.text = "Upgrades available: %s" % ("Yes" if level < levels.size() else "Maxed")
+		stats_lbl.text = "Upgrade path  %s" % ("Available" if level < levels.size() else "Maxed")
 	if skills_lbl:
-		skills_lbl.text = "Scene: %s" % data.get("scene", "")
+		skills_lbl.text = "Output order  %s" % _building_output_action_name(building_type)
 	if tags_lbl:
 		var effect_names: Array = []
 		if level > 0 and level <= levels.size():
 			effect_names = data.get("levels", [])[level - 1].get("effects", {}).keys()
-		tags_lbl.text = "Effects: %s" % ", ".join(effect_names)
+		tags_lbl.text = "Effects  %s" % _compact_list_text(effect_names, 5)
 	if quest_lbl:
-		quest_lbl.text = "Current Use: %s" % ("Supports quests and town services")
+		quest_lbl.text = "Current use  Supports quests and town services"
 	if desc_lbl:
 		desc_lbl.text = data.get("description", "")
 	_refresh_building_action_button()
@@ -1852,7 +1869,7 @@ func _fit_ui_to_viewport() -> void:
 		left_panel.offset_bottom = -118.0
 	var right_panel := get_node_or_null("UILayer/RightPanel")
 	if right_panel:
-		var desired_width: float = clamp(viewport_size.x * 0.18, 258.0, 316.0)
+		var desired_width: float = clamp(viewport_size.x * 0.17, 280.0, 340.0)
 		right_panel.offset_left = -desired_width - margin
 		right_panel.offset_right = -margin
 		right_panel.offset_top = 94.0
@@ -1872,10 +1889,10 @@ func _fit_ui_to_viewport() -> void:
 		left_tab.offset_bottom = 156.0
 	var roster_panel := get_node_or_null("UILayer/RosterPanel")
 	if roster_panel:
-		var roster_width: float = clamp(viewport_size.x * 0.48, 720.0, 1080.0)
+		var roster_width: float = clamp(viewport_size.x * 0.56, 860.0, 1240.0)
 		roster_panel.offset_left = -roster_width * 0.5
 		roster_panel.offset_right = roster_width * 0.5
-		roster_panel.offset_top = -94.0
+		roster_panel.offset_top = -108.0
 		roster_panel.offset_bottom = -18.0
 	var event_panel := get_node_or_null("UILayer/EventLogPanel")
 	if event_panel:
@@ -1921,14 +1938,14 @@ func _refresh_top_bar() -> void:
 		var state: String = hero.get("state", "")
 		if state in ["departing_quest", "on_quest", "returning"]:
 			active_expeditions += 1
-	summary.text = "Town status   %d / 5 adventurers   %d expeditions   Zoom %.0f%%   %.0fx speed" % [
+	summary.text = "%d / 5 adventurers   %d expeditions   Zoom %.0f%%   %.0fx speed" % [
 		GameState.heroes.size(),
 		active_expeditions,
 		100.0 * _get_camera_zoom_fraction(),
 		Engine.time_scale
 	]
 	if subtitle:
-		subtitle.text = "%d contracts live   %d buildings placed   click to inspect, launch, and cycle the loop" % [
+		subtitle.text = "%d contracts live  •  %d buildings placed  •  inspect, prepare, then launch" % [
 			GameState.quests.size(),
 			GameState.buildings.size()
 		]
@@ -1955,18 +1972,91 @@ func _refresh_roster_strip() -> void:
 		var hero: Dictionary = GameState.heroes[hero_id]
 		var hero_name := str(hero.get("name", "adventurer"))
 		var button := Button.new()
-		button.custom_minimum_size = Vector2(122, 54)
+		button.custom_minimum_size = Vector2(254, 72)
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		button.text = "%s\n%s  L%d  %s" % [
-			hero.get("name", "?"),
-			hero.get("career_role", hero.get("career", "?")),
-			int(hero.get("level", 1)),
-			str(hero.get("wound_state", "healthy")).replace("_", " ")
-		]
+		button.text = ""
+		button.clip_contents = true
 		var local_hero_id := int(hero_id)
 		_apply_button_theme(button, "roster", local_hero_id == _selected_hero_id)
-		button.icon = _load_runtime_texture(ICON_CHARACTER_PATH)
+		var row := HBoxContainer.new()
+		row.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		row.theme_override_constants["separation"] = 10
+		button.add_child(row)
+
+		var portrait := TextureRect.new()
+		portrait.custom_minimum_size = Vector2(42, 42)
+		portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		portrait.texture = load(HERO_PORTRAITS.get(str(hero.get("career_archetype", "commoner")).to_lower(), HERO_PORTRAITS["commoner"]))
+		portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		row.add_child(portrait)
+
+		var info := VBoxContainer.new()
+		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		info.theme_override_constants["separation"] = 2
+		info.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		row.add_child(info)
+
+		var name_label := Label.new()
+		name_label.text = hero.get("name", "?")
+		_apply_label_role(name_label, "body")
+		name_label.set("theme_override_fonts/font", _load_runtime_font(FONT_HEADING_PATH))
+		name_label.set("theme_override_font_sizes/font_size", 17)
+		info.add_child(name_label)
+
+		var meta_label := Label.new()
+		meta_label.text = "%s  •  L%d" % [hero.get("career_role", hero.get("career", "?")), int(hero.get("level", 1))]
+		_apply_label_role(meta_label, "meta")
+		info.add_child(meta_label)
+
+		var status_box := VBoxContainer.new()
+		status_box.custom_minimum_size = Vector2(92, 0)
+		status_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		status_box.theme_override_constants["separation"] = 4
+		row.add_child(status_box)
+
+		var health_ratio := 0.0
+		var max_health: int = max(1, int(hero.get("max_health", 1)))
+		health_ratio = float(int(hero.get("health", max_health))) / float(max_health)
+		var mini_bar := ProgressBar.new()
+		mini_bar.custom_minimum_size = Vector2(92, 12)
+		mini_bar.show_percentage = false
+		mini_bar.max_value = max_health
+		mini_bar.value = int(hero.get("health", max_health))
+		mini_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		mini_bar.set("theme_override_styles/background", _make_style(Color(UI_SURFACE_2, 0.82), Color(UI_BORDER_SUBTLE, 0.2), 999, 0, 2))
+		mini_bar.set("theme_override_styles/fill", _make_style(UI_SUCCESS if health_ratio > 0.65 else UI_WARNING, Color.WHITE, 999, 0, 2))
+		status_box.add_child(mini_bar)
+
+		var status_label := Label.new()
+		status_label.text = "HP %d/%d  •  %s" % [
+			int(hero.get("health", max_health)),
+			max_health,
+			_format_entity_state(str(hero.get("state", "idle")))
+		]
+		_apply_label_role(status_label, "meta")
+		status_label.set("theme_override_colors/font_color", UI_SUCCESS if health_ratio > 0.65 else UI_WARNING)
+		status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		status_box.add_child(status_label)
+
+		var wound_chip := PanelContainer.new()
+		wound_chip.custom_minimum_size = Vector2(84, 0)
+		wound_chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		wound_chip.set("theme_override_styles/panel", _make_style(
+			Color(UI_ACCENT_SOFT if local_hero_id == _selected_hero_id else UI_SURFACE_2, 0.92),
+			UI_ACCENT if local_hero_id == _selected_hero_id else UI_BORDER_SUBTLE,
+			999,
+			1,
+			8
+		))
+		var wound_label := Label.new()
+		wound_label.text = str(hero.get("wound_state", "healthy")).replace("_", " ")
+		wound_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		_apply_label_role(wound_label, "meta")
+		wound_chip.add_child(wound_label)
+		status_box.add_child(wound_chip)
+
 		button.pressed.connect(func() -> void:
 			_show_hero_panel(local_hero_id)
 			_set_status("Selected %s" % hero_name)
@@ -1995,6 +2085,100 @@ func _get_camera_zoom_fraction() -> float:
 	var max_size := 28.0
 	var size_fraction := inverse_lerp(max_size, min_size, camera_controller.size)
 	return clamp(size_fraction, 0.0, 1.0)
+
+func prepare_snapshot_target(target: String) -> void:
+	_left_panel_collapsed = false
+	_right_panel_collapsed = true
+	_event_feed_expanded = false
+	_details_expanded = false
+	_selected_entity_kind = ""
+	_selected_hero_id = -1
+	_selected_building_id = -1
+	_selected_quest_id = ""
+	_fit_ui_to_viewport()
+	_toggle_event_feed(false)
+	if _is_quest_drawer_open():
+		_toggle_quest_drawer()
+	if build_manager.is_placing():
+		build_manager.cancel_placement()
+	if camera_controller != null:
+		camera_controller.position = Vector3(0, 20, 30)
+		camera_controller.size = 18.0
+	match target:
+		"town_idle":
+			pass
+		"build_mode":
+			build_manager.start_placement("temple")
+		"building_selected_tavern":
+			var tavern := _get_building_of_type("tavern")
+			if not tavern.is_empty():
+				_show_building_panel(int(tavern.get("id", -1)))
+		"inspector_adventurer":
+			if not GameState.heroes.is_empty():
+				_show_hero_panel(int(GameState.heroes.keys()[0]))
+		"quest_board_open":
+			_selected_quest_id = str(GameState.quests[0].get("offer_id", "")) if not GameState.quests.is_empty() else ""
+			if not _is_quest_drawer_open():
+				_toggle_quest_drawer()
+		"quest_selected_unavailable":
+			_selected_quest_id = _first_unavailable_offer_id()
+			if _selected_quest_id == "" and not GameState.quests.is_empty():
+				_selected_quest_id = str(GameState.quests[0].get("offer_id", ""))
+			if not _is_quest_drawer_open():
+				_toggle_quest_drawer()
+		"ready_to_launch":
+			_selected_quest_id = _first_ready_offer_id()
+			if _selected_quest_id == "" and not GameState.quests.is_empty():
+				_selected_quest_id = str(GameState.quests[0].get("offer_id", ""))
+			if not _is_quest_drawer_open():
+				_toggle_quest_drawer()
+	_apply_panel_state()
+	_refresh_build_ui()
+	_refresh_quest_ui()
+	_refresh_roster_strip()
+	_refresh_top_bar()
+
+func _first_ready_offer_id() -> String:
+	for quest_offer: Dictionary in GameState.quests:
+		var preview: Dictionary = sim.get_quest_acceptance_preview(int(quest_offer.get("offer_id", -1)))
+		if bool(preview.get("can_accept", false)):
+			return str(quest_offer.get("offer_id", ""))
+	return ""
+
+func _first_unavailable_offer_id() -> String:
+	for quest_offer: Dictionary in GameState.quests:
+		var preview: Dictionary = sim.get_quest_acceptance_preview(int(quest_offer.get("offer_id", -1)))
+		if not bool(preview.get("can_accept", false)):
+			return str(quest_offer.get("offer_id", ""))
+	return ""
+
+func _compact_list_text(values: Array, max_items: int = 5) -> String:
+	if values.is_empty():
+		return "None"
+	var parts: Array[String] = []
+	for index in range(min(values.size(), max_items)):
+		parts.append(str(values[index]))
+	if values.size() > max_items:
+		parts.append("+%d more" % (values.size() - max_items))
+	return "  •  ".join(parts)
+
+func get_snapshot_rect(name: String) -> Rect2i:
+	var node: Control = null
+	match name:
+		"top_bar":
+			node = get_node_or_null("UILayer/TopBar")
+		"left_rail":
+			node = get_node_or_null("UILayer/LeftPanel")
+		"right_inspector":
+			node = get_node_or_null("UILayer/RightPanel")
+		"bottom_roster":
+			node = get_node_or_null("UILayer/RosterPanel")
+		"active_overlay":
+			node = get_node_or_null("UILayer/QuestDrawer") if _is_quest_drawer_open() else get_node_or_null("UILayer/EventLogPanel")
+	if node == null or not node.visible:
+		return Rect2i()
+	var rect := node.get_global_rect()
+	return Rect2i(int(rect.position.x), int(rect.position.y), int(rect.size.x), int(rect.size.y))
 
 func _format_entity_state(raw_state: String) -> String:
 	if raw_state == "":

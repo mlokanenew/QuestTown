@@ -5,10 +5,12 @@ QuestTown regression suite runner.
 Runs what we can verify locally in one pass:
 - Godot headless boot / parse check
 - scripted scenario sweep through llm_driver.py --no-llm
+- optional rendered UI snapshot sweep
 - optional LLM smoke scenario
 
 Usage:
   python tools/run_regression_suite.py
+  python tools/run_regression_suite.py --include-ui-snapshots
   python tools/run_regression_suite.py --include-llm --llm-model qwen2.5-coder:7b
   python tools/run_regression_suite.py --json-out regression_results.json
 """
@@ -28,6 +30,7 @@ PROJECT_DIR = Path(__file__).resolve().parent.parent
 DEFAULT_GODOT = Path(r"C:\Users\mloka\Downloads\godot_extracted\Godot_v4.6.1-stable_win64.exe")
 DEFAULT_LLM_MODEL = "qwen2.5-coder:7b"
 DEFAULT_LLM_SCENARIO = "tests/scenarios/mvp_full_loop.json"
+DEFAULT_UI_SNAPSHOT_DIR = "artifacts/ui_snapshots_regression"
 
 
 @dataclass
@@ -74,6 +77,9 @@ def main() -> int:
     parser.add_argument("--godot-exe", default=str(DEFAULT_GODOT))
     parser.add_argument("--scenario-glob", default="tests/scenarios/*.json")
     parser.add_argument("--include-llm", action="store_true")
+    parser.add_argument("--include-ui-snapshots", action="store_true")
+    parser.add_argument("--ui-snapshot-targets", default="")
+    parser.add_argument("--ui-snapshot-dir", default=DEFAULT_UI_SNAPSHOT_DIR)
     parser.add_argument("--llm-model", default=DEFAULT_LLM_MODEL)
     parser.add_argument("--llm-scenario", default=DEFAULT_LLM_SCENARIO)
     parser.add_argument("--analysis-llm", action="store_true")
@@ -102,6 +108,19 @@ def main() -> int:
             "--no-llm",
         ]
         results.append(run_step(f"scripted::{scenario.name}", cmd, timeout_s=300))
+        if args.stop_on_fail and not results[-1].ok:
+            return emit(results, args.json_out)
+
+    if args.include_ui_snapshots:
+        snapshot_cmd = [
+            sys.executable,
+            "tools/run_ui_snapshot_suite.py",
+            "--out-dir",
+            args.ui_snapshot_dir,
+        ]
+        if args.ui_snapshot_targets:
+            snapshot_cmd.extend(["--targets", args.ui_snapshot_targets])
+        results.append(run_step("ui_snapshot_smoke", snapshot_cmd, timeout_s=600))
         if args.stop_on_fail and not results[-1].ok:
             return emit(results, args.json_out)
 
