@@ -432,9 +432,16 @@ func _apply_button_theme(button: Button, variant: String, selected: bool = false
 			button.set("theme_override_colors/font_pressed_color", UI_TEXT_PRIMARY)
 			button.set("theme_override_colors/font_disabled_color", Color(UI_TEXT_MUTED, 0.62))
 		"chrome":
-			button.set("theme_override_styles/normal", _make_texture_style(button_blue_flat, 18, 12, true, Color(0.31, 0.43, 0.54, 0.92)))
-			button.set("theme_override_styles/hover", _make_texture_style(button_blue, 18, 12, true, Color(0.39, 0.51, 0.62, 0.96)))
-			button.set("theme_override_styles/pressed", _make_texture_style(button_blue_outline, 18, 12, true, Color(0.27, 0.37, 0.47, 0.96)))
+			var chrome_normal := Color(0.31, 0.43, 0.54, 0.92)
+			var chrome_hover := Color(0.39, 0.51, 0.62, 0.96)
+			var chrome_pressed := Color(0.27, 0.37, 0.47, 0.96)
+			if selected:
+				chrome_normal = UI_ACCENT.lightened(0.14)
+				chrome_hover = UI_ACCENT.lightened(0.24)
+				chrome_pressed = UI_ACCENT.darkened(0.04)
+			button.set("theme_override_styles/normal", _make_texture_style(button_blue_flat, 18, 12, true, chrome_normal))
+			button.set("theme_override_styles/hover", _make_texture_style(button_blue, 18, 12, true, chrome_hover))
+			button.set("theme_override_styles/pressed", _make_texture_style(button_blue_outline, 18, 12, true, chrome_pressed))
 			button.set("theme_override_styles/disabled", _make_texture_style(button_blue_flat, 18, 12, true, Color(0.24, 0.29, 0.35, 0.48)))
 			button.set("theme_override_colors/font_color", UI_TEXT_PRIMARY)
 			button.set("theme_override_colors/font_hover_color", UI_TEXT_PRIMARY)
@@ -1928,6 +1935,15 @@ func _refresh_top_bar() -> void:
 	var quest_button := get_node_or_null("UILayer/TopBar/TopBarRow/QuestDrawerButton")
 	if quest_button:
 		quest_button.text = "Quest Board  (K)   %d" % GameState.quests.size()
+	_refresh_speed_button_states()
+
+func _refresh_speed_button_states() -> void:
+	var speed1 := get_node_or_null("UILayer/TopBar/TopBarRow/Speed1Button")
+	var speed2 := get_node_or_null("UILayer/TopBar/TopBarRow/Speed2Button")
+	var speed3 := get_node_or_null("UILayer/TopBar/TopBarRow/Speed3Button")
+	_apply_button_theme(speed1, "chrome", is_equal_approx(Engine.time_scale, 1.0))
+	_apply_button_theme(speed2, "chrome", is_equal_approx(Engine.time_scale, 2.0))
+	_apply_button_theme(speed3, "chrome", is_equal_approx(Engine.time_scale, 3.0))
 
 func _refresh_roster_strip() -> void:
 	var roster := get_node_or_null("UILayer/RosterPanel/RosterVBox/RosterStripScroll/RosterStrip")
