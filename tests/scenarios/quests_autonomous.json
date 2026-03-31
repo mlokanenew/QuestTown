@@ -1,13 +1,15 @@
 {
   "name": "Accepted quests start running",
-  "goal": "Place a tavern, generate a quest from Inn rumours, and explicitly accept it to launch a party.",
+  "goal": "Place a tavern, generate a quest from Inn rumours, and explicitly accept it to launch a party under the manual first-hour flow.",
   "seed": 42,
-  "max_ticks": 1800,
+  "max_ticks": 0,
   "commands": [
     {"cmd": "place_building", "type": "tavern", "x": 0, "z": 0},
+    {"cmd": "step_ticks", "n": 420},
     {"cmd": "set_building_output_mode", "type": "tavern"},
-    {"cmd": "step_ticks", "n": 1600},
-    {"cmd": "accept_quest"}
+    {"cmd": "step_ticks", "n": 180},
+    {"cmd": "accept_quest"},
+    {"cmd": "step_ticks", "n": 60}
   ],
   "assertions": [
     {"assert": "hero_count_gte", "value": 1},

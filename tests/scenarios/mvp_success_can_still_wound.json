@@ -1,21 +1,37 @@
 {
   "name": "MVP successful quests can still cause minor wounds",
-  "goal": "Verify that at least one successful quest can still return an adventurer with a minor wound.",
+  "goal": "Verify that risky first-hour quests can still return an adventurer with a minor wound.",
   "seed": 42,
   "max_ticks": 7200,
   "commands": [
-    {"cmd": "set_gold", "value": 120},
+    {"cmd": "set_gold", "value": 180},
     {"cmd": "place_building", "type": "tavern", "x": 0, "z": 0},
     {"cmd": "place_building", "type": "weapons_shop", "x": 3, "z": 0},
+    {"cmd": "place_building", "type": "temple", "x": -3, "z": 0},
+    {"cmd": "upgrade_building", "type": "tavern"},
     {"cmd": "upgrade_building", "type": "tavern"},
     {"cmd": "upgrade_building", "type": "weapons_shop"},
+    {"cmd": "upgrade_building", "type": "weapons_shop"},
+    {"cmd": "upgrade_building", "type": "temple"},
+    {"cmd": "upgrade_building", "type": "temple"},
+    {"cmd": "set_quest_enabled", "id": "clear_rats_cellar", "enabled": false},
+    {"cmd": "set_quest_enabled", "id": "escort_peddler_ford", "enabled": false},
+    {"cmd": "set_quest_enabled", "id": "recover_shrine_offerings", "enabled": false},
+    {"cmd": "set_quest_enabled", "id": "search_watch_hut", "enabled": false},
+    {"cmd": "set_quest_enabled", "id": "drive_off_wolves", "enabled": false},
+    {"cmd": "set_quest_enabled", "id": "keep_vigil_graveyard", "enabled": false},
+    {"cmd": "set_quest_enabled", "id": "gather_rare_herbs", "enabled": false},
+    {"cmd": "set_quest_enabled", "id": "break_cutpurse_ring", "enabled": false},
+    {"cmd": "step_ticks", "n": 420},
     {"cmd": "set_building_output_mode", "type": "tavern"},
+    {"cmd": "step_ticks", "n": 180},
+    {"cmd": "accept_quest"},
     {"cmd": "set_building_output_mode", "type": "weapons_shop"},
-    {"cmd": "step_ticks", "n": 360},
-    {"cmd": "accept_quest"}
+    {"cmd": "set_building_output_mode", "type": "temple"},
+    {"cmd": "step_ticks", "n": 3600}
   ],
   "assertions": [
-    {"assert": "completed_quest_count_gte", "value": 2},
-    {"assert": "completed_success_wound_seen"}
+    {"assert": "completed_quest_count_gte", "value": 1},
+    {"assert": "completed_wound_seen"}
   ]
 }

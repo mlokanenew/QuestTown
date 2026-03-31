@@ -177,6 +177,11 @@ func _check(assertion: Dictionary, state: Dictionary) -> bool:
 				if bool(entry.get("success", false)) and str(entry.get("wound_state", "")) == "minor_wounded":
 					return true
 			return false
+		"completed_wound_seen":
+			for entry in state.get("completed_quests", []):
+				if str(entry.get("wound_state", "")) == "minor_wounded":
+					return true
+			return false
 		"event_type_seen":
 			for event in state.get("events", []):
 				if event.get("type", "") == assertion.get("value", ""):
@@ -186,6 +191,15 @@ func _check(assertion: Dictionary, state: Dictionary) -> bool:
 			var allowed: Array = assertion.get("value", [])
 			for quest in state.get("quests", []):
 				if not allowed.has(quest.get("template_id", "")):
+					return false
+			return not state.get("quests", []).is_empty()
+		"quest_templates_include":
+			var required_templates: Array = assertion.get("value", [])
+			var seen_templates := {}
+			for quest in state.get("quests", []):
+				seen_templates[str(quest.get("template_id", ""))] = true
+			for template_id in required_templates:
+				if not seen_templates.has(str(template_id)):
 					return false
 			return not state.get("quests", []).is_empty()
 		"hero_careers_only":

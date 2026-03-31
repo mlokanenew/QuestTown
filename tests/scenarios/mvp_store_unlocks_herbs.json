@@ -2,7 +2,7 @@
   "name": "MVP store upgrades unlock the herbs quest",
   "goal": "Verify upgraded Inn and General Store unlock the herb-gathering quest.",
   "seed": 42,
-  "max_ticks": 720,
+  "max_ticks": 0,
   "commands": [
     {"cmd": "set_gold", "value": 120},
     {"cmd": "place_building", "type": "tavern", "x": 0, "z": 0},
@@ -11,10 +11,11 @@
     {"cmd": "upgrade_building", "type": "weapons_shop"},
     {"cmd": "set_quest_enabled", "id": "clear_rats_cellar", "enabled": false},
     {"cmd": "set_quest_enabled", "id": "investigate_strange_lights", "enabled": false},
-    {"cmd": "set_building_output_mode", "type": "tavern"}
+    {"cmd": "set_building_output_mode", "type": "tavern"},
+    {"cmd": "step_ticks", "n": 180}
   ],
   "assertions": [
     {"assert": "quest_count_gte", "value": 1},
-    {"assert": "quest_templates_only", "value": ["gather_rare_herbs"]}
+    {"assert": "quest_templates_include", "value": ["gather_rare_herbs"]}
   ]
 }

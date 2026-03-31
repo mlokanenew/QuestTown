@@ -22,6 +22,7 @@
   "assertions": [
     {"assert": "gold_gte", "value": 40},
     {"assert": "event_type_seen", "value": "hero_spent_at_tavern"},
+    {"assert": "event_type_seen", "value": "hero_spent_at_weapons_shop"},
     {"assert": "event_type_seen", "value": "hero_completed_quest"}
   ]
 }

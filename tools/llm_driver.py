@@ -171,6 +171,10 @@ def check_assertions(assertions: list, state: dict) -> tuple[bool, list]:
             completed = state.get("completed_quests", [])
             if not any(bool(entry.get("success", False)) and str(entry.get("wound_state", "")) == "minor_wounded" for entry in completed):
                 failures.append(assertion)
+        elif kind == "completed_wound_seen":
+            completed = state.get("completed_quests", [])
+            if not any(str(entry.get("wound_state", "")) == "minor_wounded" for entry in completed):
+                failures.append(assertion)
         elif kind == "event_type_seen":
             target = assertion.get("value", "")
             if not any(event.get("type", "") == target for event in state.get("events", [])):
@@ -179,6 +183,11 @@ def check_assertions(assertions: list, state: dict) -> tuple[bool, list]:
             allowed = set(assertion.get("value", []))
             quests = state.get("quests", [])
             if not quests or any(quest.get("template_id", "") not in allowed for quest in quests):
+                failures.append(assertion)
+        elif kind == "quest_templates_include":
+            required = set(assertion.get("value", []))
+            seen = {str(quest.get("template_id", "")) for quest in state.get("quests", [])}
+            if not state.get("quests", []) or not required.issubset(seen):
                 failures.append(assertion)
         elif kind == "hero_careers_only":
             allowed = set(assertion.get("value", []))
@@ -675,7 +684,7 @@ def choose_fallback_command(state: dict, failures: list) -> dict:
         if kind == "gold_gte":
             required_buildings.update({"tavern", "weapons_shop", "temple"})
             required_output_buildings.update({"tavern", "weapons_shop", "temple"})
-        if kind == "quest_count_gte" or kind == "quest_templates_only":
+        if kind in {"quest_count_gte", "quest_templates_only", "quest_templates_include"}:
             required_buildings.add("tavern")
             required_output_buildings.add("tavern")
         if kind == "building_output_stock_gte":
@@ -744,7 +753,7 @@ def choose_fallback_command(state: dict, failures: list) -> dict:
             if building_actions.get("tavern", "idle") == "idle":
                 return {"cmd": "set_building_output_mode", "type": "tavern"}
             return {"cmd": "step_ticks", "n": 300}
-        if kind == "quest_templates_only":
+        if kind in {"quest_templates_only", "quest_templates_include"}:
             if "tavern" not in building_types:
                 return {"cmd": "place_building", "type": "tavern", "x": 0, "z": 0}
             if building_actions.get("tavern", "idle") == "idle":
@@ -842,7 +851,7 @@ def is_useful_command(cmd: dict, state: dict, last_cmd: dict | None, failures: l
     required_buildings = set()
     for failure in failures:
         kind = failure.get("assert", "")
-        if kind in {"quest_count_gte", "quest_templates_only"}:
+        if kind in {"quest_count_gte", "quest_templates_only", "quest_templates_include"}:
             required_buildings.add("tavern")
         if kind == "gold_gte":
             required_buildings.update({"tavern", "weapons_shop", "temple"})
