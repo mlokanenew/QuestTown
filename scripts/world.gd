@@ -2038,7 +2038,7 @@ func _refresh_roster_strip() -> void:
 		var hero: Dictionary = GameState.heroes[hero_id]
 		var hero_name := str(hero.get("name", "adventurer"))
 		var button := Button.new()
-		button.custom_minimum_size = Vector2(212, 68)
+		button.custom_minimum_size = Vector2(214, 56)
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		button.text = ""
 		button.clip_contents = true
@@ -2051,7 +2051,7 @@ func _refresh_roster_strip() -> void:
 		button.add_child(row)
 
 		var portrait := TextureRect.new()
-		portrait.custom_minimum_size = Vector2(36, 36)
+		portrait.custom_minimum_size = Vector2(28, 28)
 		portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		portrait.texture = load(HERO_PORTRAITS.get(str(hero.get("career_archetype", "commoner")).to_lower(), HERO_PORTRAITS["commoner"]))
@@ -2060,71 +2060,57 @@ func _refresh_roster_strip() -> void:
 
 		var info := VBoxContainer.new()
 		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		info.add_theme_constant_override("separation", 2)
+		info.add_theme_constant_override("separation", 1)
 		info.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		row.add_child(info)
-
-		var name_label := Label.new()
-		name_label.text = hero.get("name", "?")
-		_apply_label_role(name_label, "body")
-		name_label.set("theme_override_fonts/font", _load_runtime_font(FONT_HEADING_PATH))
-		name_label.set("theme_override_font_sizes/font_size", 15)
-		name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		info.add_child(name_label)
-
-		var meta_label := Label.new()
-		meta_label.text = "%s L%d" % [hero.get("career_role", hero.get("career", "?")), int(hero.get("level", 1))]
-		_apply_label_role(meta_label, "meta")
-		meta_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		info.add_child(meta_label)
-
-		var status_box := VBoxContainer.new()
-		status_box.custom_minimum_size = Vector2(76, 0)
-		status_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		status_box.add_theme_constant_override("separation", 3)
-		row.add_child(status_box)
 
 		var health_ratio := 0.0
 		var max_health: int = max(1, int(hero.get("max_health", 1)))
 		health_ratio = float(int(hero.get("health", max_health))) / float(max_health)
-		var mini_bar := ProgressBar.new()
-		mini_bar.custom_minimum_size = Vector2(76, 10)
-		mini_bar.show_percentage = false
-		mini_bar.max_value = max_health
-		mini_bar.value = int(hero.get("health", max_health))
-		mini_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		mini_bar.set("theme_override_styles/background", _make_style(Color(UI_SURFACE_2, 0.82), Color(UI_BORDER_SUBTLE, 0.2), 999, 0, 2))
-		mini_bar.set("theme_override_styles/fill", _make_style(UI_SUCCESS if health_ratio > 0.65 else UI_WARNING, Color.WHITE, 999, 0, 2))
-		status_box.add_child(mini_bar)
+		var top_line := HBoxContainer.new()
+		top_line.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		top_line.add_theme_constant_override("separation", 6)
+		info.add_child(top_line)
 
-		var status_label := Label.new()
-		status_label.text = "HP %d/%d\n%s" % [
+		var name_label := Label.new()
+		name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		name_label.text = hero.get("name", "?")
+		_apply_label_role(name_label, "body")
+		name_label.set("theme_override_fonts/font", _load_runtime_font(FONT_HEADING_PATH))
+		name_label.set("theme_override_font_sizes/font_size", 13)
+		name_label.clip_text = true
+		top_line.add_child(name_label)
+
+		var hp_label := Label.new()
+		hp_label.text = "HP %d/%d" % [
 			int(hero.get("health", max_health)),
-			max_health,
-			_format_entity_state(str(hero.get("state", "idle")))
+			max_health
 		]
-		_apply_label_role(status_label, "meta")
-		status_label.set("theme_override_colors/font_color", UI_SUCCESS if health_ratio > 0.65 else UI_WARNING)
-		status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-		status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		status_box.add_child(status_label)
+		_apply_label_role(hp_label, "meta")
+		hp_label.set("theme_override_colors/font_color", UI_SUCCESS if health_ratio > 0.65 else UI_WARNING)
+		hp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		top_line.add_child(hp_label)
 
-		var wound_chip := PanelContainer.new()
-		wound_chip.custom_minimum_size = Vector2(76, 0)
-		wound_chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		wound_chip.set("theme_override_styles/panel", _make_style(
-			Color(UI_ACCENT_SOFT if local_hero_id == _selected_hero_id else UI_SURFACE_2, 0.92),
-			UI_ACCENT if local_hero_id == _selected_hero_id else UI_BORDER_SUBTLE,
-			999,
-			1,
-			8
-		))
-		var wound_label := Label.new()
-		wound_label.text = str(hero.get("wound_state", "healthy")).replace("_", " ")
-		wound_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		_apply_label_role(wound_label, "meta")
-		wound_chip.add_child(wound_label)
-		status_box.add_child(wound_chip)
+		var bottom_line := HBoxContainer.new()
+		bottom_line.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		bottom_line.add_theme_constant_override("separation", 6)
+		info.add_child(bottom_line)
+
+		var meta_label := Label.new()
+		meta_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		meta_label.text = "%s L%d" % [hero.get("career_role", hero.get("career", "?")), int(hero.get("level", 1))]
+		_apply_label_role(meta_label, "meta")
+		meta_label.clip_text = true
+		bottom_line.add_child(meta_label)
+
+		var state_label := Label.new()
+		var wound_state := str(hero.get("wound_state", "healthy")).replace("_", " ")
+		var short_state := _format_entity_state(str(hero.get("state", "idle")))
+		state_label.text = wound_state if wound_state != "healthy" else short_state
+		_apply_label_role(state_label, "meta")
+		state_label.set("theme_override_colors/font_color", UI_ACCENT if wound_state != "healthy" else UI_TEXT_MUTED)
+		state_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		bottom_line.add_child(state_label)
 
 		button.pressed.connect(func() -> void:
 			_show_hero_panel(local_hero_id)
