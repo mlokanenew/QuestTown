@@ -1555,7 +1555,7 @@ func _refresh_quest_offer_cards() -> void:
 		_apply_button_theme(button, "offer", offer_id == _selected_quest_id)
 		var quest_type := str(quest_offer.get("type", ""))
 		var quest_icon_path := str(QUEST_TYPE_ICONS.get(quest_type, ICON_BOOK_PATH))
-		button.icon = _load_runtime_texture(quest_icon_path) if bool(preview.get("can_accept", false)) else _load_runtime_texture(ICON_SKULL_PATH)
+		button.icon = _load_runtime_texture(quest_icon_path)
 		if urgent:
 			button.modulate = Color(1.0, 0.97, 0.9, 1.0)
 		var local_offer_id := offer_id
