@@ -621,6 +621,12 @@ custom_minimum_size = Vector2(164, 0)
 theme_override_colors/font_color = Color(0.95, 0.91, 0.73, 1)
 text = "Party and Expeditions"
 
+[node name="RosterPrevButton" type="Button" parent="UILayer/RosterPanel/RosterVBox"]
+custom_minimum_size = Vector2(34, 0)
+theme_override_styles/normal = SubResource("button_secondary")
+theme_override_styles/hover = SubResource("button_primary")
+text = "<"
+
 [node name="RosterStripScroll" type="ScrollContainer" parent="UILayer/RosterPanel/RosterVBox"]
 size_flags_horizontal = 3
 horizontal_scroll_mode = 1
@@ -629,6 +635,18 @@ vertical_scroll_mode = 0
 [node name="RosterStrip" type="HBoxContainer" parent="UILayer/RosterPanel/RosterVBox/RosterStripScroll"]
 size_flags_horizontal = 3
 theme_override_constants/separation = 8
+
+[node name="RosterNextButton" type="Button" parent="UILayer/RosterPanel/RosterVBox"]
+custom_minimum_size = Vector2(34, 0)
+theme_override_styles/normal = SubResource("button_secondary")
+theme_override_styles/hover = SubResource("button_primary")
+text = ">"
+
+[node name="RosterExpandButton" type="Button" parent="UILayer/RosterPanel/RosterVBox"]
+custom_minimum_size = Vector2(46, 0)
+theme_override_styles/normal = SubResource("button_secondary")
+theme_override_styles/hover = SubResource("button_primary")
+text = "+"
 
 [node name="QuestDrawer" type="PanelContainer" parent="UILayer"]
 anchor_left = 0.15

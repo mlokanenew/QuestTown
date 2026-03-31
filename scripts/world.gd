@@ -70,6 +70,7 @@ var _ui_sfx: Dictionary = {}
 var _ui_textures: Dictionary = {}
 var _ui_fonts: Dictionary = {}
 var _ui_tweens: Dictionary = {}
+var _roster_expanded: bool = false
 
 const BUILDING_ICONS := {
 	"tavern": "res://assets/ui/tavern_icon.svg",
@@ -575,7 +576,10 @@ func _apply_visual_design_system() -> void:
 		"UILayer/RightPanelTab",
 		"UILayer/EventLogPanel/VBox/Header/ExpandButton",
 		"UILayer/QuestDrawer/QuestVBox/QuestHeader/QuestCloseButton",
-		"UILayer/RightPanel/VBox/MoreDetailsButton"
+		"UILayer/RightPanel/VBox/MoreDetailsButton",
+		"UILayer/RosterPanel/RosterVBox/RosterPrevButton",
+		"UILayer/RosterPanel/RosterVBox/RosterNextButton",
+		"UILayer/RosterPanel/RosterVBox/RosterExpandButton"
 	]:
 		_apply_button_theme(get_node_or_null(path), "chrome")
 	_apply_button_theme(get_node_or_null("UILayer/TopBar/TopBarRow/QuestDrawerButton"), "accent")
@@ -758,6 +762,18 @@ func _ready() -> void:
 		if more_details_btn:
 			more_details_btn.pressed.connect(_toggle_details_expanded)
 			_wire_button_sfx(more_details_btn)
+		var roster_prev_btn := get_node_or_null("UILayer/RosterPanel/RosterVBox/RosterPrevButton")
+		if roster_prev_btn:
+			roster_prev_btn.pressed.connect(func() -> void: _scroll_roster(-220))
+			_wire_button_sfx(roster_prev_btn)
+		var roster_next_btn := get_node_or_null("UILayer/RosterPanel/RosterVBox/RosterNextButton")
+		if roster_next_btn:
+			roster_next_btn.pressed.connect(func() -> void: _scroll_roster(220))
+			_wire_button_sfx(roster_next_btn)
+		var roster_expand_btn := get_node_or_null("UILayer/RosterPanel/RosterVBox/RosterExpandButton")
+		if roster_expand_btn:
+			roster_expand_btn.pressed.connect(_toggle_roster_expanded)
+			_wire_button_sfx(roster_expand_btn)
 		var building_action_btn := get_node_or_null("UILayer/RightPanel/VBox/ActionCard/ActionVBox/ActionButtons/BuildingActionButton")
 		if building_action_btn:
 			building_action_btn.pressed.connect(_start_selected_building_upgrade)
@@ -914,6 +930,7 @@ func _show_hero_panel(hero_id: int) -> void:
 	_selected_hero_id = hero_id
 	_right_panel_collapsed = false
 	_refresh_hero_panel(hero_id)
+	_refresh_roster_strip()
 	_apply_panel_state()
 	_pulse_control(get_node_or_null("UILayer/RightPanel/VBox/SummaryCard") as CanvasItem, "inspector_summary")
 
@@ -961,11 +978,17 @@ func _refresh_hero_panel(hero_id: int) -> void:
 		name_lbl.set("theme_override_fonts/font", _load_runtime_font(FONT_HEADING_PATH))
 		name_lbl.set("theme_override_font_sizes/font_size", 24)
 	if career_lbl:
-		career_lbl.text = "%s  •  %s" % [h.get("career_role", h["career"]), h["career"]]
+		career_lbl.text = "%s\n%s" % [h.get("career_role", h["career"]), h["career"]]
+		career_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		career_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	if state_lbl:
 		state_lbl.text = "Activity  %s" % _format_entity_state(h["state"])
+		state_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		state_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	if summary_lbl:
 		summary_lbl.text = "Level %d  •  %dg on hand  •  %s" % [level, h.get("gold", 0), str(h.get("wound_state", "healthy")).replace("_", " ")]
+		summary_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		summary_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	if health_bar:
 		health_bar.max_value = max(1, max_health)
 		health_bar.value = health
@@ -1044,6 +1067,7 @@ func _refresh_hero_panel(hero_id: int) -> void:
 func _hide_hero_panel() -> void:
 	_selected_hero_id = -1
 	_selected_entity_kind = ""
+	_refresh_roster_strip()
 	_refresh_context_upgrade_button()
 	_refresh_building_action_button()
 	_refresh_output_action_button()
@@ -1057,6 +1081,7 @@ func _show_building_panel(building_id: int) -> void:
 	_selected_building_id = building_id
 	_right_panel_collapsed = false
 	_refresh_building_panel(building_id)
+	_refresh_roster_strip()
 	_refresh_context_upgrade_button()
 	_refresh_output_action_button()
 	_apply_panel_state()
@@ -1105,7 +1130,9 @@ func _refresh_building_panel(building_id: int) -> void:
 		name_lbl.set("theme_override_fonts/font", _load_runtime_font(FONT_HEADING_PATH))
 		name_lbl.set("theme_override_font_sizes/font_size", 24)
 	if career_lbl:
-		career_lbl.text = "Town anchor  •  %s" % str(building_type).replace("_", " ").capitalize()
+		career_lbl.text = "Town anchor\n%s" % str(building_type).replace("_", " ").capitalize()
+		career_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		career_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	if state_lbl:
 		state_lbl.text = "Current mode  %s" % _building_mode_name(building)
 	if summary_lbl:
@@ -1115,6 +1142,8 @@ func _refresh_building_panel(building_id: int) -> void:
 			float(building.get("position", {}).get("x", 0.0)),
 			float(building.get("position", {}).get("z", 0.0))
 		]
+		summary_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		summary_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	if health_bar:
 		health_bar.max_value = max(1, levels.size())
 		health_bar.value = level
@@ -1869,7 +1898,7 @@ func _fit_ui_to_viewport() -> void:
 		left_panel.offset_bottom = -118.0
 	var right_panel := get_node_or_null("UILayer/RightPanel")
 	if right_panel:
-		var desired_width: float = clamp(viewport_size.x * 0.17, 280.0, 340.0)
+		var desired_width: float = clamp(viewport_size.x * 0.165, 268.0, 320.0)
 		right_panel.offset_left = -desired_width - margin
 		right_panel.offset_right = -margin
 		right_panel.offset_top = 94.0
@@ -1889,10 +1918,11 @@ func _fit_ui_to_viewport() -> void:
 		left_tab.offset_bottom = 156.0
 	var roster_panel := get_node_or_null("UILayer/RosterPanel")
 	if roster_panel:
-		var roster_width: float = clamp(viewport_size.x * 0.56, 860.0, 1240.0)
+		var roster_scale := 0.76 if _roster_expanded else 0.56
+		var roster_width: float = clamp(viewport_size.x * roster_scale, 860.0, 1460.0)
 		roster_panel.offset_left = -roster_width * 0.5
 		roster_panel.offset_right = roster_width * 0.5
-		roster_panel.offset_top = -108.0
+		roster_panel.offset_top = -132.0 if _roster_expanded else -108.0
 		roster_panel.offset_bottom = -18.0
 	var event_panel := get_node_or_null("UILayer/EventLogPanel")
 	if event_panel:
@@ -1906,6 +1936,7 @@ func _fit_ui_to_viewport() -> void:
 		quest_drawer.anchor_top = 0.09
 		quest_drawer.anchor_right = 0.91
 		quest_drawer.anchor_bottom = 0.89
+	_update_roster_controls()
 
 func _toggle_event_feed(expanded: Variant = null) -> void:
 	if expanded == null:
@@ -1961,6 +1992,37 @@ func _refresh_speed_button_states() -> void:
 	_apply_button_theme(speed1, "chrome", is_equal_approx(Engine.time_scale, 1.0))
 	_apply_button_theme(speed2, "chrome", is_equal_approx(Engine.time_scale, 2.0))
 	_apply_button_theme(speed3, "chrome", is_equal_approx(Engine.time_scale, 3.0))
+
+func _scroll_roster(delta: int) -> void:
+	var scroll := get_node_or_null("UILayer/RosterPanel/RosterVBox/RosterStripScroll") as ScrollContainer
+	var roster := get_node_or_null("UILayer/RosterPanel/RosterVBox/RosterStripScroll/RosterStrip") as HBoxContainer
+	if scroll == null or roster == null:
+		return
+	var max_scroll: int = max(0, int(roster.size.x - scroll.size.x))
+	scroll.scroll_horizontal = clamp(scroll.scroll_horizontal + delta, 0, max_scroll)
+	_update_roster_controls()
+
+func _toggle_roster_expanded() -> void:
+	_roster_expanded = not _roster_expanded
+	_fit_ui_to_viewport()
+	_update_roster_controls()
+
+func _update_roster_controls() -> void:
+	var scroll := get_node_or_null("UILayer/RosterPanel/RosterVBox/RosterStripScroll") as ScrollContainer
+	var roster := get_node_or_null("UILayer/RosterPanel/RosterVBox/RosterStripScroll/RosterStrip") as HBoxContainer
+	var prev_button := get_node_or_null("UILayer/RosterPanel/RosterVBox/RosterPrevButton") as Button
+	var next_button := get_node_or_null("UILayer/RosterPanel/RosterVBox/RosterNextButton") as Button
+	var expand_button := get_node_or_null("UILayer/RosterPanel/RosterVBox/RosterExpandButton") as Button
+	if scroll != null and roster != null:
+		var max_scroll: int = max(0, int(roster.size.x - scroll.size.x))
+		if prev_button:
+			prev_button.visible = max_scroll > 0
+			prev_button.disabled = scroll.scroll_horizontal <= 0
+		if next_button:
+			next_button.visible = max_scroll > 0
+			next_button.disabled = scroll.scroll_horizontal >= max_scroll
+	if expand_button:
+		expand_button.text = "−" if _roster_expanded else "+"
 
 func _refresh_roster_strip() -> void:
 	var roster := get_node_or_null("UILayer/RosterPanel/RosterVBox/RosterStripScroll/RosterStrip")
@@ -2063,6 +2125,8 @@ func _refresh_roster_strip() -> void:
 		)
 		_wire_button_sfx(button)
 		roster.add_child(button)
+	await get_tree().process_frame
+	_update_roster_controls()
 
 func _set_time_scale(value: float) -> void:
 	Engine.time_scale = value
