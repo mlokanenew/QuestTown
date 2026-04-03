@@ -31,6 +31,7 @@ import requests
 GODOT_EXE = r"C:\Users\mloka\Downloads\godot_extracted\Godot_v4.6.1-stable_win64_console.exe"
 PROJECT_DIR = str(Path(__file__).parent.parent)
 OLLAMA_URL = "http://localhost:11434/api/chat"
+OPENAI_COMPAT_URL = "http://127.0.0.1:8080/v1/chat/completions"
 DEFAULT_MODEL = "phi3:mini"
 CONNECT_TIMEOUT = 30
 MAX_LLM_TURNS = 24
@@ -489,7 +490,27 @@ def summarize_balance_report(report: dict) -> str:
     return "; ".join(parts)
 
 
-def ask_llm(model: str, goal: str, state: dict, history: list, failures: list) -> dict | None:
+def request_chat_completion(api_kind: str, api_url: str, model: str, messages: list[dict], timeout: int) -> str:
+    if api_kind == "openai":
+        resp = requests.post(
+            api_url,
+            json={"model": model, "messages": messages, "temperature": 0.2, "max_tokens": 220},
+            timeout=timeout,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        return data["choices"][0]["message"]["content"].strip()
+
+    resp = requests.post(
+        api_url,
+        json={"model": model, "messages": messages, "stream": False},
+        timeout=timeout,
+    )
+    resp.raise_for_status()
+    return resp.json()["message"]["content"].strip()
+
+
+def ask_llm(model: str, goal: str, state: dict, history: list, failures: list, api_kind: str, api_url: str) -> dict | None:
     messages = [{"role": "system", "content": SYSTEM_PROMPT}]
     messages.extend(history[-4:])
 
@@ -502,13 +523,7 @@ def ask_llm(model: str, goal: str, state: dict, history: list, failures: list) -
     messages.append({"role": "user", "content": user_msg})
 
     try:
-        resp = requests.post(
-            OLLAMA_URL,
-            json={"model": model, "messages": messages, "stream": False},
-            timeout=OLLAMA_TIMEOUT,
-        )
-        resp.raise_for_status()
-        content = resp.json()["message"]["content"].strip()
+        content = request_chat_completion(api_kind, api_url, model, messages, OLLAMA_TIMEOUT)
         print(f"[LLM] raw: {content[:200]}")
         return extract_command(content)
     except Exception as exc:
@@ -516,7 +531,7 @@ def ask_llm(model: str, goal: str, state: dict, history: list, failures: list) -
         return None
 
 
-def ask_llm_analysis(model: str, scenario: dict, report: dict) -> dict | None:
+def ask_llm_analysis(model: str, scenario: dict, report: dict, api_kind: str, api_url: str) -> dict | None:
     messages = [
         {"role": "system", "content": ANALYSIS_PROMPT},
         {
@@ -529,17 +544,9 @@ def ask_llm_analysis(model: str, scenario: dict, report: dict) -> dict | None:
         },
     ]
     try:
-        resp = requests.post(
-            OLLAMA_URL,
-            json={"model": model, "messages": messages, "stream": False},
-            timeout=OLLAMA_TIMEOUT,
-        )
-        resp.raise_for_status()
-        content = resp.json()["message"]["content"].strip()
+        content = request_chat_completion(api_kind, api_url, model, messages, OLLAMA_TIMEOUT)
         print(f"[LLM-analysis] raw: {content[:300]}")
-        decoder = json.JSONDecoder()
-        cleaned = content.replace("```json", "").replace("```", "").strip()
-        parsed, _ = decoder.raw_decode(cleaned)
+        parsed = extract_first_json_object(content)
         if isinstance(parsed, dict):
             return parsed
     except Exception as exc:
@@ -547,7 +554,7 @@ def ask_llm_analysis(model: str, scenario: dict, report: dict) -> dict | None:
     return None
 
 
-def extract_command(text: str) -> dict | None:
+def extract_first_json_object(text: str) -> dict | None:
     decoder = json.JSONDecoder()
     cleaned = text.replace("```json", "").replace("```", "").strip()
     idx = 0
@@ -561,12 +568,20 @@ def extract_command(text: str) -> dict | None:
         except json.JSONDecodeError:
             idx = brace + 1
             continue
-        if isinstance(obj, dict) and "cmd" in obj:
+        if isinstance(obj, dict):
             return obj
-        if isinstance(obj, dict) and isinstance(obj.get("command"), dict) and "cmd" in obj["command"]:
-            return obj["command"]
         idx = brace + max(end, 1)
+    return None
 
+
+def extract_command(text: str) -> dict | None:
+    obj = extract_first_json_object(text)
+    if isinstance(obj, dict) and "cmd" in obj:
+        return obj
+    if isinstance(obj, dict) and isinstance(obj.get("command"), dict) and "cmd" in obj["command"]:
+        return obj["command"]
+
+    cleaned = text.replace("```json", "").replace("```", "").strip()
     print(f"[LLM] could not parse JSON command from: {cleaned[:200]}", file=sys.stderr)
     return None
 
@@ -919,7 +934,7 @@ async def run_scripted(reader, writer, scenario: dict) -> dict:
     return await execute_scenario_commands(reader, writer, scenario)
 
 
-async def run_llm(reader, writer, scenario: dict, model: str) -> dict:
+async def run_llm(reader, writer, scenario: dict, model: str, api_kind: str, api_url: str) -> dict:
     goal = scenario.get("goal", "Run the scenario.")
     assertions = scenario.get("assertions", [])
     history = []
@@ -946,7 +961,7 @@ async def run_llm(reader, writer, scenario: dict, model: str) -> dict:
             print("[LLM] all assertions passed!")
             return state
 
-        llm_cmd = ask_llm(model, goal, state, history, failures)
+        llm_cmd = ask_llm(model, goal, state, history, failures, api_kind, api_url)
         cmd = normalize_command(llm_cmd)
         if not is_useful_command(cmd, state, last_cmd, failures):
             cmd = choose_fallback_command(state, failures)
@@ -978,6 +993,7 @@ async def main(args):
     print(f"[driver] scenario : {scenario.get('name', '?')}")
     print(f"[driver] goal     : {scenario.get('goal', '(none)')}")
     print(f"[driver] model    : {'--no-llm (scripted)' if args.no_llm else args.model}")
+    print(f"[driver] backend  : {args.api_kind} @ {args.api_url}")
     print(f"[driver] tcp port : {tcp_port}")
 
     reader_holder = []
@@ -1020,7 +1036,7 @@ async def main(args):
         if args.no_llm:
             final_state = await run_scripted(reader, writer, scenario)
         else:
-            final_state = await run_llm(reader, writer, scenario, args.model)
+            final_state = await run_llm(reader, writer, scenario, args.model, args.api_kind, args.api_url)
 
         writer.close()
         try:
@@ -1032,7 +1048,7 @@ async def main(args):
         balance_report = build_balance_report(final_state, scenario)
         llm_analysis = None
         if args.analysis_llm:
-            llm_analysis = ask_llm_analysis(args.model, scenario, balance_report)
+            llm_analysis = ask_llm_analysis(args.model, scenario, balance_report, args.api_kind, args.api_url)
         result = {
             "scenario": scenario.get("name", "?"),
             "passed": passed,
@@ -1060,7 +1076,9 @@ async def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="QuestTown LLM Driver")
     parser.add_argument("--scenario", required=True)
-    parser.add_argument("--model", default=DEFAULT_MODEL, help="Ollama model name")
+    parser.add_argument("--model", default=DEFAULT_MODEL, help="Model name for the selected backend")
+    parser.add_argument("--api-kind", choices=["ollama", "openai"], default="ollama", help="LLM API backend")
+    parser.add_argument("--api-url", default=OLLAMA_URL, help="LLM API endpoint URL")
     parser.add_argument("--port", type=int, default=0, help="TCP port for Godot callback; 0 chooses a free port")
     parser.add_argument("--no-llm", action="store_true", help="Use scripted sequence instead of LLM")
     parser.add_argument("--analysis-llm", action="store_true", help="Ask the LLM for a post-run balance assessment")

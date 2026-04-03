@@ -10,6 +10,12 @@
     {"cmd": "upgrade_building", "type": "tavern"},
     {"cmd": "upgrade_building", "type": "weapons_shop"},
     {"cmd": "set_quest_enabled", "id": "clear_rats_cellar", "enabled": false},
+    {"cmd": "set_quest_enabled", "id": "escort_peddler_ford", "enabled": false},
+    {"cmd": "set_quest_enabled", "id": "recover_shrine_offerings", "enabled": false},
+    {"cmd": "set_quest_enabled", "id": "search_watch_hut", "enabled": false},
+    {"cmd": "set_quest_enabled", "id": "drive_off_wolves", "enabled": false},
+    {"cmd": "set_quest_enabled", "id": "keep_vigil_graveyard", "enabled": false},
+    {"cmd": "set_quest_enabled", "id": "break_cutpurse_ring", "enabled": false},
     {"cmd": "set_quest_enabled", "id": "investigate_strange_lights", "enabled": false},
     {"cmd": "set_building_output_mode", "type": "tavern"},
     {"cmd": "step_ticks", "n": 180}

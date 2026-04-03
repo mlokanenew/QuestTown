@@ -31,6 +31,8 @@ DEFAULT_GODOT = Path(r"C:\Users\mloka\Downloads\godot_extracted\Godot_v4.6.1-sta
 DEFAULT_LLM_MODEL = "qwen2.5-coder:7b"
 DEFAULT_LLM_SCENARIO = "tests/scenarios/mvp_full_loop.json"
 DEFAULT_UI_SNAPSHOT_DIR = "artifacts/ui_snapshots_regression"
+DEFAULT_LLM_API_KIND = "ollama"
+DEFAULT_LLM_API_URL = "http://localhost:11434/api/chat"
 
 
 @dataclass
@@ -82,6 +84,8 @@ def main() -> int:
     parser.add_argument("--ui-snapshot-dir", default=DEFAULT_UI_SNAPSHOT_DIR)
     parser.add_argument("--llm-model", default=DEFAULT_LLM_MODEL)
     parser.add_argument("--llm-scenario", default=DEFAULT_LLM_SCENARIO)
+    parser.add_argument("--llm-api-kind", choices=["ollama", "openai"], default=DEFAULT_LLM_API_KIND)
+    parser.add_argument("--llm-api-url", default=DEFAULT_LLM_API_URL)
     parser.add_argument("--analysis-llm", action="store_true")
     parser.add_argument("--stop-on-fail", action="store_true")
     parser.add_argument("--json-out", default="")
@@ -132,6 +136,10 @@ def main() -> int:
             args.llm_scenario,
             "--model",
             args.llm_model,
+            "--api-kind",
+            args.llm_api_kind,
+            "--api-url",
+            args.llm_api_url,
         ]
         if args.analysis_llm:
             llm_cmd.append("--analysis-llm")
