@@ -86,6 +86,10 @@ var _ui_textures: Dictionary = {}
 var _ui_fonts: Dictionary = {}
 var _ui_tweens: Dictionary = {}
 var _roster_expanded: bool = false
+var _quest_map_dragging: bool = false
+var _quest_map_drag_last_mouse: Vector2 = Vector2.ZERO
+var _quest_map_zoom: float = 1.0
+var _quest_map_offset: Vector2 = Vector2.ZERO
 
 const BUILDING_ICONS := {
 	"tavern": "res://assets/ui/tavern_icon.svg",
@@ -131,6 +135,10 @@ const MAP_LOCATION_ICONS := {
 	"crossroads": MAP_BANNER_PATH,
 	"ruins": MAP_ICON_RUINS_PATH,
 }
+
+const QUEST_MAP_MIN_ZOOM := 1.0
+const QUEST_MAP_MAX_ZOOM := 2.2
+const QUEST_MAP_ZOOM_STEP := 0.14
 
 func _make_style(bg: Color, border: Color, radius: int = RADIUS_PANEL, border_width: int = 1, padding: int = 12) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
@@ -321,6 +329,7 @@ func _animate_panel_slide(panel: Control, show: bool, from_offset: Vector2, key:
 			_ui_tweens.erase(key)
 		)
 	else:
+		_quest_map_dragging = false
 		var tween := create_tween()
 		_ui_tweens[key] = tween
 		tween.set_parallel(true)
@@ -837,6 +846,9 @@ func _ready() -> void:
 		if roster_expand_btn:
 			roster_expand_btn.pressed.connect(_toggle_roster_expanded)
 			_wire_button_sfx(roster_expand_btn)
+		var quest_map_canvas := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestMapColumn/QuestMapCard/QuestMapMargin/QuestMapCanvas") as Control
+		if quest_map_canvas and not quest_map_canvas.gui_input.is_connected(_on_quest_map_gui_input):
+			quest_map_canvas.gui_input.connect(_on_quest_map_gui_input)
 		var building_action_btn := get_node_or_null("UILayer/RightPanel/VBox/ActionCard/ActionVBox/ActionButtons/BuildingActionButton")
 		if building_action_btn:
 			building_action_btn.pressed.connect(_start_selected_building_upgrade)
@@ -874,7 +886,7 @@ func _ready() -> void:
 		_refresh_roster_strip()
 		_refresh_top_bar()
 		_toggle_event_feed(false)
-		_set_status("LMB place/select  RMB rotate build  Q/E cycle  Del remove  B/C panels  K quests")
+		_set_status("LMB place/select  RMB drag town  RMB rotate build  Wheel zoom  Q/E cycle  Del remove  B/C panels  K quests")
 		if RuntimeConfig.is_snapshot():
 			var snapshot_service := get_node_or_null("/root/UISnapshotService")
 			if snapshot_service != null:
@@ -894,6 +906,8 @@ func _physics_process(delta: float) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if RuntimeConfig.is_headless():
 		return
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT and not event.pressed:
+		_quest_map_dragging = false
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_F1:
 			_save_world()
@@ -1511,7 +1525,7 @@ func _refresh_quest_ui() -> void:
 		list_title.text = "Discovered Rumours" if not _quest_list_collapsed else "Rumours"
 	var map_legend := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestMapColumn/QuestMapHeader/QuestMapLegend")
 	if map_legend:
-		map_legend.text = "All quests still come from Inn rumours. Support buildings widen the rumour pool."
+		map_legend.text = "Inn rumours reveal contracts. Wheel zooms the map, and hold RMB to drag."
 
 	_refresh_quest_offer_cards()
 	_refresh_quest_map()
@@ -1633,13 +1647,13 @@ func _refresh_quest_offer_cards() -> void:
 		_selected_quest_id = str(GameState.quests[0].get("offer_id", ""))
 
 func _refresh_quest_map() -> void:
-	var background := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestMapColumn/QuestMapCard/QuestMapMargin/QuestMapCanvas/QuestMapBackground") as TextureRect
+	var background := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestMapColumn/QuestMapCard/QuestMapMargin/QuestMapCanvas/QuestMapContent/QuestMapBackground") as TextureRect
 	if background:
 		background.texture = _load_runtime_texture(MAP_PARCHMENT_PATH)
 		background.modulate = Color(1, 1, 1, 0.98)
-	var routes_root := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestMapColumn/QuestMapCard/QuestMapMargin/QuestMapCanvas/QuestMapRoutes") as Control
-	var landmarks_root := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestMapColumn/QuestMapCard/QuestMapMargin/QuestMapCanvas/QuestMapLandmarks") as Control
-	var markers_root := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestMapColumn/QuestMapCard/QuestMapMargin/QuestMapCanvas/QuestMapMarkers") as Control
+	var routes_root := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestMapColumn/QuestMapCard/QuestMapMargin/QuestMapCanvas/QuestMapContent/QuestMapRoutes") as Control
+	var landmarks_root := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestMapColumn/QuestMapCard/QuestMapMargin/QuestMapCanvas/QuestMapContent/QuestMapLandmarks") as Control
+	var markers_root := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestMapColumn/QuestMapCard/QuestMapMargin/QuestMapCanvas/QuestMapContent/QuestMapMarkers") as Control
 	if routes_root == null or landmarks_root == null or markers_root == null:
 		return
 	_clear_control_children(routes_root)
@@ -1648,6 +1662,48 @@ func _refresh_quest_map() -> void:
 	_populate_map_routes(routes_root)
 	_populate_map_landmarks(landmarks_root)
 	_populate_map_markers(markers_root)
+	_apply_quest_map_transform()
+
+func _apply_quest_map_transform() -> void:
+	var canvas := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestMapColumn/QuestMapCard/QuestMapMargin/QuestMapCanvas") as Control
+	var content := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestMapColumn/QuestMapCard/QuestMapMargin/QuestMapCanvas/QuestMapContent") as Control
+	if canvas == null or content == null:
+		return
+	content.size = canvas.size
+	content.pivot_offset = content.size * 0.5
+	var extra := (content.size * (_quest_map_zoom - 1.0)) * 0.5
+	_quest_map_offset.x = clamp(_quest_map_offset.x, -extra.x, extra.x)
+	_quest_map_offset.y = clamp(_quest_map_offset.y, -extra.y, extra.y)
+	content.position = _quest_map_offset
+	content.scale = Vector2.ONE * _quest_map_zoom
+
+func _on_quest_map_gui_input(event: InputEvent) -> void:
+	if not _is_quest_drawer_open():
+		return
+	if event is InputEventMouseButton:
+		var mouse_event := event as InputEventMouseButton
+		if mouse_event.button_index == MOUSE_BUTTON_RIGHT:
+			_quest_map_dragging = mouse_event.pressed
+			if _quest_map_dragging:
+				_quest_map_drag_last_mouse = mouse_event.position
+			get_viewport().set_input_as_handled()
+		elif mouse_event.pressed and mouse_event.button_index == MOUSE_BUTTON_WHEEL_UP:
+			_adjust_quest_map_zoom(QUEST_MAP_ZOOM_STEP)
+			get_viewport().set_input_as_handled()
+		elif mouse_event.pressed and mouse_event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+			_adjust_quest_map_zoom(-QUEST_MAP_ZOOM_STEP)
+			get_viewport().set_input_as_handled()
+	elif event is InputEventMouseMotion and _quest_map_dragging:
+		var motion_event := event as InputEventMouseMotion
+		var delta := motion_event.position - _quest_map_drag_last_mouse
+		_quest_map_drag_last_mouse = motion_event.position
+		_quest_map_offset += delta
+		_apply_quest_map_transform()
+		get_viewport().set_input_as_handled()
+
+func _adjust_quest_map_zoom(step: float) -> void:
+	_quest_map_zoom = clamp(_quest_map_zoom + step, QUEST_MAP_MIN_ZOOM, QUEST_MAP_MAX_ZOOM)
+	_apply_quest_map_transform()
 
 func _clear_control_children(root: Node) -> void:
 	if root == null:
@@ -2218,6 +2274,7 @@ func _fit_ui_to_viewport() -> void:
 	var map_canvas := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestMapColumn/QuestMapCard/QuestMapMargin/QuestMapCanvas") as Control
 	if map_canvas:
 		map_canvas.custom_minimum_size = Vector2(clamp(viewport_size.x * 0.34, 520.0, 760.0), clamp(viewport_size.y * 0.34, 360.0, 520.0))
+	_apply_quest_map_transform()
 	_update_roster_controls()
 
 func _toggle_event_feed(expanded: Variant = null) -> void:
@@ -2434,6 +2491,9 @@ func prepare_snapshot_target(target: String) -> void:
 	_selected_hero_id = -1
 	_selected_building_id = -1
 	_selected_quest_id = ""
+	_quest_map_zoom = 1.0
+	_quest_map_offset = Vector2.ZERO
+	_quest_map_dragging = false
 	_fit_ui_to_viewport()
 	_toggle_event_feed(false)
 	if _is_quest_drawer_open():

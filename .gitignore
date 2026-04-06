@@ -6,6 +6,7 @@ export_presets.cfg
 
 # Import cache
 .import/
+*.import
 
 # OS
 .DS_Store
