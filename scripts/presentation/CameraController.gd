@@ -3,7 +3,7 @@ extends Camera3D
 
 const MOVE_SPEED := 15.0
 const ROTATE_SPEED := 0.25
-const PAN_DRAG_SPEED := 0.012
+const PAN_DRAG_SPEED := 0.003
 const MIN_SIZE := 8.0
 const MAX_SIZE := 28.0
 const POSITION_SMOOTHNESS := 10.0
