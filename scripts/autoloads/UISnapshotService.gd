@@ -8,6 +8,7 @@ const DEFAULT_TARGETS := [
 	"inspector_adventurer",
 	"quest_board_open",
 	"quest_selected_unavailable",
+	"expedition_in_progress",
 	"ready_to_launch",
 ]
 
@@ -73,6 +74,12 @@ func _build_fixture_state(world: Node, target: String) -> void:
 			world.sim.step_ticks(1200)
 		"inspector_adventurer", "quest_board_open", "ready_to_launch":
 			world.sim.step_ticks(1800)
+		"expedition_in_progress":
+			world.sim.step_ticks(1800)
+			var offers: Array = GameState.quests
+			if not offers.is_empty():
+				world.sim.accept_quest(int(offers[0].get("offer_id", -1)))
+				world.sim.step_ticks(90)
 		"quest_selected_unavailable":
 			world.sim.reset_world(4242)
 			world.sim.place_building("tavern", Vector3(0, 0, 0))

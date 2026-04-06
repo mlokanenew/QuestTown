@@ -901,6 +901,9 @@ func _physics_process(delta: float) -> void:
 		_refresh_hero_panel(_selected_hero_id)
 	elif _selected_building_id >= 0 and GameState.buildings.has(_selected_building_id):
 		_refresh_building_panel(_selected_building_id)
+	if _is_quest_drawer_open():
+		_refresh_quest_map()
+		_refresh_selected_quest_detail()
 	_refresh_top_bar()
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -1654,14 +1657,17 @@ func _refresh_quest_map() -> void:
 	var routes_root := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestMapColumn/QuestMapCard/QuestMapMargin/QuestMapCanvas/QuestMapContent/QuestMapRoutes") as Control
 	var landmarks_root := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestMapColumn/QuestMapCard/QuestMapMargin/QuestMapCanvas/QuestMapContent/QuestMapLandmarks") as Control
 	var markers_root := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestMapColumn/QuestMapCard/QuestMapMargin/QuestMapCanvas/QuestMapContent/QuestMapMarkers") as Control
-	if routes_root == null or landmarks_root == null or markers_root == null:
+	var expeditions_root := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestMapColumn/QuestMapCard/QuestMapMargin/QuestMapCanvas/QuestMapContent/QuestMapExpeditions") as Control
+	if routes_root == null or landmarks_root == null or markers_root == null or expeditions_root == null:
 		return
 	_clear_control_children(routes_root)
 	_clear_control_children(landmarks_root)
 	_clear_control_children(markers_root)
+	_clear_control_children(expeditions_root)
 	_populate_map_routes(routes_root)
 	_populate_map_landmarks(landmarks_root)
 	_populate_map_markers(markers_root)
+	_populate_map_expeditions(expeditions_root)
 	_apply_quest_map_transform()
 
 func _apply_quest_map_transform() -> void:
@@ -1805,6 +1811,155 @@ func _populate_map_markers(root: Control) -> void:
 		)
 		_wire_button_sfx(marker)
 		root.add_child(marker)
+
+func _populate_map_expeditions(root: Control) -> void:
+	var town_location := DataLoader.get_map_location("questtown_centre")
+	if town_location.is_empty():
+		return
+	var town_pos := _location_canvas_position(root, town_location)
+	var recent_result_by_location: Dictionary = {}
+	for entry_variant in GameState.completed_quests:
+		var entry: Dictionary = entry_variant
+		var completed_tick: int = int(entry.get("completed_tick", -99999))
+		if GameState.tick - completed_tick > 420:
+			continue
+		var location_id := str(entry.get("location_id", ""))
+		if location_id == "":
+			continue
+		recent_result_by_location[location_id] = entry
+	var shown_results: Dictionary = {}
+	for hero_id in GameState.heroes.keys():
+		var hero: Dictionary = GameState.heroes[hero_id]
+		var leader_id: int = int(hero.get("quest_party_leader_id", hero_id))
+		if leader_id != int(hero_id):
+			continue
+		var state: String = str(hero.get("state", ""))
+		if state not in ["departing_quest", "on_quest", "returning"]:
+			continue
+		var quest: Dictionary = hero.get("current_quest", {})
+		if quest.is_empty():
+			continue
+		var location := DataLoader.get_map_location(str(quest.get("location_id", "")))
+		if location.is_empty():
+			continue
+		var site_pos := _location_canvas_position(root, location)
+		var site_label := str(location.get("display_name", quest.get("location_name", "Quest Site")))
+		match state:
+			"departing_quest":
+				var depart_progress := _quest_route_progress(hero, false)
+				var depart_pos := town_pos.lerp(site_pos, depart_progress)
+				_add_expedition_line(root, town_pos, depart_pos, Color(UI_ACCENT, 0.58))
+				_add_expedition_token(root, depart_pos, UI_ACCENT, "%s heading out" % site_label)
+			"on_quest":
+				_add_expedition_line(root, town_pos, site_pos, Color(UI_ACCENT, 0.18))
+				_add_expedition_pulse(root, site_pos, UI_ACCENT, ICON_CAMPFIRE_PATH)
+				_add_expedition_caption(root, site_pos + Vector2(18, -8), "Questing at %s" % site_label, UI_TEXT_DARK)
+			"returning":
+				var return_progress := _quest_route_progress(hero, true)
+				var return_pos := site_pos.lerp(town_pos, return_progress)
+				var recent_result: Dictionary = recent_result_by_location.get(str(location.get("location_id", "")), {})
+				var succeeded: bool = bool(recent_result.get("success", hero.get("last_quest_success", true)))
+				_add_expedition_line(root, site_pos, return_pos, Color(UI_SUCCESS if succeeded else UI_WARNING, 0.56))
+				_add_expedition_token(root, return_pos, UI_SUCCESS if succeeded else UI_WARNING, "%s returning" % site_label)
+				if not shown_results.has(str(location.get("location_id", ""))) and not recent_result.is_empty():
+					_add_result_burst(root, site_pos, recent_result)
+					shown_results[str(location.get("location_id", ""))] = true
+
+func _quest_route_progress(hero: Dictionary, returning: bool) -> float:
+	var position_data: Dictionary = hero.get("position", {})
+	var current_pos: Vector3 = Vector3(float(position_data.get("x", 0.0)), float(position_data.get("y", 0.0)), float(position_data.get("z", 0.0)))
+	var destination_data: Dictionary = hero.get("quest_destination", {})
+	var quest_pos: Vector3 = Vector3(float(destination_data.get("x", 0.0)), float(destination_data.get("y", 0.0)), float(destination_data.get("z", -30.0)))
+	var tavern: Vector3 = _tavern_world_position()
+	var total: float = max(0.001, tavern.distance_to(quest_pos))
+	if returning:
+		return clamp(1.0 - (current_pos.distance_to(tavern) / total), 0.0, 1.0)
+	return clamp(1.0 - (current_pos.distance_to(quest_pos) / total), 0.0, 1.0)
+
+func _tavern_world_position() -> Vector3:
+	var tavern: Dictionary = sim.get_building_of_type("tavern")
+	if tavern.is_empty():
+		return Vector3.ZERO
+	var pos: Dictionary = tavern.get("position", {})
+	return Vector3(float(pos.get("x", 0.0)), float(pos.get("y", 0.0)), float(pos.get("z", 0.0)))
+
+func _add_expedition_line(root: Control, from_pos: Vector2, to_pos: Vector2, color: Color) -> void:
+	var delta := to_pos - from_pos
+	if delta.length() < 4.0:
+		return
+	var line := ColorRect.new()
+	line.color = color
+	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	line.size = Vector2(delta.length(), 3)
+	line.pivot_offset = Vector2(0, 1.5)
+	line.position = from_pos
+	line.rotation = delta.angle()
+	root.add_child(line)
+
+func _add_expedition_token(root: Control, position: Vector2, color: Color, tooltip_text: String) -> void:
+	var token := TextureRect.new()
+	token.texture = _load_runtime_texture(ICON_CHARACTER_PATH)
+	token.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	token.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	token.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	token.size = Vector2(26, 26)
+	token.position = position - Vector2(13, 13)
+	token.modulate = color
+	token.tooltip_text = tooltip_text
+	root.add_child(token)
+
+func _add_expedition_pulse(root: Control, position: Vector2, color: Color, icon_path: String) -> void:
+	var pulse := ColorRect.new()
+	pulse.color = Color(color, 0.30)
+	pulse.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	pulse.size = Vector2(34, 34)
+	pulse.position = position - Vector2(17, 17)
+	root.add_child(pulse)
+	var token := TextureRect.new()
+	token.texture = _load_runtime_texture(icon_path)
+	token.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	token.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	token.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	token.size = Vector2(28, 28)
+	token.position = position - Vector2(14, 14)
+	token.modulate = color
+	root.add_child(token)
+
+func _add_expedition_caption(root: Control, position: Vector2, text: String, color: Color) -> void:
+	var label := Label.new()
+	label.text = text
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	label.position = position
+	label.size = Vector2(150, 24)
+	_apply_label_role(label, "meta")
+	label.set("theme_override_colors/font_color", color)
+	root.add_child(label)
+
+func _add_result_burst(root: Control, position: Vector2, result: Dictionary) -> void:
+	var succeeded: bool = bool(result.get("success", false))
+	var ring := ColorRect.new()
+	ring.color = Color(UI_SUCCESS if succeeded else UI_WARNING, 0.22)
+	ring.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	ring.size = Vector2(42, 42)
+	ring.position = position - Vector2(21, 21)
+	root.add_child(ring)
+	var icon := TextureRect.new()
+	icon.texture = _load_runtime_texture(ICON_AWARD_PATH if succeeded else ICON_SKULL_PATH)
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	icon.size = Vector2(24, 24)
+	icon.position = position - Vector2(12, 12)
+	icon.modulate = UI_SUCCESS if succeeded else UI_WARNING
+	root.add_child(icon)
+	var result_label := Label.new()
+	result_label.text = "Success" if succeeded else "Setback"
+	result_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	result_label.position = position + Vector2(18, 10)
+	result_label.size = Vector2(96, 20)
+	_apply_label_role(result_label, "meta")
+	result_label.set("theme_override_colors/font_color", UI_TEXT_DARK)
+	root.add_child(result_label)
 
 func _location_canvas_position(root: Control, location: Dictionary) -> Vector2:
 	var map_position: Dictionary = location.get("map_position", {})
@@ -2523,6 +2678,10 @@ func prepare_snapshot_target(target: String) -> void:
 			_selected_quest_id = _first_unavailable_offer_id()
 			if _selected_quest_id == "" and not GameState.quests.is_empty():
 				_selected_quest_id = str(GameState.quests[0].get("offer_id", ""))
+			if not _is_quest_drawer_open():
+				_toggle_quest_drawer()
+		"expedition_in_progress":
+			_selected_quest_id = _first_ready_offer_id()
 			if not _is_quest_drawer_open():
 				_toggle_quest_drawer()
 		"ready_to_launch":

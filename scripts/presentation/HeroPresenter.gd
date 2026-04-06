@@ -57,12 +57,34 @@ func _process(_delta: float) -> void:
 		var sim_pos := Vector3(h["position"]["x"], h["position"]["y"], h["position"]["z"])
 		var prev_pos := node.global_position
 		node.global_position = node.global_position.lerp(sim_pos, 0.15)
+		node.visible = not _should_hide_hero(h, node.global_position)
 
 		# Face direction of movement.
 		# look_at points the node's -Z at the target; KayKit models face +Z, so negate.
 		var move := sim_pos - prev_pos
 		if move.length() > 0.01:
 			node.look_at(node.global_position - Vector3(move.x, 0, move.z), Vector3.UP)
+
+func _should_hide_hero(hero: Dictionary, world_pos: Vector3) -> bool:
+	var state: String = str(hero.get("state", ""))
+	if state != "using_service":
+		return false
+	var pending: Dictionary = hero.get("pending_service", {})
+	var building_type: String = str(pending.get("building_type", ""))
+	if building_type == "":
+		return false
+	var building_pos := _building_world_position(building_type)
+	if building_pos == Vector3.INF:
+		return false
+	return world_pos.distance_to(building_pos) <= 2.0
+
+func _building_world_position(building_type: String) -> Vector3:
+	for building: Dictionary in GameState.buildings.values():
+		if str(building.get("type", "")) != building_type:
+			continue
+		var pos: Dictionary = building.get("position", {})
+		return Vector3(float(pos.get("x", 0.0)), float(pos.get("y", 0.0)), float(pos.get("z", 0.0)))
+	return Vector3.INF
 
 func _on_hero_spawned(hero: Dictionary) -> void:
 	var node := _make_hero_node(hero)

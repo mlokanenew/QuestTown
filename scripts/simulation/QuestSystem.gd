@@ -427,6 +427,8 @@ func _resolve_party_member(hero_id: int, quest: Dictionary, tavern: Vector3, bui
 	GameState.heroes[hero_id]["xp"] = int(hero.get("xp", 0)) + xp_gain
 	GameState.heroes[hero_id]["gear_bonus"] = 0
 	GameState.heroes[hero_id]["blessing_bonus"] = 0
+	GameState.heroes[hero_id]["last_quest_success"] = succeeded
+	GameState.heroes[hero_id]["last_quest_completed_tick"] = GameState.tick
 	GameState.heroes[hero_id]["quest_status"] = "returning"
 	_apply_level_up(hero_id)
 	GameState.heroes[hero_id]["target"] = {"x": tavern.x, "y": tavern.y, "z": tavern.z}
@@ -436,6 +438,8 @@ func _resolve_party_member(hero_id: int, quest: Dictionary, tavern: Vector3, bui
 		"hero_name": hero.get("name", "?"),
 		"quest_name": quest.get("name", "?"),
 		"template_id": quest.get("template_id", ""),
+		"location_id": quest.get("location_id", ""),
+		"location_name": quest.get("location_name", ""),
 		"success": succeeded,
 		"wound_state": GameState.heroes[hero_id].get("wound_state", "healthy"),
 		"gold_reward": gold_gain,

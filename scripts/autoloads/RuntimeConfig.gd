@@ -67,6 +67,7 @@ func _parse_args() -> void:
 			"inspector_adventurer",
 			"quest_board_open",
 			"quest_selected_unavailable",
+			"expedition_in_progress",
 			"ready_to_launch",
 		]
 
