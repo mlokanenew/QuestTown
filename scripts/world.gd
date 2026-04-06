@@ -1741,6 +1741,9 @@ func _clear_control_children(root: Node) -> void:
 		child.queue_free()
 
 func _populate_map_routes(root: Control) -> void:
+	var line_texture := _load_runtime_texture(MAP_PATH_STRAIGHT_PATH)
+	if line_texture == null:
+		return
 	for route_variant in DataLoader.map_routes:
 		if not (route_variant is Dictionary):
 			continue
@@ -1755,11 +1758,11 @@ func _populate_map_routes(root: Control) -> void:
 			continue
 		var dashed := bool(style.get("dashed", false))
 		if dashed:
-			_add_dashed_route_line(root, points, Color(style.get("shadow_color", Color.WHITE)), float(style.get("shadow_width", 6.0)))
-			_add_dashed_route_line(root, points, Color(style.get("line_color", Color.WHITE)), float(style.get("line_width", 3.0)))
+			_add_dashed_route_line(root, line_texture, points, Color(style.get("shadow_color", Color.WHITE)), float(style.get("shadow_width", 6.0)))
+			_add_dashed_route_line(root, line_texture, points, Color(style.get("line_color", Color.WHITE)), float(style.get("line_width", 3.0)))
 		else:
-			_add_route_line(root, points, Color(style.get("shadow_color", Color.WHITE)), float(style.get("shadow_width", 8.0)))
-			_add_route_line(root, points, Color(style.get("line_color", Color.WHITE)), float(style.get("line_width", 4.0)))
+			_add_route_line(root, line_texture, points, Color(style.get("shadow_color", Color.WHITE)), float(style.get("shadow_width", 8.0)))
+			_add_route_line(root, line_texture, points, Color(style.get("line_color", Color.WHITE)), float(style.get("line_width", 4.0)))
 
 func _populate_map_landmarks(root: Control) -> void:
 	var compass_texture := _load_runtime_texture(MAP_COMPASS_PATH)
@@ -2006,19 +2009,15 @@ func _route_canvas_points(root: Control, route: Dictionary, from_location: Dicti
 	points.append(_location_canvas_position(root, to_location))
 	return points
 
-func _add_route_line(root: Control, points: PackedVector2Array, color: Color, width: float) -> void:
-	var line := Line2D.new()
-	line.points = points
-	line.width = width
-	line.default_color = color
-	line.antialiased = true
-	line.joint_mode = Line2D.LINE_JOINT_ROUND
-	line.begin_cap_mode = Line2D.LINE_CAP_ROUND
-	line.end_cap_mode = Line2D.LINE_CAP_ROUND
-	line.z_index = -2
-	root.add_child(line)
+func _add_route_line(root: Control, texture: Texture2D, points: PackedVector2Array, color: Color, width: float) -> void:
+	if points.size() < 2:
+		return
+	for point_index in range(points.size() - 1):
+		var from_pos := points[point_index]
+		var to_pos := points[point_index + 1]
+		_add_route_segment(root, texture, from_pos, to_pos, color, width)
 
-func _add_dashed_route_line(root: Control, points: PackedVector2Array, color: Color, width: float, dash_length: float = 22.0, gap_length: float = 16.0) -> void:
+func _add_dashed_route_line(root: Control, texture: Texture2D, points: PackedVector2Array, color: Color, width: float, dash_length: float = 22.0, gap_length: float = 16.0) -> void:
 	if points.size() < 2:
 		return
 	for point_index in range(points.size() - 1):
@@ -2035,8 +2034,25 @@ func _add_dashed_route_line(root: Control, points: PackedVector2Array, color: Co
 				from_pos + direction * cursor,
 				from_pos + direction * dash_end
 			])
-			_add_route_line(root, dash_points, color, width)
+			_add_route_line(root, texture, dash_points, color, width)
 			cursor += dash_length + gap_length
+
+func _add_route_segment(root: Control, texture: Texture2D, from_pos: Vector2, to_pos: Vector2, color: Color, width: float) -> void:
+	var delta := to_pos - from_pos
+	var length: float = delta.length()
+	if length <= 0.01:
+		return
+	var line := TextureRect.new()
+	line.texture = texture
+	line.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	line.stretch_mode = TextureRect.STRETCH_SCALE
+	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	line.modulate = color
+	line.size = Vector2(max(10.0, length + width * 0.4), width)
+	line.pivot_offset = Vector2(0, width * 0.5)
+	line.position = from_pos + Vector2(0, -width * 0.5)
+	line.rotation = delta.angle()
+	root.add_child(line)
 
 func _family_badge_text(quest: Dictionary) -> String:
 	return str(QUEST_FAMILY_NAMES.get(str(quest.get("quest_family", "tavern")), "Rumour"))
