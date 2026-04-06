@@ -3,7 +3,7 @@ extends Camera3D
 
 const MOVE_SPEED := 15.0
 const ROTATE_SPEED := 0.25
-const PAN_DRAG_SPEED := 0.035
+const PAN_DRAG_SPEED := 0.012
 const MIN_SIZE := 8.0
 const MAX_SIZE := 28.0
 const POSITION_SMOOTHNESS := 10.0
@@ -27,6 +27,8 @@ func _input(event: InputEvent) -> void:
 		if _panning:
 			_drag_last_mouse = event.position
 	elif event is InputEventMouseButton and event.pressed:
+		if not _can_handle_world_zoom():
+			return
 		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
 			size = max(MIN_SIZE, size - 1.5)
 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
@@ -53,6 +55,15 @@ func _can_start_world_pan() -> bool:
 			return false
 		if root.has_method("_is_quest_drawer_open") and root._is_quest_drawer_open():
 			return false
+	return true
+
+func _can_handle_world_zoom() -> bool:
+	var hovered := get_viewport().gui_get_hovered_control()
+	if hovered != null:
+		return false
+	var root := get_parent()
+	if root != null and root.has_method("_is_quest_drawer_open") and root._is_quest_drawer_open():
+		return false
 	return true
 
 func _pan_target_from_drag(drag_delta: Vector2) -> void:
