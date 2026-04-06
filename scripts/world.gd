@@ -139,6 +139,29 @@ const MAP_LOCATION_ICONS := {
 const QUEST_MAP_MIN_ZOOM := 1.0
 const QUEST_MAP_MAX_ZOOM := 2.2
 const QUEST_MAP_ZOOM_STEP := 0.14
+const MAP_ROUTE_STYLES := {
+	"main_road": {
+		"shadow_color": Color(0.29, 0.20, 0.12, 0.36),
+		"line_color": Color(0.47, 0.33, 0.19, 0.78),
+		"shadow_width": 13.0,
+		"line_width": 7.0,
+		"dashed": false
+	},
+	"track": {
+		"shadow_color": Color(0.34, 0.24, 0.14, 0.26),
+		"line_color": Color(0.58, 0.43, 0.26, 0.58),
+		"shadow_width": 8.0,
+		"line_width": 4.0,
+		"dashed": false
+	},
+	"sacred_trail": {
+		"shadow_color": Color(0.34, 0.25, 0.15, 0.18),
+		"line_color": Color(0.70, 0.59, 0.36, 0.48),
+		"shadow_width": 6.0,
+		"line_width": 2.8,
+		"dashed": true
+	}
+}
 
 func _make_style(bg: Color, border: Color, radius: int = RADIUS_PANEL, border_width: int = 1, padding: int = 12) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
@@ -1718,32 +1741,25 @@ func _clear_control_children(root: Node) -> void:
 		child.queue_free()
 
 func _populate_map_routes(root: Control) -> void:
-	var line_texture := _load_runtime_texture(MAP_PATH_STRAIGHT_PATH)
-	if line_texture == null:
-		return
 	for route_variant in DataLoader.map_routes:
-		var route: Array = route_variant
-		if route.size() != 2:
+		if not (route_variant is Dictionary):
 			continue
-		var from_location := DataLoader.get_map_location(str(route[0]))
-		var to_location := DataLoader.get_map_location(str(route[1]))
+		var route: Dictionary = route_variant
+		var from_location := DataLoader.get_map_location(str(route.get("from_location_id", "")))
+		var to_location := DataLoader.get_map_location(str(route.get("to_location_id", "")))
 		if from_location.is_empty() or to_location.is_empty():
 			continue
-		var from_pos := _location_canvas_position(root, from_location)
-		var to_pos := _location_canvas_position(root, to_location)
-		var line := TextureRect.new()
-		line.texture = line_texture
-		line.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		line.stretch_mode = TextureRect.STRETCH_SCALE
-		line.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		line.modulate = Color(0.42, 0.30, 0.18, 0.42)
-		var delta := to_pos - from_pos
-		var length: float = max(16.0, delta.length())
-		line.size = Vector2(length, 16)
-		line.pivot_offset = Vector2(0, 8)
-		line.position = from_pos + Vector2(0, -4)
-		line.rotation = delta.angle()
-		root.add_child(line)
+		var style: Dictionary = MAP_ROUTE_STYLES.get(str(route.get("route_type", "track")), MAP_ROUTE_STYLES["track"])
+		var points := _route_canvas_points(root, route, from_location, to_location)
+		if points.size() < 2:
+			continue
+		var dashed := bool(style.get("dashed", false))
+		if dashed:
+			_add_dashed_route_line(root, points, Color(style.get("shadow_color", Color.WHITE)), float(style.get("shadow_width", 6.0)))
+			_add_dashed_route_line(root, points, Color(style.get("line_color", Color.WHITE)), float(style.get("line_width", 3.0)))
+		else:
+			_add_route_line(root, points, Color(style.get("shadow_color", Color.WHITE)), float(style.get("shadow_width", 8.0)))
+			_add_route_line(root, points, Color(style.get("line_color", Color.WHITE)), float(style.get("line_width", 4.0)))
 
 func _populate_map_landmarks(root: Control) -> void:
 	var compass_texture := _load_runtime_texture(MAP_COMPASS_PATH)
@@ -1758,27 +1774,31 @@ func _populate_map_landmarks(root: Control) -> void:
 		compass.modulate = Color(0.39, 0.30, 0.18, 0.74)
 		root.add_child(compass)
 	for location: Dictionary in DataLoader.map_locations:
-		var icon_path := str(MAP_LOCATION_ICONS.get(str(location.get("location_type", "")), MAP_ICON_HOUSE_PATH))
+		var icon_path := str(MAP_LOCATION_ICONS.get(str(location.get("icon_type", location.get("location_type", ""))), MAP_ICON_HOUSE_PATH))
 		var texture := _load_runtime_texture(icon_path)
 		var pos := _location_canvas_position(root, location)
+		var scale: float = float(location.get("landmark_scale", 1.0))
+		var icon_size := Vector2(34, 34) * scale
 		if texture != null:
 			var icon := TextureRect.new()
 			icon.texture = texture
 			icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 			icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 			icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			icon.custom_minimum_size = Vector2(34, 34)
-			icon.size = Vector2(34, 34)
-			icon.position = pos - Vector2(17, 26)
-			icon.modulate = Color(0.31, 0.24, 0.14, 0.92) if str(location.get("location_id", "")) == "questtown_centre" else Color(0.40, 0.30, 0.18, 0.76)
+			icon.custom_minimum_size = icon_size
+			icon.size = icon_size
+			icon.position = pos - Vector2(icon_size.x * 0.5, icon_size.y * 0.72)
+			icon.modulate = Color(0.28, 0.21, 0.12, 0.94) if str(location.get("id", "")) == "questtown_centre" else Color(0.40, 0.30, 0.18, 0.80)
 			root.add_child(icon)
 		var label := Label.new()
 		label.text = str(location.get("display_name", "?"))
 		label.autowrap_mode = TextServer.AUTOWRAP_OFF
+		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		_apply_label_role(label, "meta", true)
-		label.position = pos + Vector2(-36, 12)
-		label.size = Vector2(110, 18)
+		_apply_label_role(label, "panel_title" if str(location.get("id", "")) == "questtown_centre" else "meta", true)
+		var label_offset := _location_label_offset(location)
+		label.position = pos + label_offset
+		label.size = Vector2(132, 22)
 		root.add_child(label)
 
 func _populate_map_markers(root: Control) -> void:
@@ -1962,14 +1982,61 @@ func _add_result_burst(root: Control, position: Vector2, result: Dictionary) -> 
 	root.add_child(result_label)
 
 func _location_canvas_position(root: Control, location: Dictionary) -> Vector2:
-	var map_position: Dictionary = location.get("map_position", {})
+	return _map_anchor_to_canvas(root, location.get("anchor_position", location.get("map_position", {})))
+
+func _map_anchor_to_canvas(root: Control, anchor_variant: Variant) -> Vector2:
+	var anchor: Dictionary = anchor_variant if anchor_variant is Dictionary else {}
 	var canvas_size := root.size
 	if canvas_size.x <= 0.0 or canvas_size.y <= 0.0:
 		canvas_size = root.custom_minimum_size
 	return Vector2(
-		float(map_position.get("x", 0.5)) * canvas_size.x,
-		float(map_position.get("y", 0.5)) * canvas_size.y
+		float(anchor.get("x", 0.5)) * canvas_size.x,
+		float(anchor.get("y", 0.5)) * canvas_size.y
 	)
+
+func _location_label_offset(location: Dictionary) -> Vector2:
+	var offset: Dictionary = location.get("label_offset", {})
+	return Vector2(float(offset.get("x", -36)), float(offset.get("y", 12)))
+
+func _route_canvas_points(root: Control, route: Dictionary, from_location: Dictionary, to_location: Dictionary) -> PackedVector2Array:
+	var points := PackedVector2Array()
+	points.append(_location_canvas_position(root, from_location))
+	for control_point_variant in route.get("control_points", []):
+		points.append(_map_anchor_to_canvas(root, control_point_variant))
+	points.append(_location_canvas_position(root, to_location))
+	return points
+
+func _add_route_line(root: Control, points: PackedVector2Array, color: Color, width: float) -> void:
+	var line := Line2D.new()
+	line.points = points
+	line.width = width
+	line.default_color = color
+	line.antialiased = true
+	line.joint_mode = Line2D.LINE_JOINT_ROUND
+	line.begin_cap_mode = Line2D.LINE_CAP_ROUND
+	line.end_cap_mode = Line2D.LINE_CAP_ROUND
+	line.z_index = -2
+	root.add_child(line)
+
+func _add_dashed_route_line(root: Control, points: PackedVector2Array, color: Color, width: float, dash_length: float = 22.0, gap_length: float = 16.0) -> void:
+	if points.size() < 2:
+		return
+	for point_index in range(points.size() - 1):
+		var from_pos := points[point_index]
+		var to_pos := points[point_index + 1]
+		var segment_length := from_pos.distance_to(to_pos)
+		if segment_length <= 0.01:
+			continue
+		var direction := (to_pos - from_pos).normalized()
+		var cursor := 0.0
+		while cursor < segment_length:
+			var dash_end: float = min(cursor + dash_length, segment_length)
+			var dash_points := PackedVector2Array([
+				from_pos + direction * cursor,
+				from_pos + direction * dash_end
+			])
+			_add_route_line(root, dash_points, color, width)
+			cursor += dash_length + gap_length
 
 func _family_badge_text(quest: Dictionary) -> String:
 	return str(QUEST_FAMILY_NAMES.get(str(quest.get("quest_family", "tavern")), "Rumour"))

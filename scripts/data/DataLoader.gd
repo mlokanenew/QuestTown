@@ -55,8 +55,8 @@ func _ready() -> void:
 	wfrp_characteristics = _load_json("res://godot_data/wfrp_db/characteristics.json")
 	careers = _filter_mvp_careers(careers)
 	if map_data is Dictionary:
-		map_locations = map_data.get("locations", [])
-		map_routes = map_data.get("routes", [])
+		map_locations = _normalize_map_locations(map_data.get("locations", []))
+		map_routes = _normalize_map_routes(map_data.get("routes", []))
 
 	for c in careers:
 		careers_by_id[c["id"]] = c
@@ -77,9 +77,73 @@ func _ready() -> void:
 	for loot_table in loot_tables:
 		loot_tables_by_id[loot_table["id"]] = loot_table
 	for location in map_locations:
-		map_locations_by_id[location["location_id"]] = location
+		map_locations_by_id[location["id"]] = location
 	for source_career in wfrp_source_careers:
 		wfrp_source_careers_by_id[source_career["id"]] = source_career
+
+func _normalize_map_locations(raw_locations: Array) -> Array:
+	var normalized: Array = []
+	for raw_location_variant in raw_locations:
+		if not (raw_location_variant is Dictionary):
+			continue
+		var raw_location: Dictionary = raw_location_variant
+		var location_id := str(raw_location.get("id", raw_location.get("location_id", "")))
+		if location_id == "":
+			continue
+		var anchor_position: Dictionary = raw_location.get("anchor_position", raw_location.get("map_position", {}))
+		var icon_type := str(raw_location.get("icon_type", raw_location.get("icon_key", raw_location.get("location_type", "town"))))
+		var normalized_location := {
+			"id": location_id,
+			"location_id": location_id,
+			"display_name": raw_location.get("display_name", location_id.capitalize()),
+			"anchor_position": anchor_position.duplicate(true) if anchor_position is Dictionary else {"x": 0.5, "y": 0.5},
+			"map_position": anchor_position.duplicate(true) if anchor_position is Dictionary else {"x": 0.5, "y": 0.5},
+			"location_type": raw_location.get("location_type", "town"),
+			"icon_type": icon_type,
+			"icon_key": icon_type,
+			"description": raw_location.get("description", ""),
+			"unlock_tags": raw_location.get("unlock_tags", []).duplicate(true),
+			"landmark_scale": float(raw_location.get("landmark_scale", 1.0)),
+			"label_offset": raw_location.get("label_offset", {"x": -36, "y": 12}).duplicate(true) if raw_location.get("label_offset", {}) is Dictionary else {"x": -36, "y": 12}
+		}
+		normalized.append(normalized_location)
+	return normalized
+
+func _normalize_map_routes(raw_routes: Array) -> Array:
+	var normalized: Array = []
+	for index in raw_routes.size():
+		var raw_route_variant: Variant = raw_routes[index]
+		if raw_route_variant is Array:
+			var raw_pair: Array = raw_route_variant
+			if raw_pair.size() != 2:
+				continue
+			normalized.append({
+				"route_id": "legacy_route_%d" % index,
+				"from_location_id": str(raw_pair[0]),
+				"to_location_id": str(raw_pair[1]),
+				"route_type": "track",
+				"control_points": []
+			})
+			continue
+		if not (raw_route_variant is Dictionary):
+			continue
+		var raw_route: Dictionary = raw_route_variant
+		var from_location_id := str(raw_route.get("from_location_id", ""))
+		var to_location_id := str(raw_route.get("to_location_id", ""))
+		if from_location_id == "" or to_location_id == "":
+			continue
+		var control_points: Array = []
+		for control_point_variant in raw_route.get("control_points", []):
+			if control_point_variant is Dictionary:
+				control_points.append((control_point_variant as Dictionary).duplicate(true))
+		normalized.append({
+			"route_id": str(raw_route.get("route_id", "%s_to_%s" % [from_location_id, to_location_id])),
+			"from_location_id": from_location_id,
+			"to_location_id": to_location_id,
+			"route_type": str(raw_route.get("route_type", "track")),
+			"control_points": control_points
+		})
+	return normalized
 
 func _load_json(path: String) -> Variant:
 	var file := FileAccess.open(path, FileAccess.READ)

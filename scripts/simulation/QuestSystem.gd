@@ -86,11 +86,11 @@ func _generate_offer(existing: Array, building_system: Object) -> Dictionary:
 		"quest_family": template.get("quest_family", "tavern"),
 		"required_building": template.get("required_building", "tavern"),
 		"required_building_level": template.get("required_building_level", 1),
-		"location_id": location.get("location_id", ""),
+		"location_id": location.get("id", ""),
 		"location_name": location.get("display_name", "Unknown Site"),
 		"location_category": location.get("location_type", ""),
 		"location_description": location.get("description", ""),
-		"location_icon_key": location.get("icon_key", "road"),
+		"location_icon_key": location.get("icon_type", "road"),
 		"flavour_text": template.get("flavour_text", ""),
 		"type": template["type"],
 		"difficulty": template["difficulty"],
@@ -118,7 +118,7 @@ func _pick_location_for_template(template: Dictionary, used_location_ids: Dictio
 		return {}
 	var candidates: Array = []
 	for location: Dictionary in DataLoader.map_locations:
-		var location_id: String = str(location.get("location_id", ""))
+		var location_id: String = str(location.get("id", ""))
 		if location_id == "" or used_location_ids.has(location_id):
 			continue
 		if categories.has(location.get("location_type", "")):
