@@ -26,3 +26,16 @@ tools/.env
 # Build
 builds/
 artifacts/
+
+# Local-only files
+.codex_mvp_issues.json
+Full PAT.txt
+GITHUB_ACCESS.local.md
+BRITISH AIRWAYS.txt
+*.uid
+
+# Local source asset archives
+ImportedAssets/*.zip
+assets/*.zip
+assets/ui_sources/
+assets/fonts/*.import
