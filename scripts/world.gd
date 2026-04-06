@@ -18,19 +18,28 @@ const ICON_SHIELD_PATH := "res://assets/ui/icons/shield.png"
 const ICON_SWORD_PATH := "res://assets/ui/icons/sword.png"
 const ICON_SKULL_PATH := "res://assets/ui/icons/skull.png"
 const MAP_PARCHMENT_PATH := "res://assets/ui/quest_map/parchmentBasic.png"
-const MAP_COMPASS_PATH := "res://assets/ui/quest_map/compass.png"
-const MAP_ICON_HOUSE_PATH := "res://assets/ui/quest_map/house.png"
-const MAP_ICON_MILL_PATH := "res://assets/ui/quest_map/mill.png"
-const MAP_ICON_BRIDGE_PATH := "res://assets/ui/quest_map/bridge.png"
-const MAP_ICON_GRAVEYARD_PATH := "res://assets/ui/quest_map/graveyard.png"
-const MAP_ICON_CHURCH_PATH := "res://assets/ui/quest_map/church.png"
-const MAP_ICON_WATCHTOWER_PATH := "res://assets/ui/quest_map/watchtower.png"
-const MAP_ICON_RUINS_PATH := "res://assets/ui/quest_map/ruins.png"
-const MAP_ICON_WOODS_PATH := "res://assets/ui/quest_map/treePines.png"
-const MAP_PATH_STRAIGHT_PATH := "res://assets/ui/quest_map/pathStraight.png"
-const MAP_PATH_CORNER_PATH := "res://assets/ui/quest_map/pathCorner.png"
-const MAP_PATH_SPLIT_PATH := "res://assets/ui/quest_map/pathSplit.png"
-const MAP_BANNER_PATH := "res://assets/ui/quest_map/banner.png"
+const MAP_RETINA_BASE := "res://assets/kenney_cartography-pack (1)/PNG/Retina/"
+const MAP_COMPASS_PATH := MAP_RETINA_BASE + "compass.png"
+const MAP_ICON_HOUSE_PATH := MAP_RETINA_BASE + "house.png"
+const MAP_ICON_HOUSES_PATH := MAP_RETINA_BASE + "houses.png"
+const MAP_ICON_HOUSE_SMALL_PATH := MAP_RETINA_BASE + "houseSmall.png"
+const MAP_ICON_MILL_PATH := MAP_RETINA_BASE + "mill.png"
+const MAP_ICON_BRIDGE_PATH := MAP_RETINA_BASE + "bridge.png"
+const MAP_ICON_BRIDGE_ROPE_PATH := MAP_RETINA_BASE + "bridgeRope.png"
+const MAP_ICON_GRAVEYARD_PATH := MAP_RETINA_BASE + "graveyard.png"
+const MAP_ICON_CHURCH_PATH := MAP_RETINA_BASE + "church.png"
+const MAP_ICON_WATCHTOWER_PATH := MAP_RETINA_BASE + "watchtower.png"
+const MAP_ICON_RUINS_PATH := MAP_RETINA_BASE + "ruins.png"
+const MAP_ICON_WOODS_PATH := MAP_RETINA_BASE + "treePines.png"
+const MAP_ICON_WOODS_SMALL_PATH := MAP_RETINA_BASE + "treePinesSmall.png"
+const MAP_ICON_SKULL_PATH := MAP_RETINA_BASE + "skull.png"
+const MAP_ICON_ROCKS_PATH := MAP_RETINA_BASE + "rocksMountain.png"
+const MAP_PATH_STRAIGHT_PATH := MAP_RETINA_BASE + "pathStraight.png"
+const MAP_PATH_CORNER_PATH := MAP_RETINA_BASE + "pathCorner.png"
+const MAP_PATH_SPLIT_PATH := MAP_RETINA_BASE + "pathSplit.png"
+const MAP_PATH_CROSSING_PATH := MAP_RETINA_BASE + "pathCrossing.png"
+const MAP_PATH_END_PATH := MAP_RETINA_BASE + "pathEnd.png"
+const MAP_BANNER_PATH := MAP_RETINA_BASE + "banner.png"
 const UI_SOUND_CLICK_PATH := "res://assets/audio/ui/click.ogg"
 const UI_SOUND_OPEN_PATH := "res://assets/audio/ui/open.ogg"
 const UI_SOUND_CLOSE_PATH := "res://assets/audio/ui/close.ogg"
@@ -122,17 +131,17 @@ const QUEST_FAMILY_NAMES := {
 }
 
 const MAP_LOCATION_ICONS := {
-	"town": MAP_ICON_HOUSE_PATH,
+	"town": MAP_ICON_HOUSES_PATH,
 	"hamlet": MAP_ICON_MILL_PATH,
-	"cellar": MAP_ICON_HOUSE_PATH,
+	"cellar": MAP_ICON_HOUSE_SMALL_PATH,
 	"road": MAP_BANNER_PATH,
 	"bridge": MAP_ICON_BRIDGE_PATH,
-	"ford": MAP_ICON_BRIDGE_PATH,
+	"ford": MAP_ICON_BRIDGE_ROPE_PATH,
 	"woods": MAP_ICON_WOODS_PATH,
 	"shrine": MAP_ICON_CHURCH_PATH,
 	"graveyard": MAP_ICON_GRAVEYARD_PATH,
 	"watchtower": MAP_ICON_WATCHTOWER_PATH,
-	"crossroads": MAP_BANNER_PATH,
+	"crossroads": MAP_ICON_SKULL_PATH,
 	"ruins": MAP_ICON_RUINS_PATH,
 }
 
@@ -141,25 +150,16 @@ const QUEST_MAP_MAX_ZOOM := 2.2
 const QUEST_MAP_ZOOM_STEP := 0.14
 const MAP_ROUTE_STYLES := {
 	"main_road": {
-		"shadow_color": Color(0.29, 0.20, 0.12, 0.36),
-		"line_color": Color(0.47, 0.33, 0.19, 0.78),
-		"shadow_width": 13.0,
-		"line_width": 7.0,
-		"dashed": false
+		"piece_color": Color(0.19, 0.15, 0.11, 0.88),
+		"piece_size": 44.0
 	},
 	"track": {
-		"shadow_color": Color(0.34, 0.24, 0.14, 0.26),
-		"line_color": Color(0.58, 0.43, 0.26, 0.58),
-		"shadow_width": 8.0,
-		"line_width": 4.0,
-		"dashed": false
+		"piece_color": Color(0.26, 0.20, 0.14, 0.72),
+		"piece_size": 34.0
 	},
 	"sacred_trail": {
-		"shadow_color": Color(0.34, 0.25, 0.15, 0.18),
-		"line_color": Color(0.70, 0.59, 0.36, 0.48),
-		"shadow_width": 6.0,
-		"line_width": 2.8,
-		"dashed": true
+		"piece_color": Color(0.40, 0.32, 0.20, 0.56),
+		"piece_size": 28.0
 	}
 }
 
@@ -1741,9 +1741,16 @@ func _clear_control_children(root: Node) -> void:
 		child.queue_free()
 
 func _populate_map_routes(root: Control) -> void:
-	var line_texture := _load_runtime_texture(MAP_PATH_STRAIGHT_PATH)
-	if line_texture == null:
+	var straight_texture := _load_runtime_texture(MAP_PATH_STRAIGHT_PATH)
+	var corner_texture := _load_runtime_texture(MAP_PATH_CORNER_PATH)
+	var split_texture := _load_runtime_texture(MAP_PATH_SPLIT_PATH)
+	var crossing_texture := _load_runtime_texture(MAP_PATH_CROSSING_PATH)
+	var end_texture := _load_runtime_texture(MAP_PATH_END_PATH)
+	if straight_texture == null or corner_texture == null or split_texture == null or crossing_texture == null or end_texture == null:
 		return
+	var route_points_by_id: Dictionary = {}
+	var route_meta_by_id: Dictionary = {}
+	var location_dirs: Dictionary = {}
 	for route_variant in DataLoader.map_routes:
 		if not (route_variant is Dictionary):
 			continue
@@ -1756,13 +1763,19 @@ func _populate_map_routes(root: Control) -> void:
 		var points := _route_canvas_points(root, route, from_location, to_location)
 		if points.size() < 2:
 			continue
-		var dashed := bool(style.get("dashed", false))
-		if dashed:
-			_add_dashed_route_line(root, line_texture, points, Color(style.get("shadow_color", Color.WHITE)), float(style.get("shadow_width", 6.0)))
-			_add_dashed_route_line(root, line_texture, points, Color(style.get("line_color", Color.WHITE)), float(style.get("line_width", 3.0)))
-		else:
-			_add_route_line(root, line_texture, points, Color(style.get("shadow_color", Color.WHITE)), float(style.get("shadow_width", 8.0)))
-			_add_route_line(root, line_texture, points, Color(style.get("line_color", Color.WHITE)), float(style.get("line_width", 4.0)))
+		var route_id := str(route.get("route_id", "%s_%s" % [route.get("from_location_id", ""), route.get("to_location_id", "")]))
+		route_points_by_id[route_id] = points
+		route_meta_by_id[route_id] = route
+		_register_location_direction(location_dirs, str(route.get("from_location_id", "")), (points[1] - points[0]).normalized())
+		_register_location_direction(location_dirs, str(route.get("to_location_id", "")), (points[points.size() - 2] - points[points.size() - 1]).normalized())
+	for route_id_variant in route_points_by_id.keys():
+		var route_id := str(route_id_variant)
+		var points: PackedVector2Array = route_points_by_id[route_id]
+		var route: Dictionary = route_meta_by_id[route_id]
+		var style: Dictionary = MAP_ROUTE_STYLES.get(str(route.get("route_type", "track")), MAP_ROUTE_STYLES["track"])
+		_add_route_straights(root, straight_texture, points, style)
+		_add_route_corners(root, corner_texture, points, style)
+	_render_route_junctions(root, location_dirs, split_texture, crossing_texture, end_texture)
 
 func _populate_map_landmarks(root: Control) -> void:
 	var compass_texture := _load_runtime_texture(MAP_COMPASS_PATH)
@@ -2009,50 +2022,134 @@ func _route_canvas_points(root: Control, route: Dictionary, from_location: Dicti
 	points.append(_location_canvas_position(root, to_location))
 	return points
 
-func _add_route_line(root: Control, texture: Texture2D, points: PackedVector2Array, color: Color, width: float) -> void:
-	if points.size() < 2:
+func _register_location_direction(location_dirs: Dictionary, location_id: String, direction: Vector2) -> void:
+	if location_id == "" or direction.length_squared() <= 0.0001:
 		return
-	for point_index in range(points.size() - 1):
-		var from_pos := points[point_index]
-		var to_pos := points[point_index + 1]
-		_add_route_segment(root, texture, from_pos, to_pos, color, width)
+	if not location_dirs.has(location_id):
+		location_dirs[location_id] = []
+	var entries: Array = location_dirs[location_id]
+	for existing_variant in entries:
+		var existing: Vector2 = existing_variant
+		if abs(existing.angle_to(direction)) < 0.12:
+			return
+	entries.append(direction.normalized())
+	location_dirs[location_id] = entries
 
-func _add_dashed_route_line(root: Control, texture: Texture2D, points: PackedVector2Array, color: Color, width: float, dash_length: float = 22.0, gap_length: float = 16.0) -> void:
+func _add_route_straights(root: Control, texture: Texture2D, points: PackedVector2Array, style: Dictionary) -> void:
 	if points.size() < 2:
 		return
+	var piece_size := _route_piece_size(style)
+	var step := piece_size.x * 0.58
 	for point_index in range(points.size() - 1):
 		var from_pos := points[point_index]
 		var to_pos := points[point_index + 1]
-		var segment_length := from_pos.distance_to(to_pos)
-		if segment_length <= 0.01:
+		var segment := to_pos - from_pos
+		var segment_length := segment.length()
+		if segment_length <= 8.0:
 			continue
-		var direction := (to_pos - from_pos).normalized()
-		var cursor := 0.0
-		while cursor < segment_length:
-			var dash_end: float = min(cursor + dash_length, segment_length)
-			var dash_points := PackedVector2Array([
-				from_pos + direction * cursor,
-				from_pos + direction * dash_end
-			])
-			_add_route_line(root, texture, dash_points, color, width)
-			cursor += dash_length + gap_length
+		var direction := segment.normalized()
+		var trim_start := piece_size.x * (0.52 if point_index == 0 else 0.42)
+		var trim_end := piece_size.x * (0.52 if point_index == points.size() - 2 else 0.42)
+		var usable_length := segment_length - trim_start - trim_end
+		if usable_length <= piece_size.x * 0.35:
+			continue
+		var cursor := trim_start + step * 0.5
+		while cursor < segment_length - trim_end:
+			var center := from_pos + direction * cursor
+			_add_map_piece(root, texture, center, piece_size, direction.angle() + PI * 0.5, _route_piece_color(style))
+			cursor += step
 
-func _add_route_segment(root: Control, texture: Texture2D, from_pos: Vector2, to_pos: Vector2, color: Color, width: float) -> void:
-	var delta := to_pos - from_pos
-	var length: float = delta.length()
-	if length <= 0.01:
+func _add_route_corners(root: Control, texture: Texture2D, points: PackedVector2Array, style: Dictionary) -> void:
+	if points.size() < 3:
 		return
-	var line := TextureRect.new()
-	line.texture = texture
-	line.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	line.stretch_mode = TextureRect.STRETCH_SCALE
-	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	line.modulate = color
-	line.size = Vector2(max(10.0, length + width * 0.4), width)
-	line.pivot_offset = Vector2(0, width * 0.5)
-	line.position = from_pos + Vector2(0, -width * 0.5)
-	line.rotation = delta.angle()
-	root.add_child(line)
+	var piece_size := _route_piece_size(style)
+	for point_index in range(1, points.size() - 1):
+		var prev_pos := points[point_index - 1]
+		var pivot := points[point_index]
+		var next_pos := points[point_index + 1]
+		var dir_a: Vector2 = (prev_pos - pivot).normalized()
+		var dir_b: Vector2 = (next_pos - pivot).normalized()
+		if dir_a.length_squared() <= 0.0001 or dir_b.length_squared() <= 0.0001:
+			continue
+		var bend: float = abs(dir_a.angle_to(dir_b))
+		if bend < 0.32 or bend > 2.8:
+			continue
+		var bisector: Vector2 = (dir_a + dir_b).normalized()
+		if bisector.length_squared() <= 0.0001:
+			continue
+		_add_map_piece(root, texture, pivot, piece_size, bisector.angle() + PI * 0.25, _route_piece_color(style))
+
+func _render_route_junctions(root: Control, location_dirs: Dictionary, split_texture: Texture2D, crossing_texture: Texture2D, end_texture: Texture2D) -> void:
+	for location: Dictionary in DataLoader.map_locations:
+		var location_id := str(location.get("id", ""))
+		if not location_dirs.has(location_id):
+			continue
+		var dirs: Array = location_dirs[location_id]
+		var count := dirs.size()
+		if count <= 0:
+			continue
+		var position := _location_canvas_position(root, location)
+		var route_type := "track"
+		for route_variant in DataLoader.map_routes:
+			if not (route_variant is Dictionary):
+				continue
+			var route: Dictionary = route_variant
+			if str(route.get("from_location_id", "")) == location_id or str(route.get("to_location_id", "")) == location_id:
+				if str(route.get("route_type", "")) == "main_road":
+					route_type = "main_road"
+					break
+				if str(route.get("route_type", "")) == "sacred_trail" and route_type != "main_road":
+					route_type = "sacred_trail"
+		var style: Dictionary = MAP_ROUTE_STYLES.get(route_type, MAP_ROUTE_STYLES["track"])
+		var piece_size := _route_piece_size(style)
+		if count == 1:
+			var end_dir: Vector2 = dirs[0]
+			_add_map_piece(root, end_texture, position, piece_size, end_dir.angle() + PI * 0.5, _route_piece_color(style))
+		elif count == 3:
+			var rotation := _split_rotation_from_dirs(dirs)
+			_add_map_piece(root, split_texture, position, piece_size, rotation, _route_piece_color(style))
+		elif count >= 4:
+			_add_map_piece(root, crossing_texture, position, piece_size, 0.0, _route_piece_color(style))
+
+func _split_rotation_from_dirs(dirs: Array) -> float:
+	var angles: Array = []
+	for dir_variant in dirs:
+		var dir: Vector2 = dir_variant
+		angles.append(wrapf(dir.angle(), 0.0, TAU))
+	angles.sort()
+	var largest_gap := -1.0
+	var gap_mid := 0.0
+	for index in angles.size():
+		var current_angle: float = angles[index]
+		var next_angle: float = angles[(index + 1) % angles.size()] + (TAU if index == angles.size() - 1 else 0.0)
+		var gap := next_angle - current_angle
+		if gap > largest_gap:
+			largest_gap = gap
+			gap_mid = current_angle + gap * 0.5
+	return wrapf(gap_mid - PI, -PI, PI)
+
+func _route_piece_size(style: Dictionary) -> Vector2:
+	var route_width := float(style.get("piece_size", 42.0))
+	return Vector2(route_width, route_width)
+
+func _route_piece_color(style: Dictionary) -> Color:
+	return Color(style.get("piece_color", Color(0.22, 0.17, 0.12, 0.92)))
+
+func _add_map_piece(root: Control, texture: Texture2D, center: Vector2, size: Vector2, rotation: float, color: Color) -> void:
+	if texture == null:
+		return
+	var piece := TextureRect.new()
+	piece.texture = texture
+	piece.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	piece.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	piece.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	piece.size = size
+	piece.custom_minimum_size = size
+	piece.pivot_offset = size * 0.5
+	piece.position = center - size * 0.5
+	piece.rotation = rotation
+	piece.modulate = color
+	root.add_child(piece)
 
 func _family_badge_text(quest: Dictionary) -> String:
 	return str(QUEST_FAMILY_NAMES.get(str(quest.get("quest_family", "tavern")), "Rumour"))
