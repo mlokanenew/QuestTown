@@ -1,0 +1,125 @@
+{
+  "locations": [
+    {
+      "location_id": "questtown_centre",
+      "display_name": "QuestTown",
+      "map_position": {"x": 0.49, "y": 0.55},
+      "location_type": "town",
+      "description": "A hopeful roadside town where rumours gather faster than wagons.",
+      "icon_key": "town",
+      "unlock_tags": []
+    },
+    {
+      "location_id": "old_cellar",
+      "display_name": "Old Cellar",
+      "map_position": {"x": 0.37, "y": 0.61},
+      "location_type": "cellar",
+      "description": "A damp storage cellar under the old tavern road, always one bad season from vermin.",
+      "icon_key": "hamlet",
+      "unlock_tags": ["tavern"]
+    },
+    {
+      "location_id": "millers_hamlet",
+      "display_name": "Miller's Hamlet",
+      "map_position": {"x": 0.23, "y": 0.47},
+      "location_type": "hamlet",
+      "description": "A few clustered cottages where every missing traveller is noticed by sunset.",
+      "icon_key": "hamlet",
+      "unlock_tags": ["tavern"]
+    },
+    {
+      "location_id": "north_road",
+      "display_name": "North Road",
+      "map_position": {"x": 0.58, "y": 0.27},
+      "location_type": "road",
+      "description": "The main trade road north, wide enough for carts and trouble alike.",
+      "icon_key": "road",
+      "unlock_tags": ["general_goods"]
+    },
+    {
+      "location_id": "stone_bridge",
+      "display_name": "Stone Bridge",
+      "map_position": {"x": 0.68, "y": 0.39},
+      "location_type": "bridge",
+      "description": "A weathered bridge where tolls, bandits, and rumours all change hands.",
+      "icon_key": "bridge",
+      "unlock_tags": ["general_goods"]
+    },
+    {
+      "location_id": "old_copse",
+      "display_name": "Old Copse",
+      "map_position": {"x": 0.31, "y": 0.31},
+      "location_type": "woods",
+      "description": "A knot of old trees full of herb-lore, spoor, and half-remembered warnings.",
+      "icon_key": "woods",
+      "unlock_tags": ["tavern", "general_goods"]
+    },
+    {
+      "location_id": "wayside_shrine",
+      "display_name": "Wayside Shrine",
+      "map_position": {"x": 0.71, "y": 0.57},
+      "location_type": "shrine",
+      "description": "A small roadside shrine where offerings vanish and candlelight burns strangely late.",
+      "icon_key": "shrine",
+      "unlock_tags": ["temple"]
+    },
+    {
+      "location_id": "graveyard_hill",
+      "display_name": "Graveyard Hill",
+      "map_position": {"x": 0.79, "y": 0.26},
+      "location_type": "graveyard",
+      "description": "A wind-beaten hill of leaning stones, restless crows, and older names.",
+      "icon_key": "graveyard",
+      "unlock_tags": ["temple"]
+    },
+    {
+      "location_id": "watch_hut",
+      "display_name": "Abandoned Watch Hut",
+      "map_position": {"x": 0.56, "y": 0.16},
+      "location_type": "watchtower",
+      "description": "An empty road watch that still commands a clear view of the northern approach.",
+      "icon_key": "watchtower",
+      "unlock_tags": ["general_goods", "tavern"]
+    },
+    {
+      "location_id": "broken_ford",
+      "display_name": "Broken Ford",
+      "map_position": {"x": 0.18, "y": 0.67},
+      "location_type": "ford",
+      "description": "A shallow crossing where wagons bog down and peddlers pray for dry weather.",
+      "icon_key": "bridge",
+      "unlock_tags": ["general_goods"]
+    },
+    {
+      "location_id": "bandit_track",
+      "display_name": "Bandit Track",
+      "map_position": {"x": 0.82, "y": 0.47},
+      "location_type": "crossroads",
+      "description": "A half-hidden track through scrub where traffic disappears before the toll collectors hear of it.",
+      "icon_key": "road",
+      "unlock_tags": ["general_goods", "tavern"]
+    },
+    {
+      "location_id": "ruined_chapel",
+      "display_name": "Ruined Chapel",
+      "map_position": {"x": 0.87, "y": 0.66},
+      "location_type": "ruins",
+      "description": "An old chapel shell whose broken nave still feels claimed by something sacred.",
+      "icon_key": "ruins",
+      "unlock_tags": ["temple"]
+    }
+  ],
+  "routes": [
+    ["questtown_centre", "old_cellar"],
+    ["questtown_centre", "millers_hamlet"],
+    ["questtown_centre", "north_road"],
+    ["questtown_centre", "stone_bridge"],
+    ["questtown_centre", "old_copse"],
+    ["questtown_centre", "wayside_shrine"],
+    ["north_road", "watch_hut"],
+    ["north_road", "graveyard_hill"],
+    ["stone_bridge", "bandit_track"],
+    ["questtown_centre", "broken_ford"],
+    ["wayside_shrine", "ruined_chapel"]
+  ]
+}

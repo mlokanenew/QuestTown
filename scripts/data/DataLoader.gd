@@ -18,6 +18,8 @@ var characteristics: Array = []
 var services: Array = []
 var gear_catalog: Array = []
 var loot_tables: Array = []
+var map_locations: Array = []
+var map_routes: Array = []
 var hero_names: Dictionary = {"first": [], "last": []}
 var gameplay_config: Dictionary = {}
 var wfrp_source_careers: Array = []
@@ -33,6 +35,7 @@ var characteristics_by_id: Dictionary = {}
 var services_by_id: Dictionary = {}
 var gear_by_id: Dictionary = {}
 var loot_tables_by_id: Dictionary = {}
+var map_locations_by_id: Dictionary = {}
 var wfrp_source_careers_by_id: Dictionary = {}
 
 func _ready() -> void:
@@ -45,11 +48,15 @@ func _ready() -> void:
 	services = _load_json("res://data/services.json")
 	gear_catalog = _load_json("res://data/gear_catalog.json")
 	loot_tables = _load_json("res://data/loot_tables.json")
+	var map_data: Variant = _load_json("res://data/map_locations.json")
 	hero_names = _load_json("res://data/hero_names.json")
 	gameplay_config = _load_json("res://data/gameplay_config.json")
 	wfrp_source_careers = _load_json("res://godot_data/wfrp_db/careers.json")
 	wfrp_characteristics = _load_json("res://godot_data/wfrp_db/characteristics.json")
 	careers = _filter_mvp_careers(careers)
+	if map_data is Dictionary:
+		map_locations = map_data.get("locations", [])
+		map_routes = map_data.get("routes", [])
 
 	for c in careers:
 		careers_by_id[c["id"]] = c
@@ -69,6 +76,8 @@ func _ready() -> void:
 		gear_by_id[gear["id"]] = gear
 	for loot_table in loot_tables:
 		loot_tables_by_id[loot_table["id"]] = loot_table
+	for location in map_locations:
+		map_locations_by_id[location["location_id"]] = location
 	for source_career in wfrp_source_careers:
 		wfrp_source_careers_by_id[source_career["id"]] = source_career
 
@@ -132,6 +141,9 @@ func get_best_gear_offer(building_level: int) -> Dictionary:
 
 func get_wfrp_source_career(career_id: String) -> Dictionary:
 	return wfrp_source_careers_by_id.get(career_id, {})
+
+func get_map_location(location_id: String) -> Dictionary:
+	return map_locations_by_id.get(location_id, {})
 
 func get_starting_gold() -> int:
 	return int(gameplay_config.get("starting_gold", 70))

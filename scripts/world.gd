@@ -17,6 +17,20 @@ const ICON_CAMPFIRE_PATH := "res://assets/ui/icons/campfire.png"
 const ICON_SHIELD_PATH := "res://assets/ui/icons/shield.png"
 const ICON_SWORD_PATH := "res://assets/ui/icons/sword.png"
 const ICON_SKULL_PATH := "res://assets/ui/icons/skull.png"
+const MAP_PARCHMENT_PATH := "res://assets/ui/quest_map/parchmentBasic.png"
+const MAP_COMPASS_PATH := "res://assets/ui/quest_map/compass.png"
+const MAP_ICON_HOUSE_PATH := "res://assets/ui/quest_map/house.png"
+const MAP_ICON_MILL_PATH := "res://assets/ui/quest_map/mill.png"
+const MAP_ICON_BRIDGE_PATH := "res://assets/ui/quest_map/bridge.png"
+const MAP_ICON_GRAVEYARD_PATH := "res://assets/ui/quest_map/graveyard.png"
+const MAP_ICON_CHURCH_PATH := "res://assets/ui/quest_map/church.png"
+const MAP_ICON_WATCHTOWER_PATH := "res://assets/ui/quest_map/watchtower.png"
+const MAP_ICON_RUINS_PATH := "res://assets/ui/quest_map/ruins.png"
+const MAP_ICON_WOODS_PATH := "res://assets/ui/quest_map/treePines.png"
+const MAP_PATH_STRAIGHT_PATH := "res://assets/ui/quest_map/pathStraight.png"
+const MAP_PATH_CORNER_PATH := "res://assets/ui/quest_map/pathCorner.png"
+const MAP_PATH_SPLIT_PATH := "res://assets/ui/quest_map/pathSplit.png"
+const MAP_BANNER_PATH := "res://assets/ui/quest_map/banner.png"
 const UI_SOUND_CLICK_PATH := "res://assets/audio/ui/click.ogg"
 const UI_SOUND_OPEN_PATH := "res://assets/audio/ui/open.ogg"
 const UI_SOUND_CLOSE_PATH := "res://assets/audio/ui/close.ogg"
@@ -66,6 +80,7 @@ var _event_feed_expanded: bool = false
 var _selected_entity_kind: String = ""
 var _details_expanded: bool = false
 var _selected_quest_id: String = ""
+var _quest_list_collapsed: bool = false
 var _ui_sfx: Dictionary = {}
 var _ui_textures: Dictionary = {}
 var _ui_fonts: Dictionary = {}
@@ -90,6 +105,31 @@ const QUEST_TYPE_ICONS := {
 	"combat": ICON_SWORD_PATH,
 	"forage": ICON_AWARD_PATH,
 	"spiritual": ICON_CAMPFIRE_PATH,
+	"road": ICON_AWARD_PATH,
+	"stealth": ICON_CHARACTER_PATH,
+	"scouting": ICON_BOOK_PATH,
+	"urban": ICON_SWORD_PATH,
+}
+
+const QUEST_FAMILY_NAMES := {
+	"tavern": "Inn Rumour",
+	"general_goods": "Trade Route Lead",
+	"temple": "Sacred Lead",
+}
+
+const MAP_LOCATION_ICONS := {
+	"town": MAP_ICON_HOUSE_PATH,
+	"hamlet": MAP_ICON_MILL_PATH,
+	"cellar": MAP_ICON_HOUSE_PATH,
+	"road": MAP_BANNER_PATH,
+	"bridge": MAP_ICON_BRIDGE_PATH,
+	"ford": MAP_ICON_BRIDGE_PATH,
+	"woods": MAP_ICON_WOODS_PATH,
+	"shrine": MAP_ICON_CHURCH_PATH,
+	"graveyard": MAP_ICON_GRAVEYARD_PATH,
+	"watchtower": MAP_ICON_WATCHTOWER_PATH,
+	"crossroads": MAP_BANNER_PATH,
+	"ruins": MAP_ICON_RUINS_PATH,
 }
 
 func _make_style(bg: Color, border: Color, radius: int = RADIUS_PANEL, border_width: int = 1, padding: int = 12) -> StyleBoxFlat:
@@ -555,6 +595,10 @@ func _apply_visual_design_system() -> void:
 	var quest_meta := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestMetaCard")
 	if quest_meta:
 		quest_meta.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_2, 0.94), Color(UI_ACCENT, 0.18), 18, 0, 14))
+	var quest_map_card := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestMapColumn/QuestMapCard")
+	if quest_map_card:
+		quest_map_card.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_PAPER, 0.94), Color(UI_BORDER_SUBTLE, 0.28), 22, 0, 8))
+		_ensure_ornament_frame(quest_map_card, frame_ornate, 16, 5, Color(1, 1, 1, 0.30))
 	var quest_suitability := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestSuitabilityCard")
 	if quest_suitability:
 		quest_suitability.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_PAPER, 0.92), Color(UI_BORDER_SUBTLE, 0.20), 18, 0, 14))
@@ -583,6 +627,7 @@ func _apply_visual_design_system() -> void:
 		"UILayer/RightPanelTab",
 		"UILayer/EventLogPanel/VBox/Header/ExpandButton",
 		"UILayer/QuestDrawer/QuestVBox/QuestHeader/QuestCloseButton",
+		"UILayer/QuestDrawer/QuestVBox/QuestContent/QuestListColumn/QuestListHeader/QuestListTabButton",
 		"UILayer/RightPanel/VBox/MoreDetailsButton",
 		"UILayer/RosterPanel/RosterVBox/RosterPrevButton",
 		"UILayer/RosterPanel/RosterVBox/RosterNextButton",
@@ -630,7 +675,10 @@ func _apply_visual_design_system() -> void:
 	_apply_label_role(get_node_or_null("UILayer/RosterPanel/RosterVBox/RosterTitle"), "section")
 	_apply_label_role(get_node_or_null("UILayer/EventLogPanel/VBox/Header/TitleLabel"), "section")
 	_apply_label_role(get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestListColumn/QuestOffersTitle"), "section")
-	_apply_label_role(get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestListColumn/QuestFilterSummaryLabel"), "meta")
+	_apply_label_role(get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestListColumn/QuestListHeader/QuestFilterSummaryLabel"), "meta")
+	_apply_label_role(get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestMapColumn/QuestMapHeader/QuestMapTitle"), "panel_title")
+	_apply_label_role(get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestMapColumn/QuestMapHeader/QuestMapLegend"), "meta")
+	_apply_label_role(get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestMapColumn/QuestMapFooter"), "meta")
 	_apply_label_role(get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestDetailHeader/QuestDetailHeaderVBox/QuestDetailKicker"), "section", true)
 	_apply_label_role(get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestDetailHeader/QuestDetailHeaderVBox/QuestDetailTitleLabel"), "quest_title", true)
 	_apply_label_role(get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestDetailHeader/QuestDetailHeaderVBox/QuestDetailSummaryLabel"), "body", true)
@@ -721,6 +769,10 @@ func _ready() -> void:
 		if quest_close:
 			quest_close.pressed.connect(_toggle_quest_drawer)
 			_wire_button_sfx(quest_close, "close")
+		var quest_list_tab := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestListColumn/QuestListHeader/QuestListTabButton")
+		if quest_list_tab:
+			quest_list_tab.pressed.connect(_toggle_quest_list_panel)
+			_wire_button_sfx(quest_list_tab)
 		var build_toggle := get_node_or_null("UILayer/TopBar/TopBarRow/BuildPanelToggleButton")
 		if build_toggle:
 			build_toggle.pressed.connect(_toggle_left_panel)
@@ -1437,30 +1489,32 @@ func _refresh_output_action_button() -> void:
 
 func _setup_quest_menu() -> void:
 	_quest_filter_boxes.clear()
-	var summary_label := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestListColumn/QuestFilterSummaryLabel")
+	var summary_label := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestListColumn/QuestListHeader/QuestFilterSummaryLabel")
 	if summary_label:
-		summary_label.text = "Available Quests: 0"
+		summary_label.text = "0 discovered sites"
 	var controls := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestListColumn/QuestFilterControls")
 	if controls:
 		controls.visible = false
 	var list := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestListColumn/QuestFilterList")
 	if list:
 		list.visible = false
+	_apply_quest_list_state()
 	_refresh_quest_ui()
 
 func _refresh_quest_ui() -> void:
-	var summary_label := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestListColumn/QuestFilterSummaryLabel")
+	var summary_label := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestListColumn/QuestListHeader/QuestFilterSummaryLabel")
 	if summary_label:
-		var urgent_count := 0
-		for quest_offer: Dictionary in GameState.quests:
-			if bool(quest_offer.get("urgent", false)):
-				urgent_count += 1
-		var urgent_text := ""
-		if urgent_count > 0:
-			urgent_text = "  %d urgent." % urgent_count
-		summary_label.text = "%d contracts on the board.%s Select one to inspect fit, risk, and time left." % [GameState.quests.size(), urgent_text]
+		summary_label.text = "%d discovered sites" % GameState.quests.size()
+
+	var list_title := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestListColumn/QuestOffersTitle")
+	if list_title:
+		list_title.text = "Discovered Rumours" if not _quest_list_collapsed else "Rumours"
+	var map_legend := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestMapColumn/QuestMapHeader/QuestMapLegend")
+	if map_legend:
+		map_legend.text = "All quests still come from Inn rumours. Support buildings widen the rumour pool."
 
 	_refresh_quest_offer_cards()
+	_refresh_quest_map()
 	_refresh_selected_quest_detail()
 
 	var active_summary := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestLowerRow/ActiveQuestCard/ActiveQuestVBox/ActiveQuestSummaryLabel")
@@ -1520,7 +1574,7 @@ func _refresh_quest_ui() -> void:
 	completed_list.text = "\n".join(completed_lines)
 
 func _refresh_quest_offer_cards() -> void:
-	var list := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestListColumn/QuestOffersList")
+	var list := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestListColumn/QuestOffersScroll/QuestOffersList")
 	if list == null:
 		return
 	for child in list.get_children():
@@ -1542,10 +1596,13 @@ func _refresh_quest_offer_cards() -> void:
 		var state_text := "Ready to launch" if bool(preview.get("can_accept", false)) else str(preview.get("reason", "Need party"))
 		var urgent: bool = bool(quest_offer.get("urgent", false))
 		var title_prefix := "Urgent  " if urgent else ""
-		var urgency_line := "%s  %s" % [_quest_expiry_text(quest_offer), state_text]
-		button.text = "%s%s\nParty %d  D%d  %dg  %dxp\n%s" % [
+		var location_name := str(quest_offer.get("location_name", "Unknown Site"))
+		var urgency_line := "%s  %s" % [_quest_expiry_short_label(quest_offer), state_text]
+		button.text = "%s%s\n%s  •  %s\nParty %d  D%d  %dg  %dxp\n%s" % [
 			title_prefix,
 			quest_offer.get("name", offer_id),
+			location_name,
+			_family_badge_text(quest_offer),
 			int(quest_offer.get("party_size", 3)),
 			int(quest_offer.get("difficulty", 1)),
 			int(quest_offer.get("gold_reward", 0)),
@@ -1569,11 +1626,142 @@ func _refresh_quest_offer_cards() -> void:
 	if GameState.quests.is_empty():
 		var empty := Label.new()
 		empty.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		empty.text = "No quests are available. Produce rumours at the Inn to discover work."
+		empty.text = "No discovered sites yet. Run Gather Rumours at the Inn to place new contracts on the map."
 		_apply_label_role(empty, "body", true)
 		list.add_child(empty)
 	elif not has_selected:
 		_selected_quest_id = str(GameState.quests[0].get("offer_id", ""))
+
+func _refresh_quest_map() -> void:
+	var background := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestMapColumn/QuestMapCard/QuestMapMargin/QuestMapCanvas/QuestMapBackground") as TextureRect
+	if background:
+		background.texture = _load_runtime_texture(MAP_PARCHMENT_PATH)
+		background.modulate = Color(1, 1, 1, 0.98)
+	var routes_root := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestMapColumn/QuestMapCard/QuestMapMargin/QuestMapCanvas/QuestMapRoutes") as Control
+	var landmarks_root := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestMapColumn/QuestMapCard/QuestMapMargin/QuestMapCanvas/QuestMapLandmarks") as Control
+	var markers_root := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestMapColumn/QuestMapCard/QuestMapMargin/QuestMapCanvas/QuestMapMarkers") as Control
+	if routes_root == null or landmarks_root == null or markers_root == null:
+		return
+	_clear_control_children(routes_root)
+	_clear_control_children(landmarks_root)
+	_clear_control_children(markers_root)
+	_populate_map_routes(routes_root)
+	_populate_map_landmarks(landmarks_root)
+	_populate_map_markers(markers_root)
+
+func _clear_control_children(root: Node) -> void:
+	if root == null:
+		return
+	for child in root.get_children():
+		child.queue_free()
+
+func _populate_map_routes(root: Control) -> void:
+	var line_texture := _load_runtime_texture(MAP_PATH_STRAIGHT_PATH)
+	if line_texture == null:
+		return
+	for route_variant in DataLoader.map_routes:
+		var route: Array = route_variant
+		if route.size() != 2:
+			continue
+		var from_location := DataLoader.get_map_location(str(route[0]))
+		var to_location := DataLoader.get_map_location(str(route[1]))
+		if from_location.is_empty() or to_location.is_empty():
+			continue
+		var from_pos := _location_canvas_position(root, from_location)
+		var to_pos := _location_canvas_position(root, to_location)
+		var line := TextureRect.new()
+		line.texture = line_texture
+		line.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		line.stretch_mode = TextureRect.STRETCH_SCALE
+		line.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		line.modulate = Color(0.42, 0.30, 0.18, 0.42)
+		var delta := to_pos - from_pos
+		var length: float = max(16.0, delta.length())
+		line.size = Vector2(length, 16)
+		line.pivot_offset = Vector2(0, 8)
+		line.position = from_pos + Vector2(0, -4)
+		line.rotation = delta.angle()
+		root.add_child(line)
+
+func _populate_map_landmarks(root: Control) -> void:
+	var compass_texture := _load_runtime_texture(MAP_COMPASS_PATH)
+	if compass_texture != null:
+		var compass := TextureRect.new()
+		compass.texture = compass_texture
+		compass.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		compass.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		compass.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		compass.size = Vector2(70, 70)
+		compass.position = Vector2(root.size.x - 88, 12)
+		compass.modulate = Color(0.39, 0.30, 0.18, 0.74)
+		root.add_child(compass)
+	for location: Dictionary in DataLoader.map_locations:
+		var icon_path := str(MAP_LOCATION_ICONS.get(str(location.get("location_type", "")), MAP_ICON_HOUSE_PATH))
+		var texture := _load_runtime_texture(icon_path)
+		var pos := _location_canvas_position(root, location)
+		if texture != null:
+			var icon := TextureRect.new()
+			icon.texture = texture
+			icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			icon.custom_minimum_size = Vector2(34, 34)
+			icon.size = Vector2(34, 34)
+			icon.position = pos - Vector2(17, 26)
+			icon.modulate = Color(0.31, 0.24, 0.14, 0.92) if str(location.get("location_id", "")) == "questtown_centre" else Color(0.40, 0.30, 0.18, 0.76)
+			root.add_child(icon)
+		var label := Label.new()
+		label.text = str(location.get("display_name", "?"))
+		label.autowrap_mode = TextServer.AUTOWRAP_OFF
+		label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_apply_label_role(label, "meta", true)
+		label.position = pos + Vector2(-36, 12)
+		label.size = Vector2(110, 18)
+		root.add_child(label)
+
+func _populate_map_markers(root: Control) -> void:
+	for quest_offer: Dictionary in GameState.quests:
+		var location := DataLoader.get_map_location(str(quest_offer.get("location_id", "")))
+		if location.is_empty():
+			continue
+		var preview: Dictionary = sim.get_quest_acceptance_preview(int(quest_offer.get("offer_id", -1)))
+		var marker := Button.new()
+		var offer_id := str(quest_offer.get("offer_id", ""))
+		marker.custom_minimum_size = Vector2(42, 42)
+		marker.size = Vector2(42, 42)
+		marker.icon = _load_runtime_texture(str(QUEST_TYPE_ICONS.get(str(quest_offer.get("type", "")), ICON_BOOK_PATH)))
+		marker.expand_icon = true
+		marker.flat = false
+		marker.text = ""
+		_apply_button_theme(marker, "accent", offer_id == _selected_quest_id)
+		if not bool(preview.get("can_accept", false)):
+			marker.modulate = Color(0.92, 0.88, 0.82, 0.84)
+		marker.position = _location_canvas_position(root, location) - Vector2(21, 52)
+		marker.tooltip_text = "%s\n%s\n%s" % [
+			str(quest_offer.get("name", "Quest")),
+			str(location.get("display_name", "Unknown Site")),
+			"Ready to launch" if bool(preview.get("can_accept", false)) else str(preview.get("reason", "Need party"))
+		]
+		marker.pressed.connect(func() -> void:
+			_selected_quest_id = offer_id
+			_refresh_quest_ui()
+			_pulse_control(get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestMapColumn/QuestMapCard") as CanvasItem, "quest_map_focus", Vector2(1.01, 1.01))
+		)
+		_wire_button_sfx(marker)
+		root.add_child(marker)
+
+func _location_canvas_position(root: Control, location: Dictionary) -> Vector2:
+	var map_position: Dictionary = location.get("map_position", {})
+	var canvas_size := root.size
+	if canvas_size.x <= 0.0 or canvas_size.y <= 0.0:
+		canvas_size = root.custom_minimum_size
+	return Vector2(
+		float(map_position.get("x", 0.5)) * canvas_size.x,
+		float(map_position.get("y", 0.5)) * canvas_size.y
+	)
+
+func _family_badge_text(quest: Dictionary) -> String:
+	return str(QUEST_FAMILY_NAMES.get(str(quest.get("quest_family", "tavern")), "Rumour"))
 
 func _refresh_selected_quest_detail() -> void:
 	var detail_title := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestDetailHeader/QuestDetailHeaderVBox/QuestDetailTitleLabel")
@@ -1599,16 +1787,22 @@ func _refresh_selected_quest_detail() -> void:
 		return
 	var template_id := str(quest.get("template_id", ""))
 	var preview: Dictionary = sim.get_quest_acceptance_preview(int(quest.get("offer_id", -1)))
+	var location_name := str(quest.get("location_name", "Unknown Site"))
+	var family_name := _family_badge_text(quest)
 	if detail_kicker:
-		detail_kicker.text = "Urgent Contract" if bool(quest.get("urgent", false)) else "Contract Board"
+		detail_kicker.text = "%s  •  %s" % [family_name, location_name]
 	if detail_title:
 		detail_title.text = str(quest.get("name", template_id))
 	if detail_summary:
-		detail_summary.text = "%s\n%s" % [_quest_summary_text(quest), _quest_expiry_text(quest)]
+		detail_summary.text = "%s\n%s\n%s" % [
+			_quest_summary_text(quest),
+			str(quest.get("location_description", "")),
+			_quest_expiry_text(quest)
+		]
 	if reward_label:
-		reward_label.text = "Reward  %dg treasury flow through adventurers" % int(quest.get("gold_reward", 0))
+		reward_label.text = "Reward  %dg  •  Site  %s" % [int(quest.get("gold_reward", 0)), location_name]
 	if xp_label:
-		xp_label.text = "Experience  %dxp to the party" % int(quest.get("xp_reward", 0))
+		xp_label.text = "Experience  %dxp to the party  •  Family  %s" % [int(quest.get("xp_reward", 0)), family_name]
 	if risk_label:
 		risk_label.text = "Risk  %s   Party %d   %s" % [_risk_label(int(quest.get("risk_level", 1))), int(quest.get("party_size", 3)), _quest_expiry_short_label(quest)]
 	if requirement_label:
@@ -1642,6 +1836,9 @@ func _quest_requirements_text(quest: Dictionary) -> String:
 	return ", ".join(parts)
 
 func _quest_summary_text(quest: Dictionary) -> String:
+	var flavour := str(quest.get("flavour_text", "")).strip_edges()
+	if flavour != "":
+		return flavour
 	match str(quest.get("template_id", "")):
 		"clear_rats_cellar":
 			return "A cellar job with decent coin and a fair chance of scratches. Strong fit for Warrior or Rogue."
@@ -1666,10 +1863,12 @@ func _quest_suitability_text(quest: Dictionary, preview: Dictionary) -> String:
 				names.append(str(career_id).replace("_", " ").capitalize())
 	var preview_names: Array = preview.get("party_names", [])
 	var party_line := "Ready party: %s" % ", ".join(preview_names) if not preview_names.is_empty() else "Launch status: %s" % str(preview.get("reason", "Waiting for a ready party"))
-	return "Likely interested adventurers: %s\nRecommended party size: %d\nResolution focus: %s\n%s" % [
+	return "Likely interested adventurers: %s\nRecommended party size: %d\nResolution focus: %s\nMap site: %s (%s)\n%s" % [
 		", ".join(names),
 		int(quest.get("party_size", 3)),
 		str(quest.get("resolution_stat", "might")).capitalize(),
+		str(quest.get("location_name", "Unknown Site")),
+		str(quest.get("location_category", "unknown")),
 		party_line
 	]
 
@@ -1884,6 +2083,26 @@ func _toggle_right_panel() -> void:
 	_right_panel_collapsed = not _right_panel_collapsed
 	_apply_panel_state()
 
+func _toggle_quest_list_panel() -> void:
+	_quest_list_collapsed = not _quest_list_collapsed
+	_apply_quest_list_state()
+	_fit_ui_to_viewport()
+
+func _apply_quest_list_state() -> void:
+	var list_column := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestListColumn") as Control
+	var list_scroll := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestListColumn/QuestOffersScroll") as Control
+	var list_title := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestListColumn/QuestOffersTitle") as Control
+	var list_toggle := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestListColumn/QuestListHeader/QuestListTabButton") as Button
+	if list_column:
+		list_column.custom_minimum_size.x = 74 if _quest_list_collapsed else 290
+	if list_scroll:
+		list_scroll.visible = not _quest_list_collapsed
+	if list_title:
+		list_title.visible = not _quest_list_collapsed
+	if list_toggle:
+		list_toggle.text = ">" if _quest_list_collapsed else "<"
+		list_toggle.tooltip_text = "Open rumour list" if _quest_list_collapsed else "Collapse rumour list"
+
 func _toggle_quest_drawer() -> void:
 	var drawer := get_node_or_null("UILayer/QuestDrawer")
 	var scrim := get_node_or_null("UILayer/QuestScrim")
@@ -1993,6 +2212,12 @@ func _fit_ui_to_viewport() -> void:
 		quest_drawer.anchor_top = 0.09
 		quest_drawer.anchor_right = 0.91
 		quest_drawer.anchor_bottom = 0.89
+	var list_column := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestListColumn") as Control
+	if list_column:
+		list_column.custom_minimum_size.x = 74 if _quest_list_collapsed else clamp(viewport_size.x * 0.16, 250.0, 310.0)
+	var map_canvas := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestMapColumn/QuestMapCard/QuestMapMargin/QuestMapCanvas") as Control
+	if map_canvas:
+		map_canvas.custom_minimum_size = Vector2(clamp(viewport_size.x * 0.34, 520.0, 760.0), clamp(viewport_size.y * 0.34, 360.0, 520.0))
 	_update_roster_controls()
 
 func _toggle_event_feed(expanded: Variant = null) -> void:
@@ -2039,7 +2264,7 @@ func _refresh_top_bar() -> void:
 		]
 	var quest_button := get_node_or_null("UILayer/TopBar/TopBarRow/QuestDrawerButton")
 	if quest_button:
-		quest_button.text = "Quest Board  (K)   %d" % GameState.quests.size()
+		quest_button.text = "Quest Map  (K)   %d" % GameState.quests.size()
 	_refresh_speed_button_states()
 
 func _refresh_speed_button_states() -> void:

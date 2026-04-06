@@ -698,11 +698,21 @@ size_flags_vertical = 3
 theme_override_constants/separation = 18
 
 [node name="QuestListColumn" type="VBoxContainer" parent="UILayer/QuestDrawer/QuestVBox/QuestContent"]
-custom_minimum_size = Vector2(320, 0)
+custom_minimum_size = Vector2(290, 0)
 size_flags_vertical = 3
 theme_override_constants/separation = 10
 
-[node name="QuestFilterSummaryLabel" type="Label" parent="UILayer/QuestDrawer/QuestVBox/QuestContent/QuestListColumn"]
+[node name="QuestListHeader" type="HBoxContainer" parent="UILayer/QuestDrawer/QuestVBox/QuestContent/QuestListColumn"]
+theme_override_constants/separation = 8
+
+[node name="QuestListTabButton" type="Button" parent="UILayer/QuestDrawer/QuestVBox/QuestContent/QuestListColumn/QuestListHeader"]
+custom_minimum_size = Vector2(42, 0)
+theme_override_styles/normal = SubResource("button_secondary")
+theme_override_styles/hover = SubResource("button_primary")
+text = "<"
+
+[node name="QuestFilterSummaryLabel" type="Label" parent="UILayer/QuestDrawer/QuestVBox/QuestContent/QuestListColumn/QuestListHeader"]
+size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.95, 0.91, 0.73, 1)
 text = "Board Status"
 
@@ -728,15 +738,93 @@ theme_override_constants/separation = 4
 
 [node name="QuestOffersTitle" type="Label" parent="UILayer/QuestDrawer/QuestVBox/QuestContent/QuestListColumn"]
 theme_override_colors/font_color = Color(0.95, 0.91, 0.73, 1)
-text = "Available Contracts"
+text = "Rumour List"
 
-[node name="QuestOffersList" type="VBoxContainer" parent="UILayer/QuestDrawer/QuestVBox/QuestContent/QuestListColumn"]
+[node name="QuestOffersScroll" type="ScrollContainer" parent="UILayer/QuestDrawer/QuestVBox/QuestContent/QuestListColumn"]
 size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="QuestOffersList" type="VBoxContainer" parent="UILayer/QuestDrawer/QuestVBox/QuestContent/QuestListColumn/QuestOffersScroll"]
+size_flags_horizontal = 3
 theme_override_constants/separation = 6
 
 [node name="QuestOffersLabel" type="Label" parent="UILayer/QuestDrawer/QuestVBox/QuestContent/QuestListColumn"]
 visible = false
 text = "No quests yet."
+
+[node name="QuestMapColumn" type="VBoxContainer" parent="UILayer/QuestDrawer/QuestVBox/QuestContent"]
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="QuestMapHeader" type="HBoxContainer" parent="UILayer/QuestDrawer/QuestVBox/QuestContent/QuestMapColumn"]
+theme_override_constants/separation = 8
+
+[node name="QuestMapTitle" type="Label" parent="UILayer/QuestDrawer/QuestVBox/QuestContent/QuestMapColumn/QuestMapHeader"]
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.95, 0.91, 0.73, 1)
+theme_override_font_sizes/font_size = 20
+text = "Regional Rumour Map"
+
+[node name="QuestMapLegend" type="Label" parent="UILayer/QuestDrawer/QuestVBox/QuestContent/QuestMapColumn/QuestMapHeader"]
+theme_override_colors/font_color = Color(0.87, 0.9, 0.95, 1)
+text = "All quests are discovered at the Inn"
+
+[node name="QuestMapCard" type="PanelContainer" parent="UILayer/QuestDrawer/QuestVBox/QuestContent/QuestMapColumn"]
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("panel_card")
+
+[node name="QuestMapMargin" type="MarginContainer" parent="UILayer/QuestDrawer/QuestVBox/QuestContent/QuestMapColumn/QuestMapCard"]
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="QuestMapCanvas" type="Control" parent="UILayer/QuestDrawer/QuestVBox/QuestContent/QuestMapColumn/QuestMapCard/QuestMapMargin"]
+custom_minimum_size = Vector2(700, 440)
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 1
+
+[node name="QuestMapBackground" type="TextureRect" parent="UILayer/QuestDrawer/QuestVBox/QuestContent/QuestMapColumn/QuestMapCard/QuestMapMargin/QuestMapCanvas"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 6
+
+[node name="QuestMapRoutes" type="Control" parent="UILayer/QuestDrawer/QuestVBox/QuestContent/QuestMapColumn/QuestMapCard/QuestMapMargin/QuestMapCanvas"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="QuestMapLandmarks" type="Control" parent="UILayer/QuestDrawer/QuestVBox/QuestContent/QuestMapColumn/QuestMapCard/QuestMapMargin/QuestMapCanvas"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="QuestMapMarkers" type="Control" parent="UILayer/QuestDrawer/QuestVBox/QuestContent/QuestMapColumn/QuestMapCard/QuestMapMargin/QuestMapCanvas"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="QuestMapFooter" type="Label" parent="UILayer/QuestDrawer/QuestVBox/QuestContent/QuestMapColumn"]
+theme_override_colors/font_color = Color(0.87, 0.9, 0.95, 1)
+autowrap_mode = 3
+text = "Rumours reveal sites on the map. Select a marker or a list row to inspect the same contract."
 
 [node name="QuestDetailColumn" type="VBoxContainer" parent="UILayer/QuestDrawer/QuestVBox/QuestContent"]
 size_flags_horizontal = 3

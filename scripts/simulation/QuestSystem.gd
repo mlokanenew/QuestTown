@@ -45,8 +45,12 @@ func _refresh_available_quests(building_system: Object) -> void:
 
 func _generate_offer(existing: Array, building_system: Object) -> Dictionary:
 	var blocked_ids: Dictionary = {}
+	var used_location_ids: Dictionary = {}
 	for offer in existing:
 		blocked_ids[offer.get("template_id", "")] = true
+		var existing_location_id: String = str(offer.get("location_id", ""))
+		if existing_location_id != "":
+			used_location_ids[existing_location_id] = true
 
 	var candidates: Array = []
 	for quest: Dictionary in DataLoader.quests:
@@ -62,6 +66,9 @@ func _generate_offer(existing: Array, building_system: Object) -> Dictionary:
 		return {}
 
 	var template: Dictionary = candidates[_rng.randi() % candidates.size()]
+	var location: Dictionary = _pick_location_for_template(template, used_location_ids)
+	if location.is_empty():
+		return {}
 	var quest_config: Dictionary = DataLoader.get_quest_config()
 	var urgent: bool = _rng.randf() < float(quest_config.get("urgent_chance", 0.2))
 	var gold_reward: int = int(template["gold_reward"])
@@ -75,6 +82,16 @@ func _generate_offer(existing: Array, building_system: Object) -> Dictionary:
 		"offer_id": _next_offer_id,
 		"template_id": template["id"],
 		"name": template["name"],
+		"discovered_by": template.get("discovered_by", "tavern_rumours"),
+		"quest_family": template.get("quest_family", "tavern"),
+		"required_building": template.get("required_building", "tavern"),
+		"required_building_level": template.get("required_building_level", 1),
+		"location_id": location.get("location_id", ""),
+		"location_name": location.get("display_name", "Unknown Site"),
+		"location_category": location.get("location_type", ""),
+		"location_description": location.get("description", ""),
+		"location_icon_key": location.get("icon_key", "road"),
+		"flavour_text": template.get("flavour_text", ""),
 		"type": template["type"],
 		"difficulty": template["difficulty"],
 		"party_size": template.get("party_size", 3),
@@ -94,6 +111,25 @@ func _generate_offer(existing: Array, building_system: Object) -> Dictionary:
 	}
 	_next_offer_id += 1
 	return offer
+
+func _pick_location_for_template(template: Dictionary, used_location_ids: Dictionary) -> Dictionary:
+	var categories: Array = template.get("location_categories", [])
+	if categories.is_empty():
+		return {}
+	var candidates: Array = []
+	for location: Dictionary in DataLoader.map_locations:
+		var location_id: String = str(location.get("location_id", ""))
+		if location_id == "" or used_location_ids.has(location_id):
+			continue
+		if categories.has(location.get("location_type", "")):
+			candidates.append(location)
+	if candidates.is_empty():
+		for location: Dictionary in DataLoader.map_locations:
+			if categories.has(location.get("location_type", "")):
+				candidates.append(location)
+	if candidates.is_empty():
+		return {}
+	return candidates[_rng.randi() % candidates.size()].duplicate(true)
 
 func _quest_is_unlocked(quest: Dictionary, building_system: Object) -> bool:
 	return (

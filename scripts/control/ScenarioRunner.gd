@@ -202,6 +202,17 @@ func _check(assertion: Dictionary, state: Dictionary) -> bool:
 				if not seen_templates.has(str(template_id)):
 					return false
 			return not state.get("quests", []).is_empty()
+		"quests_have_nonempty_field":
+			var quest_field_name: String = assertion.get("value", "")
+			for quest in state.get("quests", []):
+				var quest_field_value: Variant = quest.get(quest_field_name, null)
+				if quest_field_value is Array and quest_field_value.is_empty():
+					return false
+				if quest_field_value is Dictionary and quest_field_value.is_empty():
+					return false
+				if quest_field_value == null or str(quest_field_value) == "":
+					return false
+			return not state.get("quests", []).is_empty()
 		"hero_careers_only":
 			var allowed_careers: Array = assertion.get("value", [])
 			for hero in state["heroes"]:

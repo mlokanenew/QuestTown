@@ -190,6 +190,23 @@ def check_assertions(assertions: list, state: dict) -> tuple[bool, list]:
             seen = {str(quest.get("template_id", "")) for quest in state.get("quests", [])}
             if not state.get("quests", []) or not required.issubset(seen):
                 failures.append(assertion)
+        elif kind == "quests_have_nonempty_field":
+            field_name = assertion.get("value", "")
+            quests = state.get("quests", [])
+            if not quests:
+                failures.append(assertion)
+            else:
+                for quest in quests:
+                    field_value = quest.get(field_name)
+                    if isinstance(field_value, list) and not field_value:
+                        failures.append(assertion)
+                        break
+                    if isinstance(field_value, dict) and not field_value:
+                        failures.append(assertion)
+                        break
+                    if field_value in (None, ""):
+                        failures.append(assertion)
+                        break
         elif kind == "hero_careers_only":
             allowed = set(assertion.get("value", []))
             if not heroes or any(hero.get("career_id", "") not in allowed for hero in heroes):
