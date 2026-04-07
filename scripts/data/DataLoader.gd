@@ -20,6 +20,8 @@ var gear_catalog: Array = []
 var loot_tables: Array = []
 var map_locations: Array = []
 var map_routes: Array = []
+var world_resources: Array = []
+var world_blockers: Array = []
 var hero_names: Dictionary = {"first": [], "last": []}
 var gameplay_config: Dictionary = {}
 var wfrp_source_careers: Array = []
@@ -36,6 +38,8 @@ var services_by_id: Dictionary = {}
 var gear_by_id: Dictionary = {}
 var loot_tables_by_id: Dictionary = {}
 var map_locations_by_id: Dictionary = {}
+var world_resources_by_id: Dictionary = {}
+var world_blockers_by_id: Dictionary = {}
 var wfrp_source_careers_by_id: Dictionary = {}
 
 func _ready() -> void:
@@ -49,6 +53,7 @@ func _ready() -> void:
 	gear_catalog = _load_json("res://data/gear_catalog.json")
 	loot_tables = _load_json("res://data/loot_tables.json")
 	var map_data: Variant = _load_json("res://data/map_locations.json")
+	var world_data: Variant = _load_json("res://data/world_blockers.json")
 	hero_names = _load_json("res://data/hero_names.json")
 	gameplay_config = _load_json("res://data/gameplay_config.json")
 	wfrp_source_careers = _load_json("res://godot_data/wfrp_db/careers.json")
@@ -57,6 +62,9 @@ func _ready() -> void:
 	if map_data is Dictionary:
 		map_locations = _normalize_map_locations(map_data.get("locations", []))
 		map_routes = _normalize_map_routes(map_data.get("routes", []))
+	if world_data is Dictionary:
+		world_resources = _normalize_world_resources(world_data.get("resources", []))
+		world_blockers = _normalize_world_blockers(world_data.get("blockers", []))
 
 	for c in careers:
 		careers_by_id[c["id"]] = c
@@ -78,6 +86,10 @@ func _ready() -> void:
 		loot_tables_by_id[loot_table["id"]] = loot_table
 	for location in map_locations:
 		map_locations_by_id[location["id"]] = location
+	for resource in world_resources:
+		world_resources_by_id[resource["id"]] = resource
+	for blocker in world_blockers:
+		world_blockers_by_id[blocker["blocker_id"]] = blocker
 	for source_career in wfrp_source_careers:
 		wfrp_source_careers_by_id[source_career["id"]] = source_career
 
@@ -154,6 +166,61 @@ func _normalize_map_routes(raw_routes: Array) -> Array:
 		})
 	return normalized
 
+func _normalize_world_resources(raw_resources: Array) -> Array:
+	var normalized: Array = []
+	for raw_resource_variant in raw_resources:
+		if not (raw_resource_variant is Dictionary):
+			continue
+		var raw_resource: Dictionary = raw_resource_variant
+		var resource_id := str(raw_resource.get("id", ""))
+		if resource_id == "":
+			continue
+		normalized.append({
+			"id": resource_id,
+			"display_name": str(raw_resource.get("display_name", resource_id.capitalize())),
+			"building_type": str(raw_resource.get("building_type", "")),
+			"slot_type": str(raw_resource.get("slot_type", "resource")),
+			"description": str(raw_resource.get("description", ""))
+		})
+	return normalized
+
+func _normalize_world_blockers(raw_blockers: Array) -> Array:
+	var normalized: Array = []
+	for raw_blocker_variant in raw_blockers:
+		if not (raw_blocker_variant is Dictionary):
+			continue
+		var raw_blocker: Dictionary = raw_blocker_variant
+		var blocker_id := str(raw_blocker.get("blocker_id", ""))
+		if blocker_id == "":
+			continue
+		normalized.append({
+			"blocker_id": blocker_id,
+			"name": str(raw_blocker.get("name", blocker_id.capitalize())),
+			"blocker_type": str(raw_blocker.get("blocker_type", "threat")),
+			"route_family": str(raw_blocker.get("route_family", "town")),
+			"target_kind": str(raw_blocker.get("target_kind", "route")),
+			"target_id": str(raw_blocker.get("target_id", "")),
+			"location_id": str(raw_blocker.get("location_id", "")),
+			"discovered_by": str(raw_blocker.get("discovered_by", "tavern_rumours")),
+			"required_building": str(raw_blocker.get("required_building", "tavern")),
+			"required_building_level": int(raw_blocker.get("required_building_level", 1)),
+			"preferred_careers": raw_blocker.get("preferred_careers", []).duplicate(true),
+			"resolution_stat": str(raw_blocker.get("resolution_stat", "")),
+			"secondary_resolution_stat": str(raw_blocker.get("secondary_resolution_stat", "")),
+			"secondary_stat_weight": float(raw_blocker.get("secondary_stat_weight", 0.0)),
+			"difficulty": int(raw_blocker.get("difficulty", 1)),
+			"party_size": int(raw_blocker.get("party_size", 2)),
+			"duration_ticks": int(raw_blocker.get("duration_ticks", 300)),
+			"gold_reward": int(raw_blocker.get("gold_reward", 20)),
+			"xp_reward": int(raw_blocker.get("xp_reward", 8)),
+			"risk_level": int(raw_blocker.get("risk_level", 1)),
+			"expected_risk": str(raw_blocker.get("expected_risk", "Risky")),
+			"flavour_text": str(raw_blocker.get("flavour_text", "")),
+			"unlocks_resource_id": str(raw_blocker.get("unlocks_resource_id", "")),
+			"reblock_after_ticks": int(raw_blocker.get("reblock_after_ticks", 1800))
+		})
+	return normalized
+
 func _load_json(path: String) -> Variant:
 	var file := FileAccess.open(path, FileAccess.READ)
 	if file == null:
@@ -217,6 +284,12 @@ func get_wfrp_source_career(career_id: String) -> Dictionary:
 
 func get_map_location(location_id: String) -> Dictionary:
 	return map_locations_by_id.get(location_id, {})
+
+func get_world_resource(resource_id: String) -> Dictionary:
+	return world_resources_by_id.get(resource_id, {})
+
+func get_world_blocker(blocker_id: String) -> Dictionary:
+	return world_blockers_by_id.get(blocker_id, {})
 
 func get_starting_gold() -> int:
 	return int(gameplay_config.get("starting_gold", 70))

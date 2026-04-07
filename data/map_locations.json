@@ -1,275 +1,233 @@
 {
   "locations": [
     {
-      "id": "questtown_centre",
+      "id": "questtown",
       "display_name": "QuestTown",
-      "anchor_position": {"x": 0.47, "y": 0.56},
+      "anchor_position": {"x": 0.48, "y": 0.53},
       "location_type": "town",
       "icon_type": "town",
-      "description": "A hopeful roadside town where rumours gather faster than wagons.",
-      "unlock_tags": [],
-      "landmark_scale": 1.68,
-      "label_offset": {"x": -56, "y": 36},
-      "label_width": 156,
-      "icon_overlays": [
-        {"icon_type": "banner", "offset": {"x": 0, "y": -28}, "scale": 0.55, "alpha": 0.88}
-      ]
+      "description": "The town at the heart of the region.",
+      "importance": 5,
+      "landmark_scale": 1.35,
+      "label_offset": {"x": -58, "y": 26},
+      "label_width": 180
     },
     {
-      "id": "old_cellar",
-      "display_name": "Old Cellar",
-      "anchor_position": {"x": 0.36, "y": 0.60},
-      "location_type": "cellar",
-      "icon_type": "cellar",
-      "description": "A damp roadside cellar where poor seasons, vermin, and worried whispers collect.",
-      "unlock_tags": ["tavern"],
-      "landmark_scale": 0.98,
-      "label_offset": {"x": -42, "y": 18},
-      "terrain_hints": [
-        {"icon_type": "house_small", "offset": {"x": -18, "y": -10}, "scale": 0.55, "alpha": 0.42}
-      ]
+      "id": "forest_road",
+      "display_name": "Forest Road",
+      "anchor_position": {"x": 0.33, "y": 0.43},
+      "location_type": "road",
+      "icon_type": "woods",
+      "description": "A wooded road leading southwest toward Southmere.",
+      "importance": 2,
+      "terrain_hints": ["forest"],
+      "label_offset": {"x": -42, "y": 18}
     },
     {
-      "id": "millers_hamlet",
-      "display_name": "Miller's Hamlet",
-      "anchor_position": {"x": 0.24, "y": 0.48},
-      "location_type": "hamlet",
+      "id": "southmere",
+      "display_name": "Southmere",
+      "anchor_position": {"x": 0.16, "y": 0.38},
+      "location_type": "town",
       "icon_type": "hamlet",
-      "description": "A tight cluster of cottages and grain sheds where every missing cart is noticed by dusk.",
-      "unlock_tags": ["tavern"],
-      "landmark_scale": 1.1,
-      "label_offset": {"x": -56, "y": 22},
-      "terrain_hints": [
-        {"icon_type": "house_small", "offset": {"x": -18, "y": -12}, "scale": 0.55, "alpha": 0.40},
-        {"icon_type": "house_small", "offset": {"x": 15, "y": -10}, "scale": 0.48, "alpha": 0.34}
-      ]
+      "description": "A small market town that could feed travellers to the inn.",
+      "importance": 3,
+      "landmark_scale": 1.0,
+      "label_offset": {"x": -34, "y": 20}
     },
     {
-      "id": "stone_bridge",
-      "display_name": "Stone Bridge",
-      "anchor_position": {"x": 0.62, "y": 0.46},
-      "location_type": "bridge",
-      "icon_type": "bridge",
-      "description": "A weathered crossing where trade, tolls, and danger all narrow to one point.",
-      "unlock_tags": ["general_goods"],
-      "landmark_scale": 1.3,
-      "label_offset": {"x": -44, "y": 20},
-      "terrain_hints": [
-        {"icon_type": "bridge", "offset": {"x": 0, "y": -10}, "scale": 0.55, "alpha": 0.34}
-      ]
-    },
-    {
-      "id": "north_road",
-      "display_name": "North Road",
-      "anchor_position": {"x": 0.67, "y": 0.29},
+      "id": "old_north_road",
+      "display_name": "Old North Road",
+      "anchor_position": {"x": 0.55, "y": 0.37},
       "location_type": "road",
       "icon_type": "road",
-      "description": "The broad road north where merchants move fastest and trouble is quickest to spread.",
-      "unlock_tags": ["general_goods"],
-      "landmark_scale": 1.14,
-      "label_offset": {"x": -34, "y": -32},
-      "label_width": 120
+      "description": "The old trade road to High Market.",
+      "importance": 2,
+      "label_offset": {"x": -40, "y": 16}
     },
     {
-      "id": "graveyard_hill",
-      "display_name": "Graveyard Hill",
-      "anchor_position": {"x": 0.81, "y": 0.20},
-      "location_type": "graveyard",
-      "icon_type": "graveyard",
-      "description": "A wind-bent hill of old stones and crows, where the ground remembers too much.",
-      "unlock_tags": ["temple"],
-      "landmark_scale": 1.22,
-      "label_offset": {"x": -52, "y": -26},
-      "terrain_hints": [
-        {"icon_type": "rocks", "offset": {"x": -12, "y": 20}, "scale": 0.64, "alpha": 0.40}
-      ]
+      "id": "high_market",
+      "display_name": "High Market",
+      "anchor_position": {"x": 0.73, "y": 0.25},
+      "location_type": "town",
+      "icon_type": "hamlet",
+      "description": "A richer northern town linked to trade and arms.",
+      "importance": 3,
+      "landmark_scale": 1.0,
+      "label_offset": {"x": -38, "y": 18}
     },
     {
-      "id": "watch_hut",
-      "display_name": "Abandoned Watch Hut",
-      "anchor_position": {"x": 0.56, "y": 0.14},
-      "location_type": "watchtower",
-      "icon_type": "watchtower",
-      "description": "An empty watch post that still commands a clean view of the northern approach.",
-      "unlock_tags": ["general_goods", "tavern"],
-      "landmark_scale": 1.04,
-      "label_offset": {"x": -62, "y": -24}
-    },
-    {
-      "id": "old_copse",
-      "display_name": "Old Copse",
-      "anchor_position": {"x": 0.30, "y": 0.30},
-      "location_type": "woods",
+      "id": "forest_fork",
+      "display_name": "Forest Fork",
+      "anchor_position": {"x": 0.37, "y": 0.57},
+      "location_type": "road",
       "icon_type": "woods",
-      "description": "A knot of older trees full of herb-lore, spoor, and warnings never written down.",
-      "unlock_tags": ["tavern", "general_goods"],
-      "landmark_scale": 1.16,
-      "label_offset": {"x": -38, "y": -34},
-      "terrain_hints": [
-        {"icon_type": "woods_small", "offset": {"x": -26, "y": 6}, "scale": 0.62, "alpha": 0.44},
-        {"icon_type": "woods_small", "offset": {"x": 18, "y": 12}, "scale": 0.58, "alpha": 0.36}
-      ]
+      "description": "A fork in the lower woodland paths.",
+      "importance": 2,
+      "terrain_hints": ["forest"],
+      "label_offset": {"x": -34, "y": 16}
     },
     {
-      "id": "broken_ford",
-      "display_name": "Broken Ford",
-      "anchor_position": {"x": 0.17, "y": 0.69},
-      "location_type": "ford",
-      "icon_type": "bridge",
-      "description": "A shallow crossing where wagons bog down, boots soak through, and tempers turn quickly.",
-      "unlock_tags": ["general_goods"],
-      "landmark_scale": 1.1,
-      "label_offset": {"x": -42, "y": 18},
-      "terrain_hints": [
-        {"icon_type": "bridge_rope", "offset": {"x": 0, "y": -10}, "scale": 0.50, "alpha": 0.34}
-      ]
+      "id": "silver_mine",
+      "display_name": "Silver Mine",
+      "anchor_position": {"x": 0.19, "y": 0.68},
+      "location_type": "mine",
+      "icon_type": "mine",
+      "description": "An old silver shaft worth reopening.",
+      "importance": 3,
+      "landmark_scale": 1.0,
+      "label_offset": {"x": -30, "y": 18}
     },
     {
-      "id": "wayside_shrine",
-      "display_name": "Wayside Shrine",
-      "anchor_position": {"x": 0.70, "y": 0.58},
+      "id": "rocky_pass",
+      "display_name": "Rocky Pass",
+      "anchor_position": {"x": 0.60, "y": 0.58},
+      "location_type": "pass",
+      "icon_type": "pass",
+      "description": "A harsh pass leading into ore country.",
+      "importance": 2,
+      "terrain_hints": ["hills"],
+      "label_offset": {"x": -36, "y": 16}
+    },
+    {
+      "id": "iron_mine",
+      "display_name": "Iron Mine",
+      "anchor_position": {"x": 0.78, "y": 0.67},
+      "location_type": "mine",
+      "icon_type": "mine",
+      "description": "An iron mine in the eastern rocklands.",
+      "importance": 3,
+      "landmark_scale": 1.0,
+      "label_offset": {"x": -24, "y": 18}
+    },
+    {
+      "id": "cursed_grove",
+      "display_name": "Cursed Grove",
+      "anchor_position": {"x": 0.47, "y": 0.70},
+      "location_type": "grove",
+      "icon_type": "shrine",
+      "description": "A troubled grove along the shrine path.",
+      "importance": 2,
+      "terrain_hints": ["forest", "cursed"],
+      "label_offset": {"x": -36, "y": 16}
+    },
+    {
+      "id": "ruined_shrine",
+      "display_name": "Ruined Shrine",
+      "anchor_position": {"x": 0.34, "y": 0.82},
       "location_type": "shrine",
       "icon_type": "shrine",
-      "description": "A small roadside shrine where offerings vanish and candlelight burns unnaturally late.",
-      "unlock_tags": ["temple"],
-      "landmark_scale": 1.2,
-      "label_offset": {"x": -48, "y": 20},
-      "terrain_hints": [
-        {"icon_type": "church", "offset": {"x": 18, "y": 8}, "scale": 0.42, "alpha": 0.26}
-      ]
+      "description": "A neglected shrine now touched by corruption.",
+      "importance": 3,
+      "landmark_scale": 1.0,
+      "label_offset": {"x": -38, "y": 20}
     },
     {
-      "id": "ruined_chapel",
-      "display_name": "Ruined Chapel",
-      "anchor_position": {"x": 0.86, "y": 0.67},
-      "location_type": "ruins",
-      "icon_type": "ruins",
-      "description": "An old chapel shell whose broken nave still feels claimed by something sacred and wrong.",
-      "unlock_tags": ["temple"],
-      "landmark_scale": 1.24,
-      "label_offset": {"x": -46, "y": 22},
-      "terrain_hints": [
-        {"icon_type": "rocks", "offset": {"x": -18, "y": -4}, "scale": 0.62, "alpha": 0.36},
-        {"icon_type": "ruins", "offset": {"x": 16, "y": 8}, "scale": 0.42, "alpha": 0.26}
-      ]
+      "id": "pilgrim_way",
+      "display_name": "Pilgrim Way",
+      "anchor_position": {"x": 0.64, "y": 0.76},
+      "location_type": "road",
+      "icon_type": "road",
+      "description": "A broken sacred road leading to the old temple.",
+      "importance": 2,
+      "terrain_hints": ["ruins"],
+      "label_offset": {"x": -30, "y": 18}
     },
     {
-      "id": "bandit_track",
-      "display_name": "Bandit Track",
-      "anchor_position": {"x": 0.83, "y": 0.43},
-      "location_type": "crossroads",
-      "icon_type": "crossroads",
-      "description": "A half-hidden side track off the trade route where wagons disappear before the toll collectors hear why.",
-      "unlock_tags": ["general_goods", "tavern"],
-      "landmark_scale": 1.08,
-      "label_offset": {"x": -40, "y": 18},
-      "terrain_hints": [
-        {"icon_type": "skull", "offset": {"x": 14, "y": -10}, "scale": 0.54, "alpha": 0.66}
-      ]
+      "id": "old_temple",
+      "display_name": "Old Temple",
+      "anchor_position": {"x": 0.82, "y": 0.86},
+      "location_type": "temple",
+      "icon_type": "temple",
+      "description": "A remote temple whose relics still matter.",
+      "importance": 3,
+      "landmark_scale": 1.05,
+      "label_offset": {"x": -28, "y": 18}
     }
   ],
   "routes": [
     {
-      "route_id": "questtown_stone_bridge",
-      "from_location_id": "questtown_centre",
-      "to_location_id": "stone_bridge",
-      "route_type": "main_road",
-      "control_points": [
-        {"x": 0.54, "y": 0.54},
-        {"x": 0.58, "y": 0.51}
-      ]
-    },
-    {
-      "route_id": "stone_bridge_north_road",
-      "from_location_id": "stone_bridge",
-      "to_location_id": "north_road",
-      "route_type": "main_road",
-      "control_points": [
-        {"x": 0.64, "y": 0.39}
-      ]
-    },
-    {
-      "route_id": "north_road_graveyard_hill",
-      "from_location_id": "north_road",
-      "to_location_id": "graveyard_hill",
-      "route_type": "main_road",
-      "control_points": [
-        {"x": 0.73, "y": 0.24}
-      ]
-    },
-    {
-      "route_id": "questtown_old_cellar",
-      "from_location_id": "questtown_centre",
-      "to_location_id": "old_cellar",
+      "route_id": "route_questtown_forest_road",
+      "from_location_id": "questtown",
+      "to_location_id": "forest_road",
       "route_type": "track",
-      "control_points": [
-        {"x": 0.43, "y": 0.58}
-      ]
+      "control_points": [{"x": 0.43, "y": 0.49}]
     },
     {
-      "route_id": "old_cellar_millers_hamlet",
-      "from_location_id": "old_cellar",
-      "to_location_id": "millers_hamlet",
-      "route_type": "track",
-      "control_points": [
-        {"x": 0.30, "y": 0.56}
-      ]
-    },
-    {
-      "route_id": "questtown_broken_ford",
-      "from_location_id": "questtown_centre",
-      "to_location_id": "broken_ford",
+      "route_id": "route_forest_road_southmere",
+      "from_location_id": "forest_road",
+      "to_location_id": "southmere",
       "route_type": "main_road",
-      "control_points": [
-        {"x": 0.37, "y": 0.63},
-        {"x": 0.27, "y": 0.67}
-      ]
+      "control_points": [{"x": 0.24, "y": 0.40}]
     },
     {
-      "route_id": "questtown_wayside_shrine",
-      "from_location_id": "questtown_centre",
-      "to_location_id": "wayside_shrine",
+      "route_id": "route_questtown_old_north_road",
+      "from_location_id": "questtown",
+      "to_location_id": "old_north_road",
+      "route_type": "main_road",
+      "control_points": [{"x": 0.51, "y": 0.45}]
+    },
+    {
+      "route_id": "route_old_north_road_high_market",
+      "from_location_id": "old_north_road",
+      "to_location_id": "high_market",
+      "route_type": "main_road",
+      "control_points": [{"x": 0.66, "y": 0.30}]
+    },
+    {
+      "route_id": "route_questtown_forest_fork",
+      "from_location_id": "questtown",
+      "to_location_id": "forest_fork",
       "route_type": "track",
-      "control_points": [
-        {"x": 0.57, "y": 0.58},
-        {"x": 0.64, "y": 0.60}
-      ]
+      "control_points": [{"x": 0.42, "y": 0.58}]
     },
     {
-      "route_id": "wayside_shrine_ruined_chapel",
-      "from_location_id": "wayside_shrine",
-      "to_location_id": "ruined_chapel",
+      "route_id": "route_forest_fork_silver_mine",
+      "from_location_id": "forest_fork",
+      "to_location_id": "silver_mine",
+      "route_type": "track",
+      "control_points": [{"x": 0.25, "y": 0.66}]
+    },
+    {
+      "route_id": "route_questtown_rocky_pass",
+      "from_location_id": "questtown",
+      "to_location_id": "rocky_pass",
+      "route_type": "track",
+      "control_points": [{"x": 0.55, "y": 0.59}]
+    },
+    {
+      "route_id": "route_rocky_pass_iron_mine",
+      "from_location_id": "rocky_pass",
+      "to_location_id": "iron_mine",
+      "route_type": "track",
+      "control_points": [{"x": 0.71, "y": 0.64}]
+    },
+    {
+      "route_id": "route_questtown_cursed_grove",
+      "from_location_id": "questtown",
+      "to_location_id": "cursed_grove",
       "route_type": "sacred_trail",
-      "control_points": [
-        {"x": 0.77, "y": 0.61}
-      ]
+      "control_points": [{"x": 0.43, "y": 0.67}]
     },
     {
-      "route_id": "stone_bridge_bandit_track",
-      "from_location_id": "stone_bridge",
-      "to_location_id": "bandit_track",
-      "route_type": "track",
-      "control_points": [
-        {"x": 0.73, "y": 0.44}
-      ]
+      "route_id": "route_cursed_grove_ruined_shrine",
+      "from_location_id": "cursed_grove",
+      "to_location_id": "ruined_shrine",
+      "route_type": "sacred_trail",
+      "control_points": [{"x": 0.37, "y": 0.77}]
     },
     {
-      "route_id": "millers_hamlet_old_copse",
-      "from_location_id": "millers_hamlet",
-      "to_location_id": "old_copse",
-      "route_type": "track",
-      "control_points": [
-        {"x": 0.25, "y": 0.38}
-      ]
+      "route_id": "route_questtown_pilgrim_way",
+      "from_location_id": "questtown",
+      "to_location_id": "pilgrim_way",
+      "route_type": "sacred_trail",
+      "control_points": [{"x": 0.58, "y": 0.69}]
     },
     {
-      "route_id": "north_road_watch_hut",
-      "from_location_id": "north_road",
-      "to_location_id": "watch_hut",
-      "route_type": "track",
-      "control_points": [
-        {"x": 0.61, "y": 0.20}
-      ]
+      "route_id": "route_pilgrim_way_old_temple",
+      "from_location_id": "pilgrim_way",
+      "to_location_id": "old_temple",
+      "route_type": "sacred_trail",
+      "control_points": [{"x": 0.75, "y": 0.82}]
     }
   ]
 }

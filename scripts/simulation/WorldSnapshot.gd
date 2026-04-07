@@ -12,6 +12,8 @@ func snapshot() -> Dictionary:
 		"buildings": _buildings(),
 		"heroes":    _heroes(),
 		"quests":    _quests(),
+		"blockers":  _blockers(),
+		"unlocked_resources": _resources(),
 		"completed_quests": GameState.completed_quests.duplicate(true),
 		"events":    GameState.get_recent_events(100),
 		"warnings":  warnings
@@ -77,6 +79,18 @@ func _quests() -> Array:
 	var result := []
 	for quest in GameState.quests:
 		result.append(quest)
+	return result
+
+func _blockers() -> Array:
+	var result := []
+	for blocker in GameState.blockers.values():
+		result.append(blocker.duplicate(true))
+	return result
+
+func _resources() -> Array:
+	var result := []
+	for resource in GameState.unlocked_resources.values():
+		result.append(resource.duplicate(true))
 	return result
 
 func _collect_warnings() -> Array:

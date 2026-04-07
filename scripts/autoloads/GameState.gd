@@ -13,6 +13,7 @@ signal hero_removed(hero_id: int)
 signal quests_changed()
 signal quest_filters_changed()
 signal quest_history_changed()
+signal blockers_changed()
 signal event_logged(event: Dictionary)
 signal gold_changed(new_amount: int)
 signal state_reloaded()
@@ -33,6 +34,10 @@ var quests: Array = []
 var completed_quests: Array = []
 # Dict[quest_template_id -> bool]
 var enabled_quest_ids: Dictionary = {}
+# Dict[blocker_id -> blocker_state_dict]
+var blockers: Dictionary = {}
+# Dict[resource_id -> resource_unlock_dict]
+var unlocked_resources: Dictionary = {}
 # Array of event dicts {tick, type, ...}
 var events: Array = []
 
@@ -50,9 +55,21 @@ func reset(p_seed: int) -> void:
 	enabled_quest_ids = {}
 	for quest in DataLoader.quests:
 		enabled_quest_ids[quest.get("id", "")] = true
+	blockers = {}
+	for blocker_template: Dictionary in DataLoader.world_blockers:
+		var blocker_state: Dictionary = blocker_template.duplicate(true)
+		blocker_state["state"] = "known_blocked"
+		blocker_state["discovered"] = false
+		blocker_state["active"] = false
+		blocker_state["last_discovered_tick"] = -1
+		blocker_state["last_cleared_tick"] = -1
+		blocker_state["unlock_active"] = false
+		blockers[str(blocker_template.get("blocker_id", ""))] = blocker_state
+	unlocked_resources = {}
 	events.clear()
 	_next_building_id = 1
 	_next_hero_id = 1
+	blockers_changed.emit()
 
 # --- Buildings ---
 
@@ -204,6 +221,37 @@ func record_completed_quest(entry: Dictionary) -> void:
 		completed_quests.pop_front()
 	quest_history_changed.emit()
 
+func set_blocker_state(blocker_id: String, next_state: String, discovered: bool = false, active: bool = false) -> void:
+	if not blockers.has(blocker_id):
+		return
+	blockers[blocker_id]["state"] = next_state
+	blockers[blocker_id]["discovered"] = discovered
+	blockers[blocker_id]["active"] = active
+	if discovered:
+		blockers[blocker_id]["last_discovered_tick"] = tick
+	if next_state == "unblocked":
+		blockers[blocker_id]["last_cleared_tick"] = tick
+		blockers[blocker_id]["unlock_active"] = true
+	blockers_changed.emit()
+
+func unlock_resource(resource_id: String, blocker_id: String) -> void:
+	if resource_id == "":
+		return
+	var resource_data: Dictionary = DataLoader.get_world_resource(resource_id)
+	if resource_data.is_empty():
+		return
+	unlocked_resources[resource_id] = {
+		"resource_id": resource_id,
+		"display_name": resource_data.get("display_name", resource_id),
+		"building_type": resource_data.get("building_type", ""),
+		"slot_type": resource_data.get("slot_type", "resource"),
+		"description": resource_data.get("description", ""),
+		"unlocked_tick": tick,
+		"source_blocker_id": blocker_id,
+		"active": true
+	}
+	blockers_changed.emit()
+
 func is_quest_enabled(quest_id: String) -> bool:
 	return bool(enabled_quest_ids.get(quest_id, true))
 
@@ -245,6 +293,8 @@ func export_state() -> Dictionary:
 		"quests": quests.duplicate(true),
 		"completed_quests": completed_quests.duplicate(true),
 		"enabled_quest_ids": enabled_quest_ids.duplicate(true),
+		"blockers": blockers.duplicate(true),
+		"unlocked_resources": unlocked_resources.duplicate(true),
 		"events": events.duplicate(true),
 		"next_building_id": _next_building_id,
 		"next_hero_id": _next_hero_id,
@@ -263,6 +313,8 @@ func import_state(data: Dictionary) -> void:
 	quests = data.get("quests", []).duplicate(true)
 	completed_quests = data.get("completed_quests", []).duplicate(true)
 	enabled_quest_ids = data.get("enabled_quest_ids", {}).duplicate(true)
+	blockers = data.get("blockers", {}).duplicate(true)
+	unlocked_resources = data.get("unlocked_resources", {}).duplicate(true)
 	events = data.get("events", []).duplicate(true)
 	_next_building_id = int(data.get("next_building_id", buildings.size() + 1))
 	_next_hero_id = int(data.get("next_hero_id", heroes.size() + 1))
@@ -270,6 +322,7 @@ func import_state(data: Dictionary) -> void:
 	quests_changed.emit()
 	quest_filters_changed.emit()
 	quest_history_changed.emit()
+	blockers_changed.emit()
 	state_reloaded.emit()
 
 func _starting_gold() -> int:

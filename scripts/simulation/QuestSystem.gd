@@ -27,14 +27,14 @@ func _refresh_available_quests(building_system: Object) -> void:
 	var target_count: int = min(max_visible, base_visible + max(0, _tavern_level() - 1))
 	var current: Array = []
 	for existing: Dictionary in GameState.quests:
-		if not GameState.is_quest_enabled(existing.get("template_id", "")):
-			continue
-		if not _quest_is_unlocked(DataLoader.quests_by_id.get(existing.get("template_id", ""), {}), building_system):
+		if not _offer_is_still_valid(existing, building_system):
 			continue
 		current.append(existing)
 
+	current = _restore_discovered_blocker_offers(current, target_count, building_system)
+
 	while current.size() < target_count and _consume_tavern_rumour():
-		var next_offer: Dictionary = _generate_offer(current, building_system)
+		var next_offer: Dictionary = _discover_next_blocker_offer(current, building_system)
 		if next_offer.is_empty():
 			_restore_tavern_rumour()
 			break
@@ -43,93 +43,137 @@ func _refresh_available_quests(building_system: Object) -> void:
 	if current.size() != GameState.quests.size():
 		GameState.set_available_quests(current)
 
-func _generate_offer(existing: Array, building_system: Object) -> Dictionary:
-	var blocked_ids: Dictionary = {}
+func _offer_is_still_valid(existing: Dictionary, building_system: Object) -> bool:
+	var blocker_id: String = str(existing.get("blocker_id", ""))
+	if blocker_id != "":
+		var blocker_state: Dictionary = GameState.blockers.get(blocker_id, {})
+		return not blocker_state.is_empty() and str(blocker_state.get("state", "")) == "discovered"
+	if not GameState.is_quest_enabled(existing.get("template_id", "")):
+		return false
+	var template: Dictionary = DataLoader.quests_by_id.get(existing.get("template_id", ""), {})
+	return not template.is_empty() and _quest_is_unlocked(template, building_system)
+
+func _restore_discovered_blocker_offers(current: Array, target_count: int, building_system: Object) -> Array:
+	var next_current: Array = current.duplicate(true)
+	var existing_blocker_ids := {}
+	for offer in next_current:
+		var blocker_id: String = str(offer.get("blocker_id", ""))
+		if blocker_id != "":
+			existing_blocker_ids[blocker_id] = true
+	for blocker_state in GameState.blockers.values():
+		if next_current.size() >= target_count:
+			break
+		if str(blocker_state.get("state", "")) != "discovered":
+			continue
+		var blocker_id: String = str(blocker_state.get("blocker_id", ""))
+		if existing_blocker_ids.has(blocker_id):
+			continue
+		if not _blocker_is_unlocked(blocker_state, building_system):
+			continue
+		var restored_offer: Dictionary = _create_offer_for_blocker(blocker_state)
+		if restored_offer.is_empty():
+			continue
+		next_current.append(restored_offer)
+		existing_blocker_ids[blocker_id] = true
+	return next_current
+
+func _discover_next_blocker_offer(existing: Array, building_system: Object) -> Dictionary:
 	var used_location_ids: Dictionary = {}
 	for offer in existing:
-		blocked_ids[offer.get("template_id", "")] = true
 		var existing_location_id: String = str(offer.get("location_id", ""))
 		if existing_location_id != "":
 			used_location_ids[existing_location_id] = true
 
-	var candidates: Array = []
-	for quest: Dictionary in DataLoader.quests:
-		if not GameState.is_quest_enabled(quest.get("id", "")):
+	var candidates := _discoverable_blockers(building_system)
+	candidates.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		var score_a := _blocker_priority_score(a)
+		var score_b := _blocker_priority_score(b)
+		if score_a == score_b:
+			return str(a.get("blocker_id", "")) < str(b.get("blocker_id", ""))
+		return score_a > score_b
+	)
+	for blocker in candidates:
+		var offer: Dictionary = _create_offer_for_blocker(blocker)
+		if offer.is_empty():
 			continue
-		if blocked_ids.has(quest.get("id", "")):
+		if used_location_ids.has(str(offer.get("location_id", ""))):
 			continue
-		if not _quest_is_unlocked(quest, building_system):
-			continue
-		candidates.append(quest)
+		GameState.set_blocker_state(str(blocker.get("blocker_id", "")), "discovered", true, false)
+		GameState.log_event("blocker_discovered", {
+			"blocker_id": blocker.get("blocker_id", ""),
+			"quest_name": offer.get("name", ""),
+			"location_name": offer.get("location_name", "")
+		})
+		return offer
+	return {}
 
-	if candidates.is_empty():
-		return {}
-
-	var template: Dictionary = candidates[_rng.randi() % candidates.size()]
-	var location: Dictionary = _pick_location_for_template(template, used_location_ids)
+func _create_offer_for_blocker(blocker: Dictionary) -> Dictionary:
+	var location: Dictionary = DataLoader.get_map_location(str(blocker.get("location_id", "")))
 	if location.is_empty():
 		return {}
-	var quest_config: Dictionary = DataLoader.get_quest_config()
-	var urgent: bool = _rng.randf() < float(quest_config.get("urgent_chance", 0.2))
-	var gold_reward: int = int(template["gold_reward"])
-	var xp_reward: int = int(template["xp_reward"])
-	var risk_level: int = int(template["risk_level"])
-	if urgent:
-		gold_reward = int(round(float(gold_reward) * float(quest_config.get("urgent_gold_multiplier", 1.25))))
-		xp_reward = int(round(float(xp_reward) * float(quest_config.get("urgent_xp_multiplier", 1.2))))
-		risk_level += int(quest_config.get("urgent_risk_bonus", 1))
 	var offer: Dictionary = {
 		"offer_id": _next_offer_id,
-		"template_id": template["id"],
-		"name": template["name"],
-		"discovered_by": template.get("discovered_by", "tavern_rumours"),
-		"quest_family": template.get("quest_family", "tavern"),
-		"required_building": template.get("required_building", "tavern"),
-		"required_building_level": template.get("required_building_level", 1),
+		"template_id": blocker.get("blocker_id", ""),
+		"blocker_id": blocker.get("blocker_id", ""),
+		"name": blocker.get("name", "Unknown Threat"),
+		"discovered_by": blocker.get("discovered_by", "tavern_rumours"),
+		"quest_family": blocker.get("route_family", "town"),
+		"required_building": blocker.get("required_building", "tavern"),
+		"required_building_level": blocker.get("required_building_level", 1),
 		"location_id": location.get("id", ""),
 		"location_name": location.get("display_name", "Unknown Site"),
 		"location_category": location.get("location_type", ""),
 		"location_description": location.get("description", ""),
 		"location_icon_key": location.get("icon_type", "road"),
-		"flavour_text": template.get("flavour_text", ""),
-		"type": template["type"],
-		"difficulty": template["difficulty"],
-		"party_size": template.get("party_size", 3),
-		"duration_ticks": template["duration_ticks"],
-		"gold_reward": gold_reward,
-		"xp_reward": xp_reward,
-		"risk_level": risk_level,
-		"preferred_careers": template.get("preferred_careers", []).duplicate(true),
-		"resolution_stat": template.get("resolution_stat", ""),
-		"secondary_resolution_stat": template.get("secondary_resolution_stat", ""),
-		"secondary_stat_weight": template.get("secondary_stat_weight", 0.0),
-		"min_tavern_level": template.get("min_tavern_level", 0),
-		"min_weapons_shop_level": template.get("min_weapons_shop_level", 0),
-		"min_temple_level": template.get("min_temple_level", 0),
-		"urgent": urgent,
-		"expiry_ticks_remaining": _roll_expiry_ticks(urgent)
+		"flavour_text": blocker.get("flavour_text", ""),
+		"type": blocker.get("blocker_type", "threat"),
+		"difficulty": blocker.get("difficulty", 1),
+		"party_size": blocker.get("party_size", 2),
+		"duration_ticks": blocker.get("duration_ticks", 300),
+		"gold_reward": blocker.get("gold_reward", 20),
+		"xp_reward": blocker.get("xp_reward", 8),
+		"risk_level": blocker.get("risk_level", 1),
+		"risk_preview": blocker.get("expected_risk", "Risky"),
+		"preferred_careers": blocker.get("preferred_careers", []).duplicate(true),
+		"resolution_stat": blocker.get("resolution_stat", ""),
+		"secondary_resolution_stat": blocker.get("secondary_resolution_stat", ""),
+		"secondary_stat_weight": blocker.get("secondary_stat_weight", 0.0),
+		"reward_resource_id": blocker.get("unlocks_resource_id", ""),
+		"urgent": false,
+		"expiry_ticks_remaining": 0
 	}
 	_next_offer_id += 1
 	return offer
 
-func _pick_location_for_template(template: Dictionary, used_location_ids: Dictionary) -> Dictionary:
-	var categories: Array = template.get("location_categories", [])
-	if categories.is_empty():
-		return {}
+func _discoverable_blockers(building_system: Object) -> Array:
 	var candidates: Array = []
-	for location: Dictionary in DataLoader.map_locations:
-		var location_id: String = str(location.get("id", ""))
-		if location_id == "" or used_location_ids.has(location_id):
+	for blocker_state in GameState.blockers.values():
+		if str(blocker_state.get("state", "")) != "known_blocked":
 			continue
-		if categories.has(location.get("location_type", "")):
-			candidates.append(location)
-	if candidates.is_empty():
-		for location: Dictionary in DataLoader.map_locations:
-			if categories.has(location.get("location_type", "")):
-				candidates.append(location)
-	if candidates.is_empty():
-		return {}
-	return candidates[_rng.randi() % candidates.size()].duplicate(true)
+		if not _blocker_is_unlocked(blocker_state, building_system):
+			continue
+		candidates.append(blocker_state.duplicate(true))
+	return candidates
+
+func _blocker_priority_score(blocker: Dictionary) -> int:
+	var score := 0
+	var required_building: String = str(blocker.get("required_building", ""))
+	if required_building != "" and GameState.get_building_count(required_building) > 0:
+		score += 10
+	var resource_id: String = str(blocker.get("unlocks_resource_id", ""))
+	if resource_id != "" and not GameState.unlocked_resources.has(resource_id):
+		score += 8
+	if str(blocker.get("route_family", "")) == "town":
+		score += 4
+	score += max(0, 5 - int(blocker.get("difficulty", 1)))
+	return score
+
+func _blocker_is_unlocked(blocker: Dictionary, building_system: Object) -> bool:
+	var required_building: String = str(blocker.get("required_building", ""))
+	var required_level: int = int(blocker.get("required_building_level", 1))
+	if required_building == "tavern":
+		return _tavern_level() >= required_level
+	return _building_level(building_system, required_building) >= required_level
 
 func _quest_is_unlocked(quest: Dictionary, building_system: Object) -> bool:
 	return (
@@ -150,6 +194,9 @@ func accept_quest_offer(offer_id: int, building_system: Object) -> Dictionary:
 	var updated_quests: Array = GameState.quests.duplicate(true)
 	updated_quests.remove_at(quest_index)
 	GameState.set_available_quests(updated_quests)
+	var blocker_id: String = str(quest.get("blocker_id", ""))
+	if blocker_id != "":
+		GameState.set_blocker_state(blocker_id, "active_quest", true, true)
 	GameState.log_event("quest_accepted", {
 		"offer_id": offer_id,
 		"quest_name": quest.get("name", "?"),
@@ -420,6 +467,7 @@ func _resolve_quest_party(leader_id: int, building_system: Object) -> void:
 		"party_size": party_members.size(),
 		"completed_tick": GameState.tick
 	})
+	_resolve_blocker_outcome(quest, succeeded)
 
 func _resolve_party_member(hero_id: int, quest: Dictionary, tavern: Vector3, building_system: Object, succeeded: bool, gold_gain: int, xp_gain: int, survival_bonus: int) -> Dictionary:
 	if not GameState.heroes.has(hero_id):
@@ -653,3 +701,21 @@ func _roll_expiry_ticks(urgent: bool) -> int:
 		int(quest_config.get("default_expiry_min", 300)),
 		int(quest_config.get("default_expiry_max", 420))
 	)
+
+func _resolve_blocker_outcome(quest: Dictionary, succeeded: bool) -> void:
+	var blocker_id: String = str(quest.get("blocker_id", ""))
+	if blocker_id == "":
+		return
+	if succeeded:
+		GameState.set_blocker_state(blocker_id, "unblocked", true, false)
+		var resource_id: String = str(quest.get("reward_resource_id", ""))
+		if resource_id != "":
+			GameState.unlock_resource(resource_id, blocker_id)
+			var resource_data: Dictionary = DataLoader.get_world_resource(resource_id)
+			GameState.log_event("resource_unlocked", {
+				"resource_id": resource_id,
+				"display_name": resource_data.get("display_name", resource_id),
+				"source_blocker_id": blocker_id
+			})
+	else:
+		GameState.set_blocker_state(blocker_id, "discovered", true, false)

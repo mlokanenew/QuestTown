@@ -213,6 +213,34 @@ func _check(assertion: Dictionary, state: Dictionary) -> bool:
 				if quest_field_value == null or str(quest_field_value) == "":
 					return false
 			return not state.get("quests", []).is_empty()
+		"blocker_count_gte":
+			return state.get("blockers", []).size() >= int(assertion.get("value", 1))
+		"blocker_state_count_gte":
+			var matched := 0
+			var target_state: String = str(assertion.get("state", ""))
+			for blocker in state.get("blockers", []):
+				if str(blocker.get("state", "")) == target_state:
+					matched += 1
+			return matched >= int(assertion.get("value", 1))
+		"blockers_have_nonempty_field":
+			var blocker_field: String = assertion.get("value", "")
+			for blocker in state.get("blockers", []):
+				var blocker_value: Variant = blocker.get(blocker_field, null)
+				if blocker_value == null or str(blocker_value) == "":
+					return false
+			return not state.get("blockers", []).is_empty()
+		"resource_unlocked":
+			var target_resource_id: String = str(assertion.get("value", ""))
+			for resource in state.get("unlocked_resources", []):
+				if str(resource.get("resource_id", "")) == target_resource_id:
+					return true
+			return false
+		"quests_include_blocker_id":
+			var target_blocker_id: String = str(assertion.get("value", ""))
+			for quest in state.get("quests", []):
+				if str(quest.get("blocker_id", "")) == target_blocker_id:
+					return true
+			return false
 		"hero_careers_only":
 			var allowed_careers: Array = assertion.get("value", [])
 			for hero in state["heroes"]:

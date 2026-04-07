@@ -157,8 +157,12 @@ const MAP_LOCATION_ICONS := {
 	"ford": MAP_ICON_BRIDGE_ROPE_PATH,
 	"graveyard": MAP_ICON_GRAVEYARD_PATH,
 	"shrine": MAP_ICON_CHURCH_PATH,
+	"grove": MAP_ICON_TREE_DECIDUOUS_2_PATH,
 	"watchtower": MAP_ICON_WATCHTOWER_PATH,
 	"ruins": MAP_ICON_RUINS_PATH,
+	"mine": MAP_ICON_MOUNTAIN_ROUND_PATH,
+	"pass": MAP_ICON_MOUNTAIN_SPIRE_PATH,
+	"temple": MAP_ICON_CHURCH_PATH,
 	"road": MAP_ICON_BANNER_PATH,
 	"crossroads": MAP_ICON_BANNER_PATH,
 	"bridge_rope": MAP_ICON_BRIDGE_ROPE_PATH,
@@ -2032,7 +2036,7 @@ func _populate_map_landmarks(root: Control) -> void:
 			icon.custom_minimum_size = icon_size
 			icon.size = icon_size
 			icon.position = pos - Vector2(icon_size.x * 0.5, icon_size.y * 0.72)
-			icon.modulate = Color(0.28, 0.21, 0.12, 0.94) if str(location.get("id", "")) == "questtown_centre" else Color(0.40, 0.30, 0.18, 0.80)
+			icon.modulate = Color(0.28, 0.21, 0.12, 0.94) if str(location.get("id", "")) == "questtown" else Color(0.40, 0.30, 0.18, 0.80)
 			root.add_child(icon)
 		else:
 			_add_landmark_symbol(root, location, pos)
@@ -2187,7 +2191,7 @@ func _get_active_quest_parties() -> Array:
 	return parties.values()
 
 func _populate_map_expeditions(root: Control) -> void:
-	var town_location := DataLoader.get_map_location("questtown_centre")
+	var town_location := DataLoader.get_map_location("questtown")
 	if town_location.is_empty():
 		return
 	var town_pos := _location_canvas_position(root, town_location)
@@ -2399,7 +2403,7 @@ func _location_label_width(location: Dictionary) -> float:
 
 func _add_location_label(root: Control, location: Dictionary, pos: Vector2, icon_bottom_y: float = 0.0) -> void:
 	var text := str(location.get("display_name", "?"))
-	var is_town := str(location.get("id", "")) == "questtown_centre"
+	var is_town := str(location.get("id", "")) == "questtown"
 	var label_shadow := Label.new()
 	label_shadow.text = text
 	label_shadow.autowrap_mode = TextServer.AUTOWRAP_OFF

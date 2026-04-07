@@ -1,6 +1,6 @@
 extends RefCounted
 
-const TOWN_LOCATION_ID := "questtown_centre"
+const TOWN_LOCATION_ID := "questtown"
 const TARGET_TOWN_ANCHOR := Vector2(0.50, 0.54)
 const EDGE_MARGIN := Vector2(92.0, 72.0)
 
@@ -106,29 +106,29 @@ func _build_terrain_decorations(canvas_size: Vector2, locations: Array, position
 		var position: Vector2 = positions[location_id]
 		var location_type := str(location.get("location_type", ""))
 		match location_type:
-			"woods":
+			"woods", "grove":
 				decorations.append_array(_cluster_decorations(position, TREE_TEXTURES, 7, Vector2(96, 72), Vector2(26, 34), 0.40, rng))
-			"graveyard":
+			"graveyard", "shrine":
 				decorations.append_array(_cluster_decorations(position + Vector2(-10, 8), HILL_TEXTURES, 3, Vector2(56, 26), Vector2(42, 30), 0.28, rng))
-			"ruins":
+			"ruins", "temple":
 				decorations.append_array(_cluster_decorations(position + Vector2(-12, -6), HILL_TEXTURES, 2, Vector2(46, 22), Vector2(34, 24), 0.22, rng))
-			"watchtower":
+			"pass", "mine":
 				decorations.append_array(_cluster_decorations(position + Vector2(0, -48), MOUNTAIN_TEXTURES, 2, Vector2(42, 18), Vector2(54, 40), 0.22, rng))
-	if positions.has("watch_hut"):
-		decorations.append_array(_cluster_decorations(positions["watch_hut"] + Vector2(-84, -62), MOUNTAIN_TEXTURES, 3, Vector2(74, 24), Vector2(68, 48), 0.24, rng))
-	if positions.has("graveyard_hill"):
-		decorations.append_array(_cluster_decorations(positions["graveyard_hill"] + Vector2(24, -22), MOUNTAIN_TEXTURES, 2, Vector2(38, 18), Vector2(56, 42), 0.18, rng))
-	if positions.has("broken_ford"):
+	if positions.has("rocky_pass"):
+		decorations.append_array(_cluster_decorations(positions["rocky_pass"] + Vector2(-64, -48), MOUNTAIN_TEXTURES, 3, Vector2(70, 26), Vector2(62, 46), 0.24, rng))
+	if positions.has("cursed_grove"):
+		decorations.append_array(_cluster_decorations(positions["cursed_grove"] + Vector2(18, -6), TREE_TEXTURES, 5, Vector2(70, 48), Vector2(22, 30), 0.32, rng))
+	if positions.has("silver_mine"):
 		decorations.append({
 			"kind": "wash",
-			"position": positions["broken_ford"] + Vector2(48, -18),
+			"position": positions["silver_mine"] + Vector2(48, -18),
 			"size": Vector2(92, 32),
 			"color": Color(0.44, 0.35, 0.18, 0.08),
 		})
-	if positions.has("stone_bridge"):
+	if positions.has("forest_road"):
 		decorations.append({
 			"kind": "wash",
-			"position": positions["stone_bridge"] + Vector2(-2, -16),
+			"position": positions["forest_road"] + Vector2(-2, -16),
 			"size": Vector2(118, 26),
 			"color": Color(0.44, 0.35, 0.18, 0.07),
 		})
@@ -136,9 +136,9 @@ func _build_terrain_decorations(canvas_size: Vector2, locations: Array, position
 
 func _build_river_paths(canvas_size: Vector2, positions: Dictionary) -> Array:
 	var rivers: Array = []
-	if positions.has("stone_bridge") and positions.has("broken_ford"):
-		var stone_bridge: Vector2 = positions["stone_bridge"]
-		var broken_ford: Vector2 = positions["broken_ford"]
+	if positions.has("rocky_pass") and positions.has("cursed_grove"):
+		var stone_bridge: Vector2 = positions["rocky_pass"]
+		var broken_ford: Vector2 = positions["cursed_grove"]
 		var river_curve := Curve2D.new()
 		var source := Vector2(stone_bridge.x - 30.0, -26.0)
 		var bend_a := stone_bridge + Vector2(-42.0, -84.0)
