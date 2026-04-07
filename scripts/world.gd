@@ -135,25 +135,22 @@ const QUEST_MAP_MAX_ZOOM := 2.2
 const QUEST_MAP_ZOOM_STEP := 0.14
 const MAP_DRAWN_ROUTE_STYLES := {
 	"main_road": {
-		"color": Color(0.16, 0.12, 0.09, 0.92),
-		"width": 3.0,
-		"separation": 10.0,
-		"wobble": 1.0,
-		"dashed": false
+		"color": Color(0.14, 0.11, 0.08, 0.88),
+		"dot_radius": 1.7,
+		"dot_spacing": 10.5,
+		"wobble": 0.35
 	},
 	"track": {
-		"color": Color(0.21, 0.16, 0.12, 0.78),
-		"width": 2.2,
-		"separation": 7.2,
-		"wobble": 1.2,
-		"dashed": false
+		"color": Color(0.18, 0.14, 0.10, 0.74),
+		"dot_radius": 1.5,
+		"dot_spacing": 10.0,
+		"wobble": 0.45
 	},
 	"sacred_trail": {
-		"color": Color(0.27, 0.20, 0.14, 0.66),
-		"width": 1.8,
-		"separation": 0.0,
-		"wobble": 0.9,
-		"dashed": true
+		"color": Color(0.23, 0.18, 0.12, 0.58),
+		"dot_radius": 1.35,
+		"dot_spacing": 11.0,
+		"wobble": 0.3
 	}
 }
 
@@ -2061,24 +2058,15 @@ func _add_map_river(root: Control, river: Dictionary) -> void:
 	var points: PackedVector2Array = river.get("points", PackedVector2Array())
 	if points.size() < 2:
 		return
-	var outer := Line2D.new()
-	outer.default_color = Color(river.get("color", Color(0.28, 0.22, 0.14, 0.34)))
-	outer.width = float(river.get("width", 5.0))
-	outer.joint_mode = Line2D.LINE_JOINT_ROUND
-	outer.begin_cap_mode = Line2D.LINE_CAP_ROUND
-	outer.end_cap_mode = Line2D.LINE_CAP_ROUND
-	outer.antialiased = true
-	outer.points = points
-	root.add_child(outer)
-	var inner := Line2D.new()
-	inner.default_color = Color(river.get("inner_color", Color(0.86, 0.90, 0.92, 0.26)))
-	inner.width = float(river.get("inner_width", 2.5))
-	inner.joint_mode = Line2D.LINE_JOINT_ROUND
-	inner.begin_cap_mode = Line2D.LINE_CAP_ROUND
-	inner.end_cap_mode = Line2D.LINE_CAP_ROUND
-	inner.antialiased = true
-	inner.points = points
-	root.add_child(inner)
+	var line := Line2D.new()
+	line.default_color = Color(river.get("color", Color(0.26, 0.23, 0.19, 0.62)))
+	line.width = float(river.get("width", 1.8))
+	line.joint_mode = Line2D.LINE_JOINT_ROUND
+	line.begin_cap_mode = Line2D.LINE_CAP_ROUND
+	line.end_cap_mode = Line2D.LINE_CAP_ROUND
+	line.antialiased = true
+	line.points = points
+	root.add_child(line)
 
 func _add_map_terrain_decoration(root: Control, decoration: Dictionary) -> void:
 	var kind := str(decoration.get("kind", "icon"))
@@ -2271,15 +2259,12 @@ func _drawn_route_tangent(points: PackedVector2Array, index: int) -> Vector2:
 
 func _render_drawn_route(root: Control, points: PackedVector2Array, style: Dictionary, route_id: String) -> void:
 	var centerline := _wobble_route_points(points, route_id, float(style.get("wobble", 1.0)))
-	var separation := float(style.get("separation", 0.0))
-	var width := float(style.get("width", 2.0))
 	var color := Color(style.get("color", Color.WHITE))
-	var dashed := bool(style.get("dashed", false))
-	if separation <= 0.01:
-		_add_route_control_segments(root, centerline, color, width, dashed)
-		return
-	_add_route_control_segments(root, _offset_route_polyline(centerline, separation * 0.5), color, width, dashed)
-	_add_route_control_segments(root, _offset_route_polyline(centerline, -separation * 0.5), color, width, dashed)
+	var dot_radius := float(style.get("dot_radius", 2.0))
+	var dot_spacing := float(style.get("dot_spacing", 10.0))
+	var phase_seed: int = abs(route_id.hash()) % 1000
+	var phase_offset: float = fmod(float(phase_seed) * 0.37, dot_spacing)
+	_add_route_dots(root, centerline, color, dot_radius, dot_spacing, phase_offset)
 
 func _offset_route_polyline(points: PackedVector2Array, offset_distance: float) -> PackedVector2Array:
 	var shifted := PackedVector2Array()
@@ -2342,6 +2327,52 @@ func _add_route_control_segments(root: Control, points: PackedVector2Array, colo
 			segment.rotation = delta.angle()
 			root.add_child(segment)
 			cursor += draw_length + gap_length
+
+func _add_route_dots(root: Control, points: PackedVector2Array, color: Color, radius: float, spacing: float, phase_offset: float) -> void:
+	if points.size() < 2 or radius <= 0.1 or spacing <= 0.1:
+		return
+	var total_length := _polyline_length(points)
+	if total_length <= 0.1:
+		return
+	var dot_style := StyleBoxFlat.new()
+	dot_style.bg_color = color
+	dot_style.corner_radius_top_left = int(ceil(radius))
+	dot_style.corner_radius_top_right = int(ceil(radius))
+	dot_style.corner_radius_bottom_right = int(ceil(radius))
+	dot_style.corner_radius_bottom_left = int(ceil(radius))
+	var distance: float = max(0.0, spacing - phase_offset)
+	while distance <= total_length:
+		var dot := Panel.new()
+		dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var diameter := radius * 2.0
+		dot.size = Vector2(diameter, diameter)
+		dot.position = _sample_polyline_position(points, distance) - Vector2(radius, radius)
+		dot.add_theme_stylebox_override("panel", dot_style)
+		root.add_child(dot)
+		distance += spacing
+
+func _polyline_length(points: PackedVector2Array) -> float:
+	var length := 0.0
+	for point_index in range(points.size() - 1):
+		length += points[point_index].distance_to(points[point_index + 1])
+	return length
+
+func _sample_polyline_position(points: PackedVector2Array, distance: float) -> Vector2:
+	if points.is_empty():
+		return Vector2.ZERO
+	if distance <= 0.0:
+		return points[0]
+	var remaining := distance
+	for point_index in range(points.size() - 1):
+		var from_pos := points[point_index]
+		var to_pos := points[point_index + 1]
+		var segment_length := from_pos.distance_to(to_pos)
+		if segment_length <= 0.001:
+			continue
+		if remaining <= segment_length:
+			return from_pos.lerp(to_pos, remaining / segment_length)
+		remaining -= segment_length
+	return points[points.size() - 1]
 
 func _family_badge_text(quest: Dictionary) -> String:
 	return str(QUEST_FAMILY_NAMES.get(str(quest.get("quest_family", "tavern")), "Rumour"))

@@ -151,10 +151,8 @@ func _build_river_paths(canvas_size: Vector2, positions: Dictionary) -> Array:
 			river_curve.add_point(raw_points[point_index], -tangent, tangent)
 		rivers.append({
 			"points": river_curve.get_baked_points(),
-			"width": 5.0,
-			"inner_width": 2.6,
-			"color": Color(0.29, 0.25, 0.16, 0.42),
-			"inner_color": Color(0.83, 0.88, 0.91, 0.32),
+			"width": 1.2,
+			"color": Color(0.31, 0.26, 0.18, 0.46),
 		})
 	return rivers
 
