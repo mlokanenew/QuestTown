@@ -97,12 +97,16 @@ func _normalize_map_locations(raw_locations: Array) -> Array:
 			"location_id": location_id,
 			"display_name": raw_location.get("display_name", location_id.capitalize()),
 			"anchor_position": anchor_position.duplicate(true) if anchor_position is Dictionary else {"x": 0.5, "y": 0.5},
+			"position": anchor_position.duplicate(true) if anchor_position is Dictionary else {"x": 0.5, "y": 0.5},
 			"map_position": anchor_position.duplicate(true) if anchor_position is Dictionary else {"x": 0.5, "y": 0.5},
 			"location_type": raw_location.get("location_type", "town"),
 			"icon_type": icon_type,
 			"icon_key": icon_type,
 			"description": raw_location.get("description", ""),
 			"unlock_tags": raw_location.get("unlock_tags", []).duplicate(true),
+			"importance": int(raw_location.get("importance", 4 if raw_location.get("location_type", "town") == "town" else 2)),
+			"quest_family_tags": raw_location.get("quest_family_tags", raw_location.get("unlock_tags", [])).duplicate(true),
+			"can_host_crossing": bool(raw_location.get("can_host_crossing", raw_location.get("location_type", "") in ["bridge", "ford"])),
 			"landmark_scale": float(raw_location.get("landmark_scale", 1.0)),
 			"label_offset": raw_location.get("label_offset", {"x": -36, "y": 12}).duplicate(true) if raw_location.get("label_offset", {}) is Dictionary else {"x": -36, "y": 12},
 			"label_width": float(raw_location.get("label_width", 132.0)),
@@ -144,6 +148,8 @@ func _normalize_map_routes(raw_routes: Array) -> Array:
 			"from_location_id": from_location_id,
 			"to_location_id": to_location_id,
 			"route_type": str(raw_route.get("route_type", "track")),
+			"priority": int(raw_route.get("priority", 3 if str(raw_route.get("route_type", "track")) == "main_road" else 2)),
+			"unlocked": bool(raw_route.get("unlocked", true)),
 			"control_points": control_points
 		})
 	return normalized

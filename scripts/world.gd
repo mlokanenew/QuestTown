@@ -2,6 +2,7 @@ extends Node3D
 ## Root scene script. Wires SimulationRoot, CommandServer, and ScenarioRunner together.
 
 const OPTIONS_SCENE := preload("res://scenes/ui/OptionsMenu.tscn")
+const QUEST_MAP_GENERATOR_SCRIPT := preload("res://scripts/ui/QuestMapGenerator.gd")
 const FONT_HEADING_PATH := "res://assets/fonts/Cinzel.ttf"
 const FONT_BODY_PATH := "res://assets/fonts/NotoSans.ttf"
 const FRAME_ORNATE_PATH := "res://assets/ui/theme/frame_ornate.png"
@@ -17,29 +18,15 @@ const ICON_CAMPFIRE_PATH := "res://assets/ui/icons/campfire.png"
 const ICON_SHIELD_PATH := "res://assets/ui/icons/shield.png"
 const ICON_SWORD_PATH := "res://assets/ui/icons/sword.png"
 const ICON_SKULL_PATH := "res://assets/ui/icons/skull.png"
-const MAP_PARCHMENT_PATH := "res://assets/ui/quest_map/parchmentBasic.png"
-const MAP_RETINA_BASE := "res://assets/kenney_cartography-pack (1)/PNG/Retina/"
-const MAP_COMPASS_PATH := MAP_RETINA_BASE + "compass.png"
-const MAP_ICON_HOUSE_PATH := MAP_RETINA_BASE + "house.png"
-const MAP_ICON_HOUSES_PATH := MAP_RETINA_BASE + "houses.png"
-const MAP_ICON_HOUSE_SMALL_PATH := MAP_RETINA_BASE + "houseSmall.png"
-const MAP_ICON_MILL_PATH := MAP_RETINA_BASE + "mill.png"
-const MAP_ICON_BRIDGE_PATH := MAP_RETINA_BASE + "bridge.png"
-const MAP_ICON_BRIDGE_ROPE_PATH := MAP_RETINA_BASE + "bridgeRope.png"
-const MAP_ICON_GRAVEYARD_PATH := MAP_RETINA_BASE + "graveyard.png"
-const MAP_ICON_CHURCH_PATH := MAP_RETINA_BASE + "church.png"
-const MAP_ICON_WATCHTOWER_PATH := MAP_RETINA_BASE + "watchtower.png"
-const MAP_ICON_RUINS_PATH := MAP_RETINA_BASE + "ruins.png"
-const MAP_ICON_WOODS_PATH := MAP_RETINA_BASE + "treePines.png"
-const MAP_ICON_WOODS_SMALL_PATH := MAP_RETINA_BASE + "treePinesSmall.png"
-const MAP_ICON_SKULL_PATH := MAP_RETINA_BASE + "skull.png"
-const MAP_ICON_ROCKS_PATH := MAP_RETINA_BASE + "rocksMountain.png"
-const MAP_PATH_STRAIGHT_PATH := MAP_RETINA_BASE + "pathStraight.png"
-const MAP_PATH_CORNER_PATH := MAP_RETINA_BASE + "pathCorner.png"
-const MAP_PATH_SPLIT_PATH := MAP_RETINA_BASE + "pathSplit.png"
-const MAP_PATH_CROSSING_PATH := MAP_RETINA_BASE + "pathCrossing.png"
-const MAP_PATH_END_PATH := MAP_RETINA_BASE + "pathEnd.png"
-const MAP_BANNER_PATH := MAP_RETINA_BASE + "banner.png"
+const MAP_PARCHMENT_PATH := "res://assets/ui/generated_map/backgrounds/old_paper_1.png"
+const MAP_COMPASS_PATH := "res://assets/ui/generated_map/decorations/compass_rose.png"
+const MAP_ICON_TOWN_PATH := "res://assets/ui/generated_map/cities/walled_city.png"
+const MAP_ICON_VILLAGE_PATH := "res://assets/ui/generated_map/cities/small_village.png"
+const MAP_ICON_FARM_PATH := "res://assets/ui/generated_map/cities/farm.png"
+const MAP_ICON_TREE_PATH := "res://assets/ui/generated_map/trees/pine_tree_1.png"
+const MAP_ICON_TREE_SMALL_PATH := "res://assets/ui/generated_map/trees/pine_tree_2.png"
+const MAP_ICON_HILL_PATH := "res://assets/ui/generated_map/hills/round_hill_2.png"
+const MAP_ICON_MOUNTAIN_PATH := "res://assets/ui/generated_map/mountains/sharp_mountain_2.png"
 const UI_SOUND_CLICK_PATH := "res://assets/audio/ui/click.ogg"
 const UI_SOUND_OPEN_PATH := "res://assets/audio/ui/open.ogg"
 const UI_SOUND_CLOSE_PATH := "res://assets/audio/ui/close.ogg"
@@ -99,6 +86,9 @@ var _quest_map_dragging: bool = false
 var _quest_map_drag_last_mouse: Vector2 = Vector2.ZERO
 var _quest_map_zoom: float = 1.0
 var _quest_map_offset: Vector2 = Vector2.ZERO
+var _quest_map_generated_positions: Dictionary = {}
+var _quest_map_projection_transform: Dictionary = {}
+var _quest_map_generator: Variant = null
 
 const BUILDING_ICONS := {
 	"tavern": "res://assets/ui/tavern_icon.svg",
@@ -131,41 +121,39 @@ const QUEST_FAMILY_NAMES := {
 }
 
 const MAP_LOCATION_ICONS := {
-	"town": MAP_ICON_HOUSES_PATH,
-	"hamlet": MAP_ICON_MILL_PATH,
-	"cellar": MAP_ICON_HOUSE_SMALL_PATH,
-	"road": MAP_BANNER_PATH,
-	"bridge": MAP_ICON_BRIDGE_PATH,
-	"ford": MAP_ICON_BRIDGE_ROPE_PATH,
-	"woods": MAP_ICON_WOODS_PATH,
-	"shrine": MAP_ICON_CHURCH_PATH,
-	"graveyard": MAP_ICON_GRAVEYARD_PATH,
-	"watchtower": MAP_ICON_WATCHTOWER_PATH,
-	"crossroads": MAP_ICON_SKULL_PATH,
-	"ruins": MAP_ICON_RUINS_PATH,
-	"banner": MAP_BANNER_PATH,
-	"house_small": MAP_ICON_HOUSE_SMALL_PATH,
-	"woods_small": MAP_ICON_WOODS_SMALL_PATH,
-	"bridge_rope": MAP_ICON_BRIDGE_ROPE_PATH,
-	"skull": MAP_ICON_SKULL_PATH,
-	"rocks": MAP_ICON_ROCKS_PATH,
+	"town": MAP_ICON_TOWN_PATH,
+	"hamlet": MAP_ICON_VILLAGE_PATH,
+	"cellar": MAP_ICON_FARM_PATH,
+	"woods": MAP_ICON_TREE_PATH,
+	"house_small": MAP_ICON_FARM_PATH,
+	"woods_small": MAP_ICON_TREE_SMALL_PATH,
+	"rocks": MAP_ICON_MOUNTAIN_PATH,
 }
 
 const QUEST_MAP_MIN_ZOOM := 1.0
 const QUEST_MAP_MAX_ZOOM := 2.2
 const QUEST_MAP_ZOOM_STEP := 0.14
-const MAP_ROUTE_STYLES := {
+const MAP_DRAWN_ROUTE_STYLES := {
 	"main_road": {
-		"piece_color": Color(0.19, 0.15, 0.11, 0.88),
-		"piece_size": 44.0
+		"color": Color(0.16, 0.12, 0.09, 0.92),
+		"width": 3.0,
+		"separation": 10.0,
+		"wobble": 1.0,
+		"dashed": false
 	},
 	"track": {
-		"piece_color": Color(0.26, 0.20, 0.14, 0.72),
-		"piece_size": 34.0
+		"color": Color(0.21, 0.16, 0.12, 0.78),
+		"width": 2.2,
+		"separation": 7.2,
+		"wobble": 1.2,
+		"dashed": false
 	},
 	"sacred_trail": {
-		"piece_color": Color(0.40, 0.32, 0.20, 0.56),
-		"piece_size": 28.0
+		"color": Color(0.27, 0.20, 0.14, 0.66),
+		"width": 1.8,
+		"separation": 0.0,
+		"wobble": 0.9,
+		"dashed": true
 	}
 }
 
@@ -1683,16 +1671,26 @@ func _refresh_quest_map() -> void:
 	if background:
 		background.texture = _load_runtime_texture(MAP_PARCHMENT_PATH)
 		background.modulate = Color(1, 1, 1, 0.98)
+	var terrain_root := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestMapColumn/QuestMapCard/QuestMapMargin/QuestMapCanvas/QuestMapContent/QuestMapTerrain") as Control
 	var routes_root := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestMapColumn/QuestMapCard/QuestMapMargin/QuestMapCanvas/QuestMapContent/QuestMapRoutes") as Control
 	var landmarks_root := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestMapColumn/QuestMapCard/QuestMapMargin/QuestMapCanvas/QuestMapContent/QuestMapLandmarks") as Control
 	var markers_root := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestMapColumn/QuestMapCard/QuestMapMargin/QuestMapCanvas/QuestMapContent/QuestMapMarkers") as Control
 	var expeditions_root := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestMapColumn/QuestMapCard/QuestMapMargin/QuestMapCanvas/QuestMapContent/QuestMapExpeditions") as Control
-	if routes_root == null or landmarks_root == null or markers_root == null or expeditions_root == null:
+	if terrain_root == null or routes_root == null or landmarks_root == null or markers_root == null or expeditions_root == null:
 		return
+	_quest_map_generated_positions.clear()
+	_quest_map_projection_transform.clear()
+	var canvas_size := _quest_map_canvas_size(routes_root)
+	if canvas_size.x > 0.0 and canvas_size.y > 0.0:
+		var generated: Dictionary = _ensure_quest_map_generator().generate(canvas_size, DataLoader.map_locations, DataLoader.map_routes, 1337)
+		_quest_map_generated_positions = generated.get("positions", {})
+		_quest_map_projection_transform = generated.get("transform", {})
 	_clear_control_children(routes_root)
+	_clear_control_children(terrain_root)
 	_clear_control_children(landmarks_root)
 	_clear_control_children(markers_root)
 	_clear_control_children(expeditions_root)
+	_populate_map_terrain(terrain_root)
 	_populate_map_routes(routes_root)
 	_populate_map_landmarks(landmarks_root)
 	_populate_map_markers(markers_root)
@@ -1746,25 +1744,40 @@ func _clear_control_children(root: Node) -> void:
 	for child in root.get_children():
 		child.queue_free()
 
+func _ensure_quest_map_generator() -> Variant:
+	if _quest_map_generator == null:
+		_quest_map_generator = load("res://scripts/ui/QuestMapGenerator.gd").new()
+	return _quest_map_generator
+
 func _populate_map_routes(root: Control) -> void:
-	var straight_texture := _load_runtime_texture(MAP_PATH_STRAIGHT_PATH)
-	var corner_texture := _load_runtime_texture(MAP_PATH_CORNER_PATH)
-	if straight_texture == null or corner_texture == null:
+	var canvas_size := root.size
+	if canvas_size.x <= 0.0 or canvas_size.y <= 0.0:
+		canvas_size = root.custom_minimum_size
+	if canvas_size.x <= 0.0 or canvas_size.y <= 0.0:
 		return
 	for route_variant in DataLoader.map_routes:
 		if not (route_variant is Dictionary):
 			continue
 		var route: Dictionary = route_variant
+		if not bool(route.get("unlocked", true)):
+			continue
 		var from_location := DataLoader.get_map_location(str(route.get("from_location_id", "")))
 		var to_location := DataLoader.get_map_location(str(route.get("to_location_id", "")))
 		if from_location.is_empty() or to_location.is_empty():
 			continue
-		var style: Dictionary = MAP_ROUTE_STYLES.get(str(route.get("route_type", "track")), MAP_ROUTE_STYLES["track"])
-		var points := _route_render_points(root, route, from_location, to_location)
+		var points := _build_drawn_route_points(root, route, from_location, to_location)
 		if points.size() < 2:
 			continue
-		_add_route_straights(root, straight_texture, points, style)
-		_add_route_corners(root, corner_texture, points, style)
+		_render_drawn_route(root, points, MAP_DRAWN_ROUTE_STYLES.get(str(route.get("route_type", "track")), MAP_DRAWN_ROUTE_STYLES["track"]), str(route.get("route_id", "")))
+
+func _populate_map_terrain(root: Control) -> void:
+	var generated: Dictionary = _ensure_quest_map_generator().generate(_quest_map_canvas_size(root), DataLoader.map_locations, DataLoader.map_routes, 1337)
+	for river_variant in generated.get("river_paths", []):
+		if river_variant is Dictionary:
+			_add_map_river(root, river_variant)
+	for decoration_variant in generated.get("terrain_decorations", []):
+		if decoration_variant is Dictionary:
+			_add_map_terrain_decoration(root, decoration_variant)
 
 func _populate_map_landmarks(root: Control) -> void:
 	var compass_texture := _load_runtime_texture(MAP_COMPASS_PATH)
@@ -1780,11 +1793,11 @@ func _populate_map_landmarks(root: Control) -> void:
 		root.add_child(compass)
 	for location: Dictionary in DataLoader.map_locations:
 		_add_location_terrain_hints(root, location)
-		var icon_path := str(MAP_LOCATION_ICONS.get(str(location.get("icon_type", location.get("location_type", ""))), MAP_ICON_HOUSE_PATH))
+		var icon_path := str(MAP_LOCATION_ICONS.get(str(location.get("icon_type", location.get("location_type", ""))), ""))
 		var texture := _load_runtime_texture(icon_path)
 		var pos := _location_canvas_position(root, location)
 		var scale: float = float(location.get("landmark_scale", 1.0))
-		var icon_size := Vector2(42, 42) * scale
+		var icon_size := Vector2(54, 54) * scale
 		if texture != null:
 			var icon := TextureRect.new()
 			icon.texture = texture
@@ -1796,6 +1809,8 @@ func _populate_map_landmarks(root: Control) -> void:
 			icon.position = pos - Vector2(icon_size.x * 0.5, icon_size.y * 0.72)
 			icon.modulate = Color(0.28, 0.21, 0.12, 0.94) if str(location.get("id", "")) == "questtown_centre" else Color(0.40, 0.30, 0.18, 0.80)
 			root.add_child(icon)
+		else:
+			_add_landmark_symbol(root, location, pos)
 		_add_location_icon_overlays(root, location)
 		_add_location_label(root, location, pos)
 
@@ -1980,13 +1995,30 @@ func _add_result_burst(root: Control, position: Vector2, result: Dictionary) -> 
 	root.add_child(result_label)
 
 func _location_canvas_position(root: Control, location: Dictionary) -> Vector2:
+	var location_id := str(location.get("id", ""))
+	if location_id != "" and _quest_map_generated_positions.has(location_id):
+		return _quest_map_generated_positions[location_id]
 	return _map_anchor_to_canvas(root, location.get("anchor_position", location.get("map_position", {})))
+
+func _quest_map_canvas_size(root: Control) -> Vector2:
+	if root == null:
+		return Vector2.ZERO
+	var node: Control = root
+	for _i in range(4):
+		if node.size.x > 0.0 and node.size.y > 0.0:
+			return node.size
+		if node.custom_minimum_size.x > 0.0 and node.custom_minimum_size.y > 0.0:
+			return node.custom_minimum_size
+		node = node.get_parent() as Control
+		if node == null:
+			break
+	return Vector2.ZERO
 
 func _map_anchor_to_canvas(root: Control, anchor_variant: Variant) -> Vector2:
 	var anchor: Dictionary = anchor_variant if anchor_variant is Dictionary else {}
-	var canvas_size := root.size
-	if canvas_size.x <= 0.0 or canvas_size.y <= 0.0:
-		canvas_size = root.custom_minimum_size
+	var canvas_size := _quest_map_canvas_size(root)
+	if not _quest_map_projection_transform.is_empty():
+		return _ensure_quest_map_generator().project_anchor(canvas_size, anchor, _quest_map_projection_transform)
 	return Vector2(
 		float(anchor.get("x", 0.5)) * canvas_size.x,
 		float(anchor.get("y", 0.5)) * canvas_size.y
@@ -2024,6 +2056,133 @@ func _add_location_label(root: Control, location: Dictionary, pos: Vector2) -> v
 	label.size = label_size
 	root.add_child(label_shadow)
 	root.add_child(label)
+
+func _add_map_river(root: Control, river: Dictionary) -> void:
+	var points: PackedVector2Array = river.get("points", PackedVector2Array())
+	if points.size() < 2:
+		return
+	var outer := Line2D.new()
+	outer.default_color = Color(river.get("color", Color(0.28, 0.22, 0.14, 0.34)))
+	outer.width = float(river.get("width", 5.0))
+	outer.joint_mode = Line2D.LINE_JOINT_ROUND
+	outer.begin_cap_mode = Line2D.LINE_CAP_ROUND
+	outer.end_cap_mode = Line2D.LINE_CAP_ROUND
+	outer.antialiased = true
+	outer.points = points
+	outer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(outer)
+	var inner := Line2D.new()
+	inner.default_color = Color(river.get("inner_color", Color(0.86, 0.90, 0.92, 0.26)))
+	inner.width = float(river.get("inner_width", 2.5))
+	inner.joint_mode = Line2D.LINE_JOINT_ROUND
+	inner.begin_cap_mode = Line2D.LINE_CAP_ROUND
+	inner.end_cap_mode = Line2D.LINE_CAP_ROUND
+	inner.antialiased = true
+	inner.points = points
+	inner.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(inner)
+
+func _add_map_terrain_decoration(root: Control, decoration: Dictionary) -> void:
+	var kind := str(decoration.get("kind", "icon"))
+	if kind == "wash":
+		var wash := ColorRect.new()
+		wash.color = Color(decoration.get("color", Color(0.4, 0.3, 0.18, 0.08)))
+		wash.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		wash.size = decoration.get("size", Vector2(64, 24))
+		wash.position = decoration.get("position", Vector2.ZERO) - wash.size * 0.5
+		root.add_child(wash)
+		return
+	var texture := _load_runtime_texture(str(decoration.get("texture_path", "")))
+	if texture == null:
+		return
+	var node := TextureRect.new()
+	node.texture = texture
+	node.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	node.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	node.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	node.size = decoration.get("size", Vector2(36, 36))
+	node.position = decoration.get("position", Vector2.ZERO) - node.size * 0.5
+	node.rotation = float(decoration.get("rotation", 0.0))
+	node.modulate = Color(0.33, 0.24, 0.14, float(decoration.get("alpha", 0.28)))
+	root.add_child(node)
+
+func _add_landmark_symbol(root: Control, location: Dictionary, pos: Vector2) -> void:
+	var symbol := Control.new()
+	symbol.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	symbol.position = pos - Vector2(18, 18)
+	symbol.size = Vector2(36, 36)
+	root.add_child(symbol)
+	var location_type := str(location.get("location_type", ""))
+	match location_type:
+		"bridge", "ford":
+			for y_offset in [-3.0, 3.0]:
+				var line := ColorRect.new()
+				line.color = Color(0.30, 0.22, 0.12, 0.72)
+				line.size = Vector2(24, 2)
+				line.position = Vector2(6, 18 + y_offset)
+				symbol.add_child(line)
+		"road", "crossroads":
+			var vertical := ColorRect.new()
+			vertical.color = Color(0.30, 0.22, 0.12, 0.72)
+			vertical.size = Vector2(2, 20)
+			vertical.position = Vector2(17, 8)
+			symbol.add_child(vertical)
+			var horizontal := ColorRect.new()
+			horizontal.color = Color(0.30, 0.22, 0.12, 0.72)
+			horizontal.size = Vector2(20, 2)
+			horizontal.position = Vector2(8, 17)
+			symbol.add_child(horizontal)
+		"shrine":
+			var stem := ColorRect.new()
+			stem.color = Color(0.30, 0.22, 0.12, 0.72)
+			stem.size = Vector2(2, 18)
+			stem.position = Vector2(17, 8)
+			symbol.add_child(stem)
+			var arm := ColorRect.new()
+			arm.color = Color(0.30, 0.22, 0.12, 0.72)
+			arm.size = Vector2(12, 2)
+			arm.position = Vector2(12, 14)
+			symbol.add_child(arm)
+		"graveyard":
+			for x_offset in [8.0, 17.0, 26.0]:
+				var stem := ColorRect.new()
+				stem.color = Color(0.30, 0.22, 0.12, 0.68)
+				stem.size = Vector2(2, 14)
+				stem.position = Vector2(x_offset, 12)
+				symbol.add_child(stem)
+				var arm := ColorRect.new()
+				arm.color = Color(0.30, 0.22, 0.12, 0.68)
+				arm.size = Vector2(8, 2)
+				arm.position = Vector2(x_offset - 3, 17)
+				symbol.add_child(arm)
+		"watchtower":
+			var box := ColorRect.new()
+			box.color = Color(0.30, 0.22, 0.12, 0.20)
+			box.size = Vector2(12, 14)
+			box.position = Vector2(12, 10)
+			symbol.add_child(box)
+			for x in [12.0, 22.0]:
+				var leg := ColorRect.new()
+				leg.color = Color(0.30, 0.22, 0.12, 0.70)
+				leg.size = Vector2(2, 10)
+				leg.position = Vector2(x, 22)
+				symbol.add_child(leg)
+		"ruins":
+			var top := ColorRect.new()
+			top.color = Color(0.30, 0.22, 0.12, 0.72)
+			top.size = Vector2(18, 2)
+			top.position = Vector2(9, 11)
+			symbol.add_child(top)
+			var wall_a := ColorRect.new()
+			wall_a.color = Color(0.30, 0.22, 0.12, 0.72)
+			wall_a.size = Vector2(2, 12)
+			wall_a.position = Vector2(10, 12)
+			symbol.add_child(wall_a)
+			var wall_b := ColorRect.new()
+			wall_b.color = Color(0.30, 0.22, 0.12, 0.72)
+			wall_b.size = Vector2(2, 8)
+			wall_b.position = Vector2(24, 12)
+			symbol.add_child(wall_b)
 
 func _add_location_terrain_hints(root: Control, location: Dictionary) -> void:
 	var pos := _location_canvas_position(root, location)
@@ -2077,107 +2236,114 @@ func _add_location_icon_overlays(root: Control, location: Dictionary) -> void:
 		node.modulate = Color(0.33, 0.24, 0.14, float(overlay.get("alpha", 0.84)))
 		root.add_child(node)
 
-func _route_canvas_points(root: Control, route: Dictionary, from_location: Dictionary, to_location: Dictionary) -> PackedVector2Array:
-	var points := PackedVector2Array()
-	points.append(_location_canvas_position(root, from_location))
+func _build_drawn_route_points(root: Control, route: Dictionary, from_location: Dictionary, to_location: Dictionary) -> PackedVector2Array:
+	var raw_points := PackedVector2Array()
+	raw_points.append(_location_canvas_position(root, from_location))
 	for control_point_variant in route.get("control_points", []):
-		points.append(_map_anchor_to_canvas(root, control_point_variant))
-	points.append(_location_canvas_position(root, to_location))
-	return points
-
-func _route_render_points(root: Control, route: Dictionary, from_location: Dictionary, to_location: Dictionary) -> PackedVector2Array:
-	var points := _route_canvas_points(root, route, from_location, to_location)
-	if points.size() < 2:
-		return points
-	var start_dir: Vector2 = (points[1] - points[0]).normalized()
-	var end_dir: Vector2 = (points[points.size() - 2] - points[points.size() - 1]).normalized()
+		raw_points.append(_map_anchor_to_canvas(root, control_point_variant))
+	raw_points.append(_location_canvas_position(root, to_location))
+	if raw_points.size() < 2:
+		return raw_points
+	var start_dir: Vector2 = (raw_points[1] - raw_points[0]).normalized()
+	var end_dir: Vector2 = (raw_points[raw_points.size() - 2] - raw_points[raw_points.size() - 1]).normalized()
 	if start_dir.length_squared() > 0.0001:
-		points[0] += start_dir * _location_route_margin(from_location)
+		raw_points[0] += start_dir * _drawn_route_margin(from_location)
 	if end_dir.length_squared() > 0.0001:
-		points[points.size() - 1] += end_dir * _location_route_margin(to_location)
-	return points
+		raw_points[raw_points.size() - 1] += end_dir * _drawn_route_margin(to_location)
+	var curve := Curve2D.new()
+	curve.bake_interval = 10.0
+	for point_index in range(raw_points.size()):
+		var tangent := _drawn_route_tangent(raw_points, point_index)
+		curve.add_point(raw_points[point_index], -tangent, tangent)
+	return curve.get_baked_points()
 
-func _location_route_margin(location: Dictionary) -> float:
+func _drawn_route_margin(location: Dictionary) -> float:
 	var scale := float(location.get("landmark_scale", 1.0))
-	var location_type := str(location.get("location_type", ""))
-	match location_type:
-		"town":
-			return 34.0 * scale
-		"bridge", "ford":
-			return 20.0 * scale
-		"road":
-			return 18.0 * scale
-		"shrine", "ruins", "graveyard", "watchtower":
-			return 18.0 * scale
-		_:
-			return 16.0 * scale
+	var importance := int(location.get("importance", 1))
+	return 14.0 + scale * 8.0 + importance * 2.0
 
-func _add_route_straights(root: Control, texture: Texture2D, points: PackedVector2Array, style: Dictionary) -> void:
+func _drawn_route_tangent(points: PackedVector2Array, index: int) -> Vector2:
+	if points.size() <= 1:
+		return Vector2.ZERO
+	if index == 0:
+		return (points[1] - points[0]) * 0.22
+	if index == points.size() - 1:
+		return (points[index] - points[index - 1]) * 0.22
+	return (points[index + 1] - points[index - 1]) * 0.18
+
+func _render_drawn_route(root: Control, points: PackedVector2Array, style: Dictionary, route_id: String) -> void:
+	var centerline := _wobble_route_points(points, route_id, float(style.get("wobble", 1.0)))
+	var separation := float(style.get("separation", 0.0))
+	var width := float(style.get("width", 2.0))
+	var color := Color(style.get("color", Color.WHITE))
+	var dashed := bool(style.get("dashed", false))
+	if separation <= 0.01:
+		_add_route_control_segments(root, centerline, color, width, dashed)
+		return
+	_add_route_control_segments(root, _offset_route_polyline(centerline, separation * 0.5), color, width, dashed)
+	_add_route_control_segments(root, _offset_route_polyline(centerline, -separation * 0.5), color, width, dashed)
+
+func _offset_route_polyline(points: PackedVector2Array, offset_distance: float) -> PackedVector2Array:
+	var shifted := PackedVector2Array()
+	for point_index in range(points.size()):
+		var tangent := _drawn_route_point_tangent(points, point_index)
+		var normal := Vector2(-tangent.y, tangent.x).normalized()
+		shifted.append(points[point_index] + normal * offset_distance)
+	return shifted
+
+func _drawn_route_point_tangent(points: PackedVector2Array, index: int) -> Vector2:
+	if points.size() <= 1:
+		return Vector2.RIGHT
+	if index == 0:
+		return (points[1] - points[0]).normalized()
+	if index == points.size() - 1:
+		return (points[index] - points[index - 1]).normalized()
+	return (points[index + 1] - points[index - 1]).normalized()
+
+func _wobble_route_points(points: PackedVector2Array, route_id: String, amplitude: float) -> PackedVector2Array:
+	if points.size() < 3 or amplitude <= 0.01:
+		return points
+	var seed_a := float(abs(route_id.hash()) % 97)
+	var seed_b := float(abs(route_id.hash() * 37) % 113)
+	var wobbled := PackedVector2Array()
+	for point_index in range(points.size()):
+		var point := points[point_index]
+		var t := float(point_index) / float(max(1, points.size() - 1))
+		var fade := sin(PI * t)
+		var tangent := _drawn_route_point_tangent(points, point_index)
+		var normal := Vector2(-tangent.y, tangent.x).normalized()
+		var offset_amount := (
+			sin((t * 4.6) + seed_a * 0.07) * amplitude * 0.65 +
+			sin((t * 9.4) + seed_b * 0.05) * amplitude * 0.35
+		) * fade
+		wobbled.append(point + normal * offset_amount)
+	return wobbled
+
+func _add_route_control_segments(root: Control, points: PackedVector2Array, color: Color, width: float, dashed: bool) -> void:
 	if points.size() < 2:
 		return
-	var piece_size := _route_piece_size(style)
-	var step := piece_size.x * 0.96
+	var draw_length := 18.0 if dashed else 99999.0
+	var gap_length := 12.0 if dashed else 0.0
 	for point_index in range(points.size() - 1):
 		var from_pos := points[point_index]
 		var to_pos := points[point_index + 1]
-		var segment := to_pos - from_pos
-		var segment_length := segment.length()
-		if segment_length <= 8.0:
+		var delta := to_pos - from_pos
+		var segment_length := delta.length()
+		if segment_length <= 0.1:
 			continue
-		var direction := segment.normalized()
-		var trim_start := piece_size.x * (0.10 if point_index == 0 else 0.50)
-		var trim_end := piece_size.x * (0.10 if point_index == points.size() - 2 else 0.50)
-		var usable_length := segment_length - trim_start - trim_end
-		if usable_length <= piece_size.x * 0.35:
-			continue
-		var cursor := trim_start
-		while cursor < segment_length - trim_end:
-			var center := from_pos + direction * cursor
-			_add_map_piece(root, texture, center, piece_size, direction.angle() + PI * 0.5, _route_piece_color(style))
-			cursor += step
-
-func _add_route_corners(root: Control, texture: Texture2D, points: PackedVector2Array, style: Dictionary) -> void:
-	if points.size() < 3:
-		return
-	var piece_size := _route_piece_size(style)
-	for point_index in range(1, points.size() - 1):
-		var prev_pos := points[point_index - 1]
-		var pivot := points[point_index]
-		var next_pos := points[point_index + 1]
-		var dir_a: Vector2 = (prev_pos - pivot).normalized()
-		var dir_b: Vector2 = (next_pos - pivot).normalized()
-		if dir_a.length_squared() <= 0.0001 or dir_b.length_squared() <= 0.0001:
-			continue
-		var bend: float = abs(dir_a.angle_to(dir_b))
-		if bend < 0.32 or bend > 2.8:
-			continue
-		var bisector: Vector2 = (dir_a + dir_b).normalized()
-		if bisector.length_squared() <= 0.0001:
-			continue
-		_add_map_piece(root, texture, pivot, piece_size, bisector.angle() + PI * 0.25, _route_piece_color(style))
-
-func _route_piece_size(style: Dictionary) -> Vector2:
-	var route_width := float(style.get("piece_size", 42.0))
-	return Vector2(route_width, route_width)
-
-func _route_piece_color(style: Dictionary) -> Color:
-	return Color(style.get("piece_color", Color(0.22, 0.17, 0.12, 0.92)))
-
-func _add_map_piece(root: Control, texture: Texture2D, center: Vector2, size: Vector2, rotation: float, color: Color) -> void:
-	if texture == null:
-		return
-	var piece := TextureRect.new()
-	piece.texture = texture
-	piece.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	piece.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	piece.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	piece.size = size
-	piece.custom_minimum_size = size
-	piece.pivot_offset = size * 0.5
-	piece.position = center - size * 0.5
-	piece.rotation = rotation
-	piece.modulate = color
-	root.add_child(piece)
+		var direction := delta.normalized()
+		var cursor := 0.0
+		while cursor < segment_length:
+			var step: float = min(draw_length, segment_length - cursor)
+			var segment := ColorRect.new()
+			segment.color = color
+			segment.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			segment.size = Vector2(step, width)
+			segment.pivot_offset = Vector2(0, width * 0.5)
+			segment.position = from_pos + direction * cursor
+			segment.rotation = delta.angle()
+			root.add_child(segment)
+			cursor += draw_length + gap_length
 
 func _family_badge_text(quest: Dictionary) -> String:
 	return str(QUEST_FAMILY_NAMES.get(str(quest.get("quest_family", "tavern")), "Rumour"))
