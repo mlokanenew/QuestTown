@@ -1837,6 +1837,8 @@ func _refresh_quest_map() -> void:
 	var expeditions_root := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestMapColumn/QuestMapCard/QuestMapMargin/QuestMapCanvas/QuestMapContent/QuestMapExpeditions") as Control
 	if terrain_root == null or routes_root == null or landmarks_root == null or markers_root == null or expeditions_root == null:
 		return
+	markers_root.mouse_filter = Control.MOUSE_FILTER_PASS
+	expeditions_root.mouse_filter = Control.MOUSE_FILTER_PASS
 	_quest_map_generated_positions.clear()
 	_quest_map_projection_transform.clear()
 	var canvas_size := _quest_map_canvas_size(routes_root)
@@ -1880,6 +1882,9 @@ func _on_quest_map_gui_input(event: InputEvent) -> void:
 			if _quest_map_dragging:
 				_quest_map_drag_last_mouse = mouse_event.position
 			get_viewport().set_input_as_handled()
+		elif mouse_event.pressed and mouse_event.button_index == MOUSE_BUTTON_LEFT:
+			if _handle_quest_map_left_click(mouse_event.position):
+				get_viewport().set_input_as_handled()
 		elif mouse_event.pressed and mouse_event.button_index == MOUSE_BUTTON_WHEEL_UP:
 			_adjust_quest_map_zoom(QUEST_MAP_ZOOM_STEP)
 			get_viewport().set_input_as_handled()
@@ -1897,6 +1902,63 @@ func _on_quest_map_gui_input(event: InputEvent) -> void:
 func _adjust_quest_map_zoom(step: float) -> void:
 	_quest_map_zoom = clamp(_quest_map_zoom + step, QUEST_MAP_MIN_ZOOM, QUEST_MAP_MAX_ZOOM)
 	_apply_quest_map_transform()
+
+func _handle_quest_map_left_click(canvas_pos: Vector2) -> bool:
+	var map_pos := _quest_map_canvas_to_content(canvas_pos)
+	if map_pos == Vector2.INF:
+		return false
+	var active_hit := _active_map_marker_hit(map_pos)
+	if not active_hit.is_empty():
+		_selected_quest_kind = "active"
+		_selected_quest_id = str(active_hit.get("party_id", ""))
+		_refresh_quest_ui()
+		_pulse_control(get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestMapColumn/QuestMapCard") as CanvasItem, "quest_map_focus", Vector2(1.01, 1.01))
+		return true
+	var available_hit := _available_map_marker_hit(map_pos)
+	if not available_hit.is_empty():
+		_selected_quest_kind = "available"
+		_selected_quest_id = str(available_hit.get("offer_id", ""))
+		_refresh_quest_ui()
+		_pulse_control(get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestMapColumn/QuestMapCard") as CanvasItem, "quest_map_focus", Vector2(1.01, 1.01))
+		return true
+	return false
+
+func _quest_map_canvas_to_content(canvas_pos: Vector2) -> Vector2:
+	var canvas := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestMapColumn/QuestMapCard/QuestMapMargin/QuestMapCanvas") as Control
+	var content := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestMapColumn/QuestMapCard/QuestMapMargin/QuestMapCanvas/QuestMapContent") as Control
+	if canvas == null or content == null:
+		return Vector2.INF
+	var pivot := content.size * 0.5
+	return pivot + (canvas_pos - content.position - pivot) / max(_quest_map_zoom, 0.001)
+
+func _available_map_marker_hit(map_pos: Vector2) -> Dictionary:
+	for quest_offer: Dictionary in GameState.quests:
+		var location := DataLoader.get_map_location(str(quest_offer.get("location_id", "")))
+		if location.is_empty():
+			continue
+		if map_pos.distance_to(_quest_marker_center(location)) <= 24.0:
+			return {
+				"offer_id": str(quest_offer.get("offer_id", ""))
+			}
+	return {}
+
+func _active_map_marker_hit(map_pos: Vector2) -> Dictionary:
+	for party: Dictionary in _get_active_quest_parties():
+		var quest: Dictionary = party.get("quest", {})
+		var location := DataLoader.get_map_location(str(quest.get("location_id", "")))
+		if location.is_empty():
+			continue
+		if map_pos.distance_to(_quest_marker_center(location)) <= 24.0:
+			return {
+				"party_id": int(party.get("party_id", -1))
+			}
+	return {}
+
+func _quest_marker_center(location: Dictionary) -> Vector2:
+	var marker_pos := _location_canvas_position(get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestMapColumn/QuestMapCard/QuestMapMargin/QuestMapCanvas/QuestMapContent/QuestMapMarkers") as Control, location)
+	var marker_scale: float = float(location.get("landmark_scale", 1.0))
+	var icon_top_y: float = marker_pos.y - 54.0 * marker_scale * 0.72
+	return Vector2(marker_pos.x, icon_top_y - 30.0)
 
 func _clear_control_children(root: Node) -> void:
 	if root == null:
@@ -1987,8 +2049,8 @@ func _add_quest_map_marker(root: Control, quest_offer: Dictionary, is_active: bo
 		return
 	var offer_id := str(quest_offer.get("offer_id", ""))
 	var marker := Button.new()
-	marker.custom_minimum_size = Vector2(72, 72)
-	marker.size = Vector2(72, 72)
+	marker.custom_minimum_size = Vector2(56, 56)
+	marker.size = Vector2(56, 56)
 	marker.icon = _load_runtime_texture(str(QUEST_TYPE_ICONS.get(str(quest_offer.get("type", "")), ICON_BOOK_PATH)))
 	marker.expand_icon = true
 	marker.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -1999,23 +2061,23 @@ func _add_quest_map_marker(root: Control, quest_offer: Dictionary, is_active: bo
 	var marker_style := _make_style(
 		Color(0.18, 0.52, 0.42, 0.96) if not is_active else Color(0.19, 0.43, 0.73, 0.96),
 		Color(0.95, 0.93, 0.86, 0.56),
-		22,
+		18,
 		1,
-		8
+		6
 	)
 	var marker_hover := _make_style(
 		Color(0.21, 0.58, 0.47, 1.0) if not is_active else Color(0.22, 0.49, 0.80, 1.0),
 		Color(1, 1, 1, 0.78),
-		22,
+		18,
 		1,
-		8
+		6
 	)
 	var marker_pressed := _make_style(
 		Color(0.15, 0.42, 0.34, 1.0) if not is_active else Color(0.17, 0.38, 0.65, 1.0),
 		Color(1, 1, 1, 0.84),
-		22,
+		18,
 		1,
-		8
+		6
 	)
 	if offer_id == _selected_quest_id:
 		marker_style.bg_color = marker_hover.bg_color
@@ -2044,7 +2106,7 @@ func _add_quest_map_marker(root: Control, quest_offer: Dictionary, is_active: bo
 	var marker_pos := _location_canvas_position(root, location)
 	var marker_scale: float = float(location.get("landmark_scale", 1.0))
 	var icon_top_y: float = marker_pos.y - 54.0 * marker_scale * 0.72
-	marker.position = Vector2(marker_pos.x - 36.0, icon_top_y - 66.0)
+	marker.position = Vector2(marker_pos.x - 28.0, icon_top_y - 58.0)
 	marker.pressed.connect(func() -> void:
 		_selected_quest_kind = "available"
 		_selected_quest_id = offer_id
@@ -2067,8 +2129,8 @@ func _populate_map_active_markers(root: Control) -> void:
 
 func _add_active_quest_map_marker(root: Control, party_id: int, quest: Dictionary, location: Dictionary, members: Array) -> void:
 	var marker := Button.new()
-	marker.custom_minimum_size = Vector2(72, 72)
-	marker.size = Vector2(72, 72)
+	marker.custom_minimum_size = Vector2(56, 56)
+	marker.size = Vector2(56, 56)
 	var quest_type := str(quest.get("type", ""))
 	marker.icon = _load_runtime_texture(str(QUEST_TYPE_ICONS.get(quest_type, ICON_BOOK_PATH)))
 	marker.expand_icon = true
@@ -2080,7 +2142,7 @@ func _add_active_quest_map_marker(root: Control, party_id: int, quest: Dictionar
 	var is_selected := _selected_quest_kind == "active" and _selected_quest_id == str(party_id)
 	var amber := Color(0.82, 0.52, 0.10, 0.96)
 	var amber_hover := Color(0.92, 0.64, 0.22, 1.0)
-	var marker_style := _make_style(amber, Color(0.95, 0.93, 0.86, 0.56), 22, 1, 8)
+	var marker_style := _make_style(amber, Color(0.95, 0.93, 0.86, 0.56), 18, 1, 6)
 	if is_selected:
 		marker_style.bg_color = amber_hover
 		marker_style.border_width_left = 2
@@ -2088,13 +2150,13 @@ func _add_active_quest_map_marker(root: Control, party_id: int, quest: Dictionar
 		marker_style.border_width_right = 2
 		marker_style.border_width_bottom = 2
 	marker.add_theme_stylebox_override("normal", marker_style)
-	marker.add_theme_stylebox_override("hover", _make_style(amber_hover, Color(1, 1, 1, 0.78), 22, 1, 8))
-	marker.add_theme_stylebox_override("pressed", _make_style(Color(0.68, 0.42, 0.08, 1.0), Color(1, 1, 1, 0.84), 22, 1, 8))
-	marker.add_theme_stylebox_override("focus", _make_style(amber_hover, Color(1, 1, 1, 0.78), 22, 1, 8))
+	marker.add_theme_stylebox_override("hover", _make_style(amber_hover, Color(1, 1, 1, 0.78), 18, 1, 6))
+	marker.add_theme_stylebox_override("pressed", _make_style(Color(0.68, 0.42, 0.08, 1.0), Color(1, 1, 1, 0.84), 18, 1, 6))
+	marker.add_theme_stylebox_override("focus", _make_style(amber_hover, Color(1, 1, 1, 0.78), 18, 1, 6))
 	var marker_pos := _location_canvas_position(root, location)
 	var marker_scale: float = float(location.get("landmark_scale", 1.0))
 	var icon_top_y: float = marker_pos.y - 54.0 * marker_scale * 0.72
-	marker.position = Vector2(marker_pos.x - 36.0, icon_top_y - 66.0)
+	marker.position = Vector2(marker_pos.x - 28.0, icon_top_y - 58.0)
 	var local_party_id := str(party_id)
 	marker.pressed.connect(func() -> void:
 		_selected_quest_kind = "active"
