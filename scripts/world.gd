@@ -1774,15 +1774,17 @@ func _refresh_quest_offer_cards() -> void:
 			elif s == "returning" and combined_state != "on_quest":
 				combined_state = "returning"
 		var state_str := _format_quest_state(combined_state)
+		var phase_label := _active_party_phase_label(quest, members)
+		var phase_progress := _active_party_phase_progress(quest, members)
 		var ticks_str := "~%.0fm left" % (float(ticks_left) / 60.0) if ticks_left > 0 else "returning"
 		var button := Button.new()
 		button.custom_minimum_size = Vector2(0, 80)
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		button.text = "%s\n%s\nParty %d  •  %s  •  %s" % [
+		button.text = "%s\n%s\nParty %d  •  %s  %d%%  •  %s" % [
 			str(quest.get("name", "Quest")),
 			str(quest.get("location_name", "Unknown Site")),
-			members.size(), state_str, ticks_str
+			members.size(), phase_label, int(round(phase_progress * 100.0)), ticks_str
 		]
 		_apply_button_theme(button, "offer", is_sel)
 		button.modulate = Color(1.02, 0.94, 0.78, 1.0)
@@ -2235,6 +2237,7 @@ func _add_active_quest_map_marker(root: Control, party_id: int, quest: Dictionar
 	var marker_scale: float = float(location.get("landmark_scale", 1.0))
 	var icon_top_y: float = marker_pos.y - 54.0 * marker_scale * 0.72
 	marker.position = Vector2(marker_pos.x - 28.0, icon_top_y - 58.0)
+	marker.tooltip_text = "%s\n%s" % [str(quest.get("name", "Quest")), _active_party_phase_label(quest, members)]
 	var local_party_id := str(party_id)
 	marker.pressed.connect(func() -> void:
 		_selected_quest_kind = "active"
@@ -2250,7 +2253,7 @@ func _get_active_quest_parties() -> Array:
 	var parties: Dictionary = {}
 	for hero_id in GameState.heroes.keys():
 		var hero: Dictionary = GameState.heroes[hero_id]
-		if hero.get("state", "") not in ["departing_quest", "on_quest"]:
+		if hero.get("state", "") not in ["departing_quest", "on_quest", "returning"]:
 			continue
 		var current_quest: Dictionary = hero.get("current_quest", {})
 		if current_quest.is_empty():
@@ -2263,6 +2266,30 @@ func _get_active_quest_parties() -> Array:
 			parties[pid_str] = {"party_id": party_id, "quest": current_quest.duplicate(), "members": []}
 		parties[pid_str]["members"].append(hero.duplicate())
 	return parties.values()
+
+func _active_party_phase_label(quest: Dictionary, members: Array) -> String:
+	if not members.is_empty():
+		for member in members:
+			var state: String = str(member.get("state", ""))
+			if state == "returning":
+				return "Return Journey"
+		for member in members:
+			var state: String = str(member.get("state", ""))
+			if state == "departing_quest":
+				return "Outbound Travel"
+	return str(quest.get("quest_phase_label", "Questing"))
+
+func _active_party_phase_progress(quest: Dictionary, members: Array) -> float:
+	if not members.is_empty():
+		for member in members:
+			var state: String = str(member.get("state", ""))
+			if state == "returning":
+				return _quest_route_progress(member, true)
+		for member in members:
+			var state: String = str(member.get("state", ""))
+			if state == "departing_quest":
+				return _quest_route_progress(member, false)
+	return float(quest.get("quest_phase_progress", 0.0))
 
 func _populate_map_expeditions(root: Control) -> void:
 	var town_location := DataLoader.get_map_location("questtown")
@@ -2296,23 +2323,24 @@ func _populate_map_expeditions(root: Control) -> void:
 			continue
 		var site_pos := _location_canvas_position(root, location)
 		var site_label := str(location.get("display_name", quest.get("location_name", "Quest Site")))
+		var phase_label := _active_party_phase_label(quest, [hero])
 		match state:
 			"departing_quest":
 				var depart_progress := _quest_route_progress(hero, false)
 				var depart_pos := town_pos.lerp(site_pos, depart_progress)
 				_add_expedition_line(root, town_pos, depart_pos, Color(UI_ACCENT, 0.58))
-				_add_expedition_token(root, depart_pos, UI_ACCENT, "%s heading out" % site_label, int(hero_id))
+				_add_expedition_token(root, depart_pos, UI_ACCENT, "%s\n%s" % [site_label, phase_label], int(hero_id))
 			"on_quest":
 				_add_expedition_line(root, town_pos, site_pos, Color(UI_ACCENT, 0.18))
 				_add_expedition_pulse(root, site_pos, UI_ACCENT, ICON_CAMPFIRE_PATH, int(hero_id))
-				_add_expedition_caption(root, site_pos + Vector2(18, -8), "Questing at %s" % site_label, UI_TEXT_DARK)
+				_add_expedition_caption(root, site_pos + Vector2(18, -8), "%s\n%s" % [phase_label, site_label], UI_TEXT_DARK)
 			"returning":
 				var return_progress := _quest_route_progress(hero, true)
 				var return_pos := site_pos.lerp(town_pos, return_progress)
 				var recent_result: Dictionary = recent_result_by_location.get(str(location.get("location_id", "")), {})
 				var succeeded: bool = bool(recent_result.get("success", hero.get("last_quest_success", true)))
 				_add_expedition_line(root, site_pos, return_pos, Color(UI_SUCCESS if succeeded else UI_WARNING, 0.56))
-				_add_expedition_token(root, return_pos, UI_SUCCESS if succeeded else UI_WARNING, "%s returning" % site_label, int(hero_id))
+				_add_expedition_token(root, return_pos, UI_SUCCESS if succeeded else UI_WARNING, "%s\n%s" % [site_label, phase_label], int(hero_id))
 				if not shown_results.has(str(location.get("location_id", ""))) and not recent_result.is_empty():
 					_add_result_burst(root, site_pos, recent_result)
 					shown_results[str(location.get("location_id", ""))] = true
@@ -3061,17 +3089,30 @@ func _refresh_detail_for_active() -> void:
 		member_lines.append("%s — %s  HP %d/%d" % [str(member.get("name", "?")), state_str, hp, max_hp])
 		if str(member.get("state", "")) == "on_quest":
 			ticks_remaining = int(member.get("quest_ticks_remaining", 0))
+	var phase_label := _active_party_phase_label(quest, members)
+	var phase_progress := _active_party_phase_progress(quest, members)
 	var time_str := "~%.0f minutes remaining" % (float(ticks_remaining) / 60.0) if ticks_remaining > 0 else "Party is returning to town"
-	if n.summary: n.summary.text = "%s\n\nParty:\n%s" % [time_str, "\n".join(member_lines)]
+	var recent_events: Array = quest.get("quest_recent_events", [])
+	var recent_lines: Array = []
+	for event_variant in recent_events:
+		var event_entry: Dictionary = event_variant
+		recent_lines.append("• %s" % str(event_entry.get("text", "")))
+	var recent_text := "\n".join(recent_lines)
+	if recent_text == "":
+		recent_text = "• No field reports yet."
+	if n.summary: n.summary.text = "%s\nPhase  %s  (%d%%)\n\nParty:\n%s\n\nField reports:\n%s" % [time_str, phase_label, int(round(phase_progress * 100.0)), "\n".join(member_lines), recent_text]
 	if n.reward: n.reward.text = "Expected reward  %dg  +  %dxp  (paid on return)" % [int(quest.get("gold_reward", 0)), int(quest.get("xp_reward", 0))]
 	if n.xp: n.xp.text = "Party size  %d  •  %s family" % [members.size(), _family_badge_text(quest)]
-	if n.risk: n.risk.text = "Risk  %s  •  Difficulty %d" % [_risk_label(int(quest.get("risk_level", 1))), int(quest.get("difficulty", 1))]
+	if n.risk: n.risk.text = "Risk  %s  •  Difficulty %d  •  Phase %s" % [_risk_label(int(quest.get("risk_level", 1))), int(quest.get("difficulty", 1)), phase_label]
 	if n.requirement: n.requirement.text = "Site  %s  (%s)" % [location_name, str(quest.get("location_category", ""))]
 	if n.suitability:
 		var careers: Array = quest.get("preferred_careers", [])
-		n.suitability.text = "Resolution stat  %s\nPreferred careers  %s" % [
+		n.suitability.text = "Resolution stat  %s\nPreferred careers  %s\nRuntime modifiers  +%d success  +%d survival  +%dg reward" % [
 			str(quest.get("resolution_stat", "")).capitalize(),
-			", ".join(careers) if not careers.is_empty() else "any"
+			", ".join(careers) if not careers.is_empty() else "any",
+			int(quest.get("runtime_success_bonus", 0)),
+			int(quest.get("runtime_survival_bonus", 0)),
+			int(quest.get("runtime_reward_bonus", 0))
 		]
 	if n.action:
 		n.action.disabled = true
@@ -3328,7 +3369,7 @@ func _format_quest_state(state: String) -> String:
 		"departing_quest":
 			return "leaving town"
 		"on_quest":
-			return "off-screen"
+			return "at the site"
 		"returning":
 			return "heading home"
 		_:

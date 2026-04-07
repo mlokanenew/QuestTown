@@ -467,12 +467,24 @@ func _launch_party_for_quest(quest: Dictionary, party_ids: Array) -> void:
 	var quest_destination: Vector3 = _pick_quest_destination()
 	var party_id: int = int(quest.get("offer_id", _next_offer_id))
 	var leader_id: int = int(party_ids[0])
+	var quest_runtime: Dictionary = quest.duplicate(true)
+	quest_runtime["quest_total_ticks"] = int(quest.get("duration_ticks", 300))
+	quest_runtime["quest_elapsed_ticks"] = 0
+	quest_runtime["quest_phase"] = "outbound_travel"
+	quest_runtime["quest_phase_label"] = _phase_label("outbound_travel")
+	quest_runtime["quest_phase_progress"] = 0.0
+	quest_runtime["quest_recent_events"] = []
+	quest_runtime["quest_progress_event_index"] = 0
+	quest_runtime["runtime_success_bonus"] = 0
+	quest_runtime["runtime_survival_bonus"] = 0
+	quest_runtime["runtime_reward_bonus"] = 0
+	quest_runtime["runtime_return_delay_ticks"] = 0
 	for hero_id_variant in party_ids:
 		var hero_id: int = int(hero_id_variant)
 		var hero: Dictionary = GameState.heroes.get(hero_id, {})
 		if hero.is_empty():
 			continue
-		GameState.heroes[hero_id]["current_quest"] = quest.duplicate(true)
+		GameState.heroes[hero_id]["current_quest"] = quest_runtime.duplicate(true)
 		GameState.heroes[hero_id]["quest_party_id"] = party_id
 		GameState.heroes[hero_id]["quest_party_size"] = party_size
 		GameState.heroes[hero_id]["quest_party_leader_id"] = leader_id
@@ -528,9 +540,219 @@ func _step_active_quests(building_system: Object) -> void:
 			continue
 		if int(hero.get("quest_party_leader_id", hero_id)) != int(hero_id):
 			continue
-		GameState.heroes[hero_id]["quest_ticks_remaining"] = int(hero.get("quest_ticks_remaining", 0)) - 1
+		var remaining: int = int(hero.get("quest_ticks_remaining", 0)) - 1
+		GameState.heroes[hero_id]["quest_ticks_remaining"] = remaining
+		_update_active_party_runtime(hero_id, building_system)
 		if int(GameState.heroes[hero_id]["quest_ticks_remaining"]) <= 0:
 			_resolve_quest_party(hero_id, building_system)
+
+func _update_active_party_runtime(leader_id: int, building_system: Object) -> void:
+	if not GameState.heroes.has(leader_id):
+		return
+	var leader: Dictionary = GameState.heroes[leader_id]
+	var quest: Dictionary = leader.get("current_quest", {})
+	if quest.is_empty():
+		return
+	var party_members := _party_members_for_leader(leader_id)
+	if party_members.is_empty():
+		return
+	var total_ticks: int = max(1, int(quest.get("quest_total_ticks", quest.get("duration_ticks", 300))))
+	var remaining_ticks: int = max(0, int(GameState.heroes[leader_id].get("quest_ticks_remaining", 0)))
+	var elapsed_ticks: int = clamp(total_ticks - remaining_ticks, 0, total_ticks)
+	var runtime_updates := {
+		"quest_total_ticks": total_ticks,
+		"quest_elapsed_ticks": elapsed_ticks
+	}
+	var next_phase: String = _active_phase_for_elapsed(elapsed_ticks, total_ticks)
+	var previous_phase: String = str(quest.get("quest_phase", "contact"))
+	if next_phase != previous_phase:
+		runtime_updates["quest_phase"] = next_phase
+		runtime_updates["quest_phase_label"] = _phase_label(next_phase)
+		runtime_updates["quest_phase_progress"] = 0.0
+		_set_party_runtime_fields(party_members, runtime_updates)
+		GameState.log_event("quest_phase_changed", {
+			"party_id": int(leader.get("quest_party_id", -1)),
+			"quest_name": quest.get("name", "?"),
+			"phase": next_phase,
+			"phase_label": _phase_label(next_phase),
+			"location_name": quest.get("location_name", "")
+		})
+		var phase_message := _phase_event_message(quest, next_phase)
+		_append_party_recent_event(party_members, phase_message)
+	else:
+		var phase_progress: float = _phase_progress_for_elapsed(next_phase, elapsed_ticks, total_ticks)
+		runtime_updates["quest_phase"] = next_phase
+		runtime_updates["quest_phase_label"] = _phase_label(next_phase)
+		runtime_updates["quest_phase_progress"] = phase_progress
+		_set_party_runtime_fields(party_members, runtime_updates)
+	_trigger_progress_events_if_needed(party_members, building_system)
+
+func _party_members_for_leader(leader_id: int) -> Array:
+	if not GameState.heroes.has(leader_id):
+		return []
+	var leader: Dictionary = GameState.heroes[leader_id]
+	var party_id: int = int(leader.get("quest_party_id", -1))
+	var members: Array = []
+	for hero_id in GameState.heroes.keys():
+		var candidate: Dictionary = GameState.heroes[hero_id]
+		if int(candidate.get("quest_party_id", -2)) != party_id:
+			continue
+		if candidate.get("current_quest", {}).is_empty():
+			continue
+		members.append(int(hero_id))
+	return members
+
+func _set_party_runtime_fields(party_members: Array, updates: Dictionary) -> void:
+	for hero_id_variant in party_members:
+		var hero_id: int = int(hero_id_variant)
+		if not GameState.heroes.has(hero_id):
+			continue
+		var current_quest: Dictionary = GameState.heroes[hero_id].get("current_quest", {}).duplicate(true)
+		if current_quest.is_empty():
+			continue
+		for key in updates.keys():
+			current_quest[key] = updates[key]
+		GameState.heroes[hero_id]["current_quest"] = current_quest
+
+func _append_party_recent_event(party_members: Array, message: String) -> void:
+	if message.strip_edges() == "":
+		return
+	for hero_id_variant in party_members:
+		var hero_id: int = int(hero_id_variant)
+		if not GameState.heroes.has(hero_id):
+			continue
+		var current_quest: Dictionary = GameState.heroes[hero_id].get("current_quest", {}).duplicate(true)
+		if current_quest.is_empty():
+			continue
+		var recent_events: Array = current_quest.get("quest_recent_events", []).duplicate(true)
+		recent_events.append({
+			"tick": GameState.tick,
+			"text": message
+		})
+		while recent_events.size() > 4:
+			recent_events.pop_front()
+		current_quest["quest_recent_events"] = recent_events
+		GameState.heroes[hero_id]["current_quest"] = current_quest
+
+func _trigger_progress_events_if_needed(party_members: Array, building_system: Object) -> void:
+	if party_members.is_empty():
+		return
+	var leader_id: int = int(party_members[0])
+	if not GameState.heroes.has(leader_id):
+		return
+	var quest: Dictionary = GameState.heroes[leader_id].get("current_quest", {})
+	if quest.is_empty():
+		return
+	var progress_event_ratios: Array = DataLoader.get_quest_config().get("progress_event_ratios", [0.3, 0.72])
+	var event_index: int = int(quest.get("quest_progress_event_index", 0))
+	var elapsed_ticks: int = int(quest.get("quest_elapsed_ticks", 0))
+	var total_ticks: int = max(1, int(quest.get("quest_total_ticks", quest.get("duration_ticks", 300))))
+	while event_index < progress_event_ratios.size() and float(elapsed_ticks) / float(total_ticks) >= float(progress_event_ratios[event_index]):
+		var event_data: Dictionary = _build_progress_event(quest, event_index, building_system)
+		var updates := {
+			"quest_progress_event_index": event_index + 1,
+			"runtime_success_bonus": int(quest.get("runtime_success_bonus", 0)) + int(event_data.get("success_bonus", 0)),
+			"runtime_survival_bonus": int(quest.get("runtime_survival_bonus", 0)) + int(event_data.get("survival_bonus", 0)),
+			"runtime_reward_bonus": int(quest.get("runtime_reward_bonus", 0)) + int(event_data.get("reward_bonus", 0)),
+			"runtime_return_delay_ticks": int(quest.get("runtime_return_delay_ticks", 0)) + int(event_data.get("return_delay_ticks", 0))
+		}
+		_set_party_runtime_fields(party_members, updates)
+		var message: String = str(event_data.get("message", "")).strip_edges()
+		if message != "":
+			_append_party_recent_event(party_members, message)
+			GameState.log_event("quest_progress_event", {
+				"party_id": int(GameState.heroes[leader_id].get("quest_party_id", -1)),
+				"quest_name": quest.get("name", "?"),
+				"phase": str(quest.get("quest_phase", "")),
+				"message": message
+			})
+		quest = GameState.heroes[leader_id].get("current_quest", {})
+		event_index += 1
+
+func _active_phase_for_elapsed(elapsed_ticks: int, total_ticks: int) -> String:
+	var contact_ratio: float = float(DataLoader.get_quest_config().get("phase_contact_ratio", 0.4))
+	var contact_end: int = max(1, int(round(float(total_ticks) * contact_ratio)))
+	if elapsed_ticks < contact_end:
+		return "contact"
+	return "confrontation"
+
+func _phase_progress_for_elapsed(phase: String, elapsed_ticks: int, total_ticks: int) -> float:
+	var contact_ratio: float = float(DataLoader.get_quest_config().get("phase_contact_ratio", 0.4))
+	var contact_end: int = max(1, int(round(float(total_ticks) * contact_ratio)))
+	if phase == "contact":
+		return clamp(float(elapsed_ticks) / float(max(1, contact_end)), 0.0, 1.0)
+	var confrontation_ticks: int = max(1, total_ticks - contact_end)
+	return clamp(float(max(0, elapsed_ticks - contact_end)) / float(confrontation_ticks), 0.0, 1.0)
+
+func _phase_label(phase: String) -> String:
+	match phase:
+		"outbound_travel":
+			return "Outbound Travel"
+		"contact":
+			return "Contact / Scouting"
+		"confrontation":
+			return "Confrontation"
+		"return_journey":
+			return "Return Journey"
+		_:
+			return "Questing"
+
+func _phase_event_message(quest: Dictionary, phase: String) -> String:
+	var location_name: String = str(quest.get("location_name", "the site"))
+	match phase:
+		"contact":
+			return "The party reaches %s and begins scouting the threat." % location_name
+		"confrontation":
+			return "The party commits at %s and the outcome is now being decided." % location_name
+		"return_journey":
+			return "The party breaks away from %s and starts the road home." % location_name
+		_:
+			return ""
+
+func _build_progress_event(quest: Dictionary, event_index: int, building_system: Object) -> Dictionary:
+	var family: String = str(quest.get("quest_family", "town"))
+	var blocker_type: String = str(quest.get("type", "threat"))
+	var location_name: String = str(quest.get("location_name", "the site"))
+	if event_index == 0:
+		match family:
+			"town":
+				return {
+					"message": "Scouts report movement near %s, but the party finds a cleaner approach." % location_name,
+					"success_bonus": 1
+				}
+			"mine":
+				return {
+					"message": "The party secures a workable route into %s before the defenders react." % location_name,
+					"success_bonus": 1
+				}
+			"sacred":
+				return {
+					"message": "Signs around %s reveal the source of the danger, steadying the party." % location_name,
+					"survival_bonus": 1
+				}
+			_:
+				return {
+					"message": "The party gains a better read on %s." % location_name,
+					"success_bonus": 1
+				}
+	match blocker_type:
+		"bandits", "raiders":
+			return {
+				"message": "Resistance stiffens near %s, slowing the return but exposing valuables." % location_name,
+				"reward_bonus": 4,
+				"return_delay_ticks": 45
+			}
+		"corruption", "cultists":
+			return {
+				"message": "The fight at %s turns dangerous, but temple knowledge keeps panic in check." % location_name,
+				"survival_bonus": 1
+			}
+		_:
+			var support_bonus: int = _building_bonus(building_system, "weapons_shop", "quest_success_bonus")
+			return {
+				"message": "The party presses on at %s and finds a small edge." % location_name,
+				"success_bonus": 1 if support_bonus <= 2 else 2
+			}
 
 func _resolve_quest_party(leader_id: int, building_system: Object) -> void:
 	if not GameState.heroes.has(leader_id):
@@ -563,6 +785,8 @@ func _resolve_quest_party(leader_id: int, building_system: Object) -> void:
 			success_bonus += 2
 		success_bonus += int(hero.get("gear_bonus", 0))
 		survival_bonus += int(hero.get("blessing_bonus", 0))
+	success_bonus += int(quest.get("runtime_success_bonus", 0))
+	survival_bonus += int(quest.get("runtime_survival_bonus", 0))
 	var roll: int = _rng.randi_range(1, 6)
 	var threshold: int = int(quest.get("difficulty", 1)) * 3 * party_members.size()
 	threshold += int(quest.get("risk_level", 1)) * 2
@@ -570,6 +794,7 @@ func _resolve_quest_party(leader_id: int, building_system: Object) -> void:
 	var succeeded: bool = power + success_bonus + survival_bonus + roll >= threshold
 	var party_gold_gain: int = int(quest.get("gold_reward", 0))
 	var party_xp_gain: int = int(quest.get("xp_reward", 0))
+	party_gold_gain += int(quest.get("runtime_reward_bonus", 0))
 	if not succeeded:
 		party_gold_gain = int(max(0, party_gold_gain / 3))
 		party_xp_gain = int(max(1, party_xp_gain / 2))
@@ -595,6 +820,7 @@ func _resolve_quest_party(leader_id: int, building_system: Object) -> void:
 		"gold_reward": party_gold_gain,
 		"xp_reward": party_xp_gain,
 		"party_size": party_members.size(),
+		"recent_events": quest.get("quest_recent_events", []).duplicate(true),
 		"completed_tick": GameState.tick
 	})
 	_resolve_blocker_outcome(quest, succeeded)
@@ -630,7 +856,7 @@ func _resolve_party_member(hero_id: int, quest: Dictionary, tavern: Vector3, bui
 		else:
 			GameState.heroes[hero_id]["wound_state"] = "healthy"
 		GameState.heroes[hero_id]["post_quest_state"] = "idling"
-		GameState.heroes[hero_id]["return_idle_ticks"] = 180
+		GameState.heroes[hero_id]["return_idle_ticks"] = 180 + int(quest.get("runtime_return_delay_ticks", 0))
 
 	GameState.heroes[hero_id]["gold"] = int(hero.get("gold", 0)) + gold_gain
 	GameState.heroes[hero_id]["xp"] = int(hero.get("xp", 0)) + xp_gain
@@ -638,6 +864,9 @@ func _resolve_party_member(hero_id: int, quest: Dictionary, tavern: Vector3, bui
 	GameState.heroes[hero_id]["blessing_bonus"] = 0
 	GameState.heroes[hero_id]["last_quest_success"] = succeeded
 	GameState.heroes[hero_id]["last_quest_completed_tick"] = GameState.tick
+	GameState.heroes[hero_id]["current_quest"]["quest_phase"] = "return_journey"
+	GameState.heroes[hero_id]["current_quest"]["quest_phase_label"] = _phase_label("return_journey")
+	GameState.heroes[hero_id]["current_quest"]["quest_phase_progress"] = 0.0
 	GameState.heroes[hero_id]["quest_status"] = "returning"
 	_apply_level_up(hero_id)
 	GameState.heroes[hero_id]["target"] = {"x": tavern.x, "y": tavern.y, "z": tavern.z}

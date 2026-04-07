@@ -16,6 +16,8 @@
     "urgent_expiry_max": 420,
     "urgent_gold_multiplier": 1.25,
     "urgent_xp_multiplier": 1.2,
-    "urgent_risk_bonus": 1
+    "urgent_risk_bonus": 1,
+    "phase_contact_ratio": 0.4,
+    "progress_event_ratios": [0.3, 0.72]
   }
 }
