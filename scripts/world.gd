@@ -21,12 +21,28 @@ const ICON_SKULL_PATH := "res://assets/ui/icons/skull.png"
 const MAP_PARCHMENT_PATH := "res://assets/ui/generated_map/backgrounds/old_paper_1.png"
 const MAP_COMPASS_PATH := "res://assets/ui/generated_map/decorations/compass_rose.png"
 const MAP_ICON_TOWN_PATH := "res://assets/ui/generated_map/cities/walled_city.png"
+const MAP_ICON_TOWN_HILL_PATH := "res://assets/ui/generated_map/cities/town_on_a_hill.png"
 const MAP_ICON_VILLAGE_PATH := "res://assets/ui/generated_map/cities/small_village.png"
 const MAP_ICON_FARM_PATH := "res://assets/ui/generated_map/cities/farm.png"
 const MAP_ICON_TREE_PATH := "res://assets/ui/generated_map/trees/pine_tree_1.png"
 const MAP_ICON_TREE_SMALL_PATH := "res://assets/ui/generated_map/trees/pine_tree_2.png"
+const MAP_ICON_TREE_DECIDUOUS_PATH := "res://assets/ui/generated_map/trees/deciduous_tree_1.png"
+const MAP_ICON_TREE_DECIDUOUS_2_PATH := "res://assets/ui/generated_map/trees/deciduous_tree_2.png"
 const MAP_ICON_HILL_PATH := "res://assets/ui/generated_map/hills/round_hill_2.png"
+const MAP_ICON_HILL_SHARP_PATH := "res://assets/ui/generated_map/hills/sharp_hill_1.png"
+const MAP_ICON_HILL_SHARP_2_PATH := "res://assets/ui/generated_map/hills/sharp_hill_2.png"
 const MAP_ICON_MOUNTAIN_PATH := "res://assets/ui/generated_map/mountains/sharp_mountain_2.png"
+const MAP_ICON_MOUNTAIN_ROUND_PATH := "res://assets/ui/generated_map/mountains/round_mountain_1.png"
+const MAP_ICON_MOUNTAIN_SPIRE_PATH := "res://assets/ui/generated_map/mountains/spire_mountain_1.png"
+const MAP_RETINA_BASE := "res://assets/kenney_cartography-pack (1)/PNG/Retina/"
+const MAP_ICON_BRIDGE_PATH := MAP_RETINA_BASE + "bridge.png"
+const MAP_ICON_BRIDGE_ROPE_PATH := MAP_RETINA_BASE + "bridgeRope.png"
+const MAP_ICON_GRAVEYARD_PATH := MAP_RETINA_BASE + "graveyard.png"
+const MAP_ICON_CHURCH_PATH := MAP_RETINA_BASE + "church.png"
+const MAP_ICON_WATCHTOWER_PATH := MAP_RETINA_BASE + "watchtower.png"
+const MAP_ICON_RUINS_PATH := MAP_RETINA_BASE + "ruins.png"
+const MAP_ICON_BANNER_PATH := MAP_RETINA_BASE + "banner.png"
+const MAP_ICON_SKULL_PATH := MAP_RETINA_BASE + "skull.png"
 const UI_SOUND_CLICK_PATH := "res://assets/audio/ui/click.ogg"
 const UI_SOUND_OPEN_PATH := "res://assets/audio/ui/open.ogg"
 const UI_SOUND_CLOSE_PATH := "res://assets/audio/ui/close.ogg"
@@ -122,17 +138,38 @@ const QUEST_FAMILY_NAMES := {
 
 const MAP_LOCATION_ICONS := {
 	"town": MAP_ICON_TOWN_PATH,
+	"town_on_hill": MAP_ICON_TOWN_HILL_PATH,
 	"hamlet": MAP_ICON_VILLAGE_PATH,
 	"cellar": MAP_ICON_FARM_PATH,
-	"woods": MAP_ICON_TREE_PATH,
+	"woods": MAP_ICON_TREE_DECIDUOUS_PATH,
+	"woods_pine": MAP_ICON_TREE_PATH,
 	"house_small": MAP_ICON_FARM_PATH,
 	"woods_small": MAP_ICON_TREE_SMALL_PATH,
+	"woods_deciduous_2": MAP_ICON_TREE_DECIDUOUS_2_PATH,
 	"rocks": MAP_ICON_MOUNTAIN_PATH,
+	"hill": MAP_ICON_HILL_PATH,
+	"hill_sharp": MAP_ICON_HILL_SHARP_PATH,
+	"hill_sharp_2": MAP_ICON_HILL_SHARP_2_PATH,
+	"mountain_round": MAP_ICON_MOUNTAIN_ROUND_PATH,
+	"mountain_spire": MAP_ICON_MOUNTAIN_SPIRE_PATH,
+	"bridge": MAP_ICON_BRIDGE_PATH,
+	"ford": MAP_ICON_BRIDGE_ROPE_PATH,
+	"graveyard": MAP_ICON_GRAVEYARD_PATH,
+	"shrine": MAP_ICON_CHURCH_PATH,
+	"watchtower": MAP_ICON_WATCHTOWER_PATH,
+	"ruins": MAP_ICON_RUINS_PATH,
+	"road": MAP_ICON_BANNER_PATH,
+	"crossroads": MAP_ICON_BANNER_PATH,
+	"bridge_rope": MAP_ICON_BRIDGE_ROPE_PATH,
+	"church": MAP_ICON_CHURCH_PATH,
+	"skull": MAP_ICON_SKULL_PATH,
+	"banner": MAP_ICON_BANNER_PATH,
 }
 
 const QUEST_MAP_MIN_ZOOM := 1.0
 const QUEST_MAP_MAX_ZOOM := 2.2
 const QUEST_MAP_ZOOM_STEP := 0.14
+const SHOW_QUEST_MAP_RIVER := false
 const MAP_DRAWN_ROUTE_STYLES := {
 	"main_road": {
 		"color": Color(0.14, 0.11, 0.08, 0.88),
@@ -1536,6 +1573,9 @@ func _refresh_quest_ui() -> void:
 	var summary_label := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestListColumn/QuestListHeader/QuestFilterSummaryLabel")
 	if summary_label:
 		summary_label.text = "%d discovered sites" % GameState.quests.size()
+	var drawer_title := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestHeader/QuestTitle")
+	if drawer_title:
+		drawer_title.text = "Quest Map"
 
 	var list_title := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestListColumn/QuestOffersTitle")
 	if list_title:
@@ -1769,9 +1809,10 @@ func _populate_map_routes(root: Control) -> void:
 
 func _populate_map_terrain(root: Control) -> void:
 	var generated: Dictionary = _ensure_quest_map_generator().generate(_quest_map_canvas_size(root), DataLoader.map_locations, DataLoader.map_routes, 1337)
-	for river_variant in generated.get("river_paths", []):
-		if river_variant is Dictionary:
-			_add_map_river(root, river_variant)
+	if SHOW_QUEST_MAP_RIVER:
+		for river_variant in generated.get("river_paths", []):
+			if river_variant is Dictionary:
+				_add_map_river(root, river_variant)
 	for decoration_variant in generated.get("terrain_decorations", []):
 		if decoration_variant is Dictionary:
 			_add_map_terrain_decoration(root, decoration_variant)
@@ -1795,6 +1836,8 @@ func _populate_map_landmarks(root: Control) -> void:
 		var pos := _location_canvas_position(root, location)
 		var scale: float = float(location.get("landmark_scale", 1.0))
 		var icon_size := Vector2(54, 54) * scale
+		# icon_bottom_y is the pixel row at the bottom of the drawn icon sprite
+		var icon_bottom_y: float = pos.y + icon_size.y * 0.28
 		if texture != null:
 			var icon := TextureRect.new()
 			icon.texture = texture
@@ -1809,38 +1852,82 @@ func _populate_map_landmarks(root: Control) -> void:
 		else:
 			_add_landmark_symbol(root, location, pos)
 		_add_location_icon_overlays(root, location)
-		_add_location_label(root, location, pos)
+		_add_location_label(root, location, pos, icon_bottom_y)
 
 func _populate_map_markers(root: Control) -> void:
 	for quest_offer: Dictionary in GameState.quests:
-		var location := DataLoader.get_map_location(str(quest_offer.get("location_id", "")))
-		if location.is_empty():
-			continue
+		_add_quest_map_marker(root, quest_offer, false)
+
+func _add_quest_map_marker(root: Control, quest_offer: Dictionary, is_active: bool) -> void:
+	var location := DataLoader.get_map_location(str(quest_offer.get("location_id", "")))
+	if location.is_empty():
+		return
+	var offer_id := str(quest_offer.get("offer_id", ""))
+	var marker := Button.new()
+	marker.custom_minimum_size = Vector2(56, 56)
+	marker.size = Vector2(56, 56)
+	marker.icon = _load_runtime_texture(str(QUEST_TYPE_ICONS.get(str(quest_offer.get("type", "")), ICON_BOOK_PATH)))
+	marker.expand_icon = true
+	marker.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	marker.flat = true
+	marker.text = ""
+	marker.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	var marker_style := _make_style(
+		Color(0.18, 0.52, 0.42, 0.96) if not is_active else Color(0.19, 0.43, 0.73, 0.96),
+		Color(0.95, 0.93, 0.86, 0.56),
+		18,
+		1,
+		6
+	)
+	var marker_hover := _make_style(
+		Color(0.21, 0.58, 0.47, 1.0) if not is_active else Color(0.22, 0.49, 0.80, 1.0),
+		Color(1, 1, 1, 0.78),
+		18,
+		1,
+		6
+	)
+	var marker_pressed := _make_style(
+		Color(0.15, 0.42, 0.34, 1.0) if not is_active else Color(0.17, 0.38, 0.65, 1.0),
+		Color(1, 1, 1, 0.84),
+		18,
+		1,
+		6
+	)
+	if offer_id == _selected_quest_id:
+		marker_style.bg_color = marker_hover.bg_color
+		marker_style.border_width_left = 2
+		marker_style.border_width_top = 2
+		marker_style.border_width_right = 2
+		marker_style.border_width_bottom = 2
+	marker.add_theme_stylebox_override("normal", marker_style)
+	marker.add_theme_stylebox_override("hover", marker_hover)
+	marker.add_theme_stylebox_override("pressed", marker_pressed)
+	marker.add_theme_stylebox_override("focus", marker_hover)
+	if not is_active:
 		var preview: Dictionary = sim.get_quest_acceptance_preview(int(quest_offer.get("offer_id", -1)))
-		var marker := Button.new()
-		var offer_id := str(quest_offer.get("offer_id", ""))
-		marker.custom_minimum_size = Vector2(42, 42)
-		marker.size = Vector2(42, 42)
-		marker.icon = _load_runtime_texture(str(QUEST_TYPE_ICONS.get(str(quest_offer.get("type", "")), ICON_BOOK_PATH)))
-		marker.expand_icon = true
-		marker.flat = false
-		marker.text = ""
-		_apply_button_theme(marker, "accent", offer_id == _selected_quest_id)
 		if not bool(preview.get("can_accept", false)):
-			marker.modulate = Color(0.92, 0.88, 0.82, 0.84)
-		marker.position = _location_canvas_position(root, location) - Vector2(21, 52)
+			marker.modulate = Color(0.94, 0.91, 0.85, 0.88)
 		marker.tooltip_text = "%s\n%s\n%s" % [
 			str(quest_offer.get("name", "Quest")),
 			str(location.get("display_name", "Unknown Site")),
 			"Ready to launch" if bool(preview.get("can_accept", false)) else str(preview.get("reason", "Need party"))
 		]
-		marker.pressed.connect(func() -> void:
-			_selected_quest_id = offer_id
-			_refresh_quest_ui()
-			_pulse_control(get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestMapColumn/QuestMapCard") as CanvasItem, "quest_map_focus", Vector2(1.01, 1.01))
-		)
-		_wire_button_sfx(marker)
-		root.add_child(marker)
+	else:
+		marker.tooltip_text = "%s\n%s\nExpedition in progress" % [
+			str(quest_offer.get("name", "Quest")),
+			str(location.get("display_name", "Unknown Site"))
+		]
+	var marker_pos := _location_canvas_position(root, location)
+	var marker_scale: float = float(location.get("landmark_scale", 1.0))
+	var icon_top_y: float = marker_pos.y - 54.0 * marker_scale * 0.72
+	marker.position = Vector2(marker_pos.x - 28.0, icon_top_y - 58.0)
+	marker.pressed.connect(func() -> void:
+		_selected_quest_id = offer_id
+		_refresh_quest_ui()
+		_pulse_control(get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestMapColumn/QuestMapCard") as CanvasItem, "quest_map_focus", Vector2(1.01, 1.01))
+	)
+	_wire_button_sfx(marker)
+	root.add_child(marker)
 
 func _populate_map_expeditions(root: Control) -> void:
 	var town_location := DataLoader.get_map_location("questtown_centre")
@@ -1879,10 +1966,10 @@ func _populate_map_expeditions(root: Control) -> void:
 				var depart_progress := _quest_route_progress(hero, false)
 				var depart_pos := town_pos.lerp(site_pos, depart_progress)
 				_add_expedition_line(root, town_pos, depart_pos, Color(UI_ACCENT, 0.58))
-				_add_expedition_token(root, depart_pos, UI_ACCENT, "%s heading out" % site_label)
+				_add_expedition_token(root, depart_pos, UI_ACCENT, "%s heading out" % site_label, int(hero_id))
 			"on_quest":
 				_add_expedition_line(root, town_pos, site_pos, Color(UI_ACCENT, 0.18))
-				_add_expedition_pulse(root, site_pos, UI_ACCENT, ICON_CAMPFIRE_PATH)
+				_add_expedition_pulse(root, site_pos, UI_ACCENT, ICON_CAMPFIRE_PATH, int(hero_id))
 				_add_expedition_caption(root, site_pos + Vector2(18, -8), "Questing at %s" % site_label, UI_TEXT_DARK)
 			"returning":
 				var return_progress := _quest_route_progress(hero, true)
@@ -1890,7 +1977,7 @@ func _populate_map_expeditions(root: Control) -> void:
 				var recent_result: Dictionary = recent_result_by_location.get(str(location.get("location_id", "")), {})
 				var succeeded: bool = bool(recent_result.get("success", hero.get("last_quest_success", true)))
 				_add_expedition_line(root, site_pos, return_pos, Color(UI_SUCCESS if succeeded else UI_WARNING, 0.56))
-				_add_expedition_token(root, return_pos, UI_SUCCESS if succeeded else UI_WARNING, "%s returning" % site_label)
+				_add_expedition_token(root, return_pos, UI_SUCCESS if succeeded else UI_WARNING, "%s returning" % site_label, int(hero_id))
 				if not shown_results.has(str(location.get("location_id", ""))) and not recent_result.is_empty():
 					_add_result_burst(root, site_pos, recent_result)
 					shown_results[str(location.get("location_id", ""))] = true
@@ -1926,33 +2013,58 @@ func _add_expedition_line(root: Control, from_pos: Vector2, to_pos: Vector2, col
 	line.rotation = delta.angle()
 	root.add_child(line)
 
-func _add_expedition_token(root: Control, position: Vector2, color: Color, tooltip_text: String) -> void:
-	var token := TextureRect.new()
-	token.texture = _load_runtime_texture(ICON_CHARACTER_PATH)
-	token.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	token.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	token.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	token.size = Vector2(26, 26)
-	token.position = position - Vector2(13, 13)
+func _add_expedition_token(root: Control, position: Vector2, color: Color, tooltip_text: String, hero_id: int = -1) -> void:
+	var token := Button.new()
+	token.icon = _load_runtime_texture(ICON_CHARACTER_PATH)
+	token.expand_icon = true
+	token.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	token.flat = true
+	token.text = ""
+	token.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	token.custom_minimum_size = Vector2(32, 32)
+	token.size = Vector2(32, 32)
+	token.position = position - Vector2(16, 16)
 	token.modulate = color
 	token.tooltip_text = tooltip_text
+	var style := _make_style(Color(color, 0.20), Color(1, 1, 1, 0.10), 16, 0, 4)
+	token.add_theme_stylebox_override("normal", style)
+	token.add_theme_stylebox_override("hover", _make_style(Color(color, 0.28), Color(1, 1, 1, 0.34), 16, 1, 4))
+	token.add_theme_stylebox_override("pressed", _make_style(Color(color, 0.34), Color(1, 1, 1, 0.46), 16, 1, 4))
+	if hero_id >= 0:
+		token.pressed.connect(func() -> void:
+			_show_hero_panel(hero_id)
+			_set_status("Tracking %s" % GameState.heroes.get(hero_id, {}).get("name", "adventurer"))
+		)
+		_wire_button_sfx(token)
 	root.add_child(token)
 
-func _add_expedition_pulse(root: Control, position: Vector2, color: Color, icon_path: String) -> void:
+func _add_expedition_pulse(root: Control, position: Vector2, color: Color, icon_path: String, hero_id: int = -1) -> void:
 	var pulse := ColorRect.new()
 	pulse.color = Color(color, 0.30)
 	pulse.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	pulse.size = Vector2(34, 34)
 	pulse.position = position - Vector2(17, 17)
 	root.add_child(pulse)
-	var token := TextureRect.new()
-	token.texture = _load_runtime_texture(icon_path)
-	token.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	token.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	token.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	token.size = Vector2(28, 28)
-	token.position = position - Vector2(14, 14)
+	var token := Button.new()
+	token.icon = _load_runtime_texture(icon_path)
+	token.expand_icon = true
+	token.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	token.flat = true
+	token.text = ""
+	token.custom_minimum_size = Vector2(30, 30)
+	token.size = Vector2(30, 30)
+	token.position = position - Vector2(15, 15)
 	token.modulate = color
+	token.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	token.add_theme_stylebox_override("normal", _make_style(Color(color, 0.12), Color(1, 1, 1, 0.0), 15, 0, 4))
+	token.add_theme_stylebox_override("hover", _make_style(Color(color, 0.20), Color(1, 1, 1, 0.26), 15, 1, 4))
+	token.add_theme_stylebox_override("pressed", _make_style(Color(color, 0.26), Color(1, 1, 1, 0.38), 15, 1, 4))
+	if hero_id >= 0:
+		token.pressed.connect(func() -> void:
+			_show_hero_panel(hero_id)
+			_set_status("Tracking %s" % GameState.heroes.get(hero_id, {}).get("name", "adventurer"))
+		)
+		_wire_button_sfx(token)
 	root.add_child(token)
 
 func _add_expedition_caption(root: Control, position: Vector2, text: String, color: Color) -> void:
@@ -2023,12 +2135,12 @@ func _map_anchor_to_canvas(root: Control, anchor_variant: Variant) -> Vector2:
 
 func _location_label_offset(location: Dictionary) -> Vector2:
 	var offset: Dictionary = location.get("label_offset", {})
-	return Vector2(float(offset.get("x", -36)), float(offset.get("y", 12)))
+	return Vector2(float(offset.get("x", 0)), float(offset.get("y", 12)))
 
 func _location_label_width(location: Dictionary) -> float:
 	return float(location.get("label_width", 132.0))
 
-func _add_location_label(root: Control, location: Dictionary, pos: Vector2) -> void:
+func _add_location_label(root: Control, location: Dictionary, pos: Vector2, icon_bottom_y: float = 0.0) -> void:
 	var text := str(location.get("display_name", "?"))
 	var is_town := str(location.get("id", "")) == "questtown_centre"
 	var label_shadow := Label.new()
@@ -2045,11 +2157,17 @@ func _add_location_label(root: Control, location: Dictionary, pos: Vector2) -> v
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_apply_label_role(label, "panel_title" if is_town else "meta", true)
 	label.set("theme_override_colors/font_color", Color(0.19, 0.15, 0.10, 0.95) if is_town else Color(0.24, 0.20, 0.14, 0.84))
-	var label_offset := _location_label_offset(location)
-	var label_size := Vector2(_location_label_width(location), 26 if is_town else 22)
-	label_shadow.position = pos + label_offset + Vector2(1, 1)
+	var label_width := _location_label_width(location)
+	var label_height := 26.0 if is_town else 20.0
+	var label_size := Vector2(label_width, label_height)
+	var x_shift := 0.0
+	var y_shift := float(location.get("label_offset", {}).get("y", 0.0))
+	var label_gap := 8.0 if is_town else 6.0
+	var anchor_y := icon_bottom_y if icon_bottom_y > 0.0 else (pos.y + 14.0)
+	var label_pos := Vector2(pos.x + x_shift - label_width * 0.5, anchor_y + label_gap + y_shift)
+	label_shadow.position = label_pos + Vector2(1, 1)
 	label_shadow.size = label_size
-	label.position = pos + label_offset
+	label.position = label_pos
 	label.size = label_size
 	root.add_child(label_shadow)
 	root.add_child(label)
@@ -2424,14 +2542,26 @@ func _refresh_selected_quest_detail() -> void:
 	if suitability_label:
 		suitability_label.text = _quest_suitability_text(quest, preview)
 	if action_button:
-		action_button.disabled = not bool(preview.get("can_accept", false))
-		action_button.text = ("Accept Urgent Quest" if bool(quest.get("urgent", false)) else "Accept Quest") if bool(preview.get("can_accept", false)) else str(preview.get("reason", "Need party"))
-		action_button.icon = _load_runtime_texture(ICON_SWORD_PATH) if bool(preview.get("can_accept", false)) else _load_runtime_texture(ICON_SHIELD_PATH)
+		if bool(quest.get("active", false)):
+			action_button.disabled = true
+			action_button.text = "Expedition in Progress"
+			action_button.icon = _load_runtime_texture(ICON_CHARACTER_PATH)
+		else:
+			action_button.disabled = not bool(preview.get("can_accept", false))
+			action_button.text = ("Accept Urgent Quest" if bool(quest.get("urgent", false)) else "Accept Quest") if bool(preview.get("can_accept", false)) else str(preview.get("reason", "Need party"))
+			action_button.icon = _load_runtime_texture(ICON_SWORD_PATH) if bool(preview.get("can_accept", false)) else _load_runtime_texture(ICON_SHIELD_PATH)
 
 func _get_quest_offer(offer_id: String) -> Dictionary:
 	for quest: Dictionary in GameState.quests:
 		if str(quest.get("offer_id", "")) == offer_id:
 			return quest
+	for hero_variant in GameState.heroes.values():
+		var hero: Dictionary = hero_variant
+		var current_quest: Dictionary = hero.get("current_quest", {})
+		if str(current_quest.get("offer_id", "")) == offer_id:
+			var active_quest := current_quest.duplicate(true)
+			active_quest["active"] = true
+			return active_quest
 	return {}
 
 func _quest_requirements_text(quest: Dictionary) -> String:

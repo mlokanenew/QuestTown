@@ -204,7 +204,7 @@ text = "Heroes: 0   Expeditions: 0"
 [node name="QuestDrawerButton" type="Button" parent="UILayer/TopBar/TopBarRow"]
 theme_override_styles/normal = SubResource("button_secondary")
 theme_override_styles/hover = SubResource("button_primary")
-text = "Quest Board  (K)"
+text = "Quest Map  (K)"
 
 [node name="BuildPanelToggleButton" type="Button" parent="UILayer/TopBar/TopBarRow"]
 theme_override_styles/normal = SubResource("button_secondary")
@@ -680,7 +680,7 @@ theme_override_constants/separation = 10
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 22
 theme_override_colors/font_color = Color(0.95, 0.91, 0.73, 1)
-text = "Quest Board"
+text = "Quest Map"
 
 [node name="QuestCloseButton" type="Button" parent="UILayer/QuestDrawer/QuestVBox/QuestHeader"]
 custom_minimum_size = Vector2(42, 0)
