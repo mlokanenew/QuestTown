@@ -1,0 +1,17 @@
+{
+  "name": "mvp_manual_party_selection",
+  "goal": "The player should be able to launch a blocker quest with an explicit chosen party.",
+  "seed": 42,
+  "max_ticks": 0,
+  "commands": [
+    {"cmd": "place_building", "type": "tavern", "x": 0, "z": 0},
+    {"cmd": "set_building_output_mode", "type": "tavern"},
+    {"cmd": "step_ticks", "n": 600},
+    {"cmd": "accept_quest", "index": 0, "hero_ids": [1, 3]},
+    {"cmd": "step_ticks", "n": 120}
+  ],
+  "assertions": [
+    {"assert": "event_type_seen", "value": "quest_accepted"},
+    {"assert": "active_party_size_gte", "value": 2}
+  ]
+}

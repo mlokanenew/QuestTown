@@ -120,7 +120,7 @@ func _handle(cmd: Dictionary) -> void:
 				var quests: Array = _sim.get_world_state().get("quests", [])
 				if not quests.is_empty():
 					offer_id = int(quests[0].get("offer_id", -1))
-			var accept_result: Variant = _sim.accept_quest(offer_id)
+			var accept_result: Variant = _sim.accept_quest(offer_id, cmd.get("hero_ids", []))
 			if accept_result.is_empty():
 				_respond({"ok": false, "error": "accept quest failed"})
 			else:

@@ -182,13 +182,13 @@ func _quest_is_unlocked(quest: Dictionary, building_system: Object) -> bool:
 		and _building_level(building_system, "temple") >= int(quest.get("min_temple_level", 0))
 	)
 
-func accept_quest_offer(offer_id: int, building_system: Object) -> Dictionary:
+func accept_quest_offer(offer_id: int, building_system: Object, requested_party_ids: Array = []) -> Dictionary:
 	var quest_index: int = _find_offer_index(offer_id)
 	if quest_index < 0:
 		return {}
-	var available_heroes: Array = _available_idle_heroes(building_system)
 	var quest: Dictionary = GameState.quests[quest_index]
-	var party_ids: Array = _choose_party_for_offer(available_heroes, quest)
+	var preview: Dictionary = get_acceptance_preview(offer_id, building_system, requested_party_ids)
+	var party_ids: Array = preview.get("party_ids", []).duplicate()
 	if party_ids.is_empty():
 		return {}
 	var updated_quests: Array = GameState.quests.duplicate(true)
@@ -210,18 +210,19 @@ func accept_quest_offer(offer_id: int, building_system: Object) -> Dictionary:
 		"party_ids": party_ids.duplicate()
 	}
 
-func get_acceptance_preview(offer_id: int, building_system: Object) -> Dictionary:
+func get_acceptance_preview(offer_id: int, building_system: Object, requested_party_ids: Array = []) -> Dictionary:
 	var quest_index: int = _find_offer_index(offer_id)
 	if quest_index < 0:
 		return {
 			"can_accept": false,
 			"reason": "Quest no longer available",
 			"party_ids": [],
-			"party_names": []
+			"party_names": [],
+			"risk_label": "Dangerous"
 		}
 	var quest: Dictionary = GameState.quests[quest_index]
-	var available_heroes: Array = _available_idle_heroes(building_system)
-	var party_ids: Array = _choose_party_for_offer(available_heroes, quest)
+	var selection_state: Dictionary = get_party_selection_state(offer_id, building_system, requested_party_ids)
+	var party_ids: Array = selection_state.get("party_ids", []).duplicate()
 	var party_names: Array = []
 	for hero_id_variant in party_ids:
 		var hero: Dictionary = GameState.heroes.get(int(hero_id_variant), {})
@@ -230,17 +231,146 @@ func get_acceptance_preview(offer_id: int, building_system: Object) -> Dictionar
 	if party_ids.is_empty():
 		return {
 			"can_accept": false,
-			"reason": "Need %d rested, equipped adventurers" % int(quest.get("party_size", 3)),
+			"reason": str(selection_state.get("reason", "Need %d ready adventurers" % int(quest.get("party_size", 3)))),
 			"party_ids": [],
-			"party_names": []
+			"party_names": [],
+			"risk_label": str(selection_state.get("risk_label", "Dangerous"))
 		}
 	return {
-		"can_accept": true,
-		"reason": "",
+		"can_accept": bool(selection_state.get("can_accept", true)),
+		"reason": str(selection_state.get("reason", "")),
 		"party_ids": party_ids.duplicate(),
 		"party_names": party_names,
-		"party_size": party_ids.size()
+		"party_size": party_ids.size(),
+		"risk_label": str(selection_state.get("risk_label", "Fair"))
 	}
+
+func get_party_selection_state(offer_id: int, building_system: Object, selected_ids: Array = []) -> Dictionary:
+	var quest_index: int = _find_offer_index(offer_id)
+	if quest_index < 0:
+		return {
+			"can_accept": false,
+			"reason": "Quest no longer available",
+			"party_ids": [],
+			"eligible": [],
+			"ineligible": [],
+			"risk_label": "Dangerous"
+		}
+	var quest: Dictionary = GameState.quests[quest_index]
+	var normalized_selected_ids: Array = []
+	var seen := {}
+	for hero_id_variant in selected_ids:
+		var hero_id: int = int(hero_id_variant)
+		if hero_id <= 0 or seen.has(hero_id):
+			continue
+		seen[hero_id] = true
+		normalized_selected_ids.append(hero_id)
+	var eligible: Array = []
+	var ineligible: Array = []
+	for hero_id in GameState.heroes.keys():
+		var hero: Dictionary = GameState.heroes[hero_id]
+		var entry := _hero_selection_entry(int(hero_id), hero, quest)
+		if bool(entry.get("eligible", false)):
+			eligible.append(entry)
+		else:
+			ineligible.append(entry)
+	eligible.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		if is_equal_approx(float(a.get("score", 0.0)), float(b.get("score", 0.0))):
+			return int(a.get("hero_id", 0)) < int(b.get("hero_id", 0))
+		return float(a.get("score", 0.0)) > float(b.get("score", 0.0))
+	)
+	ineligible.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		return int(a.get("hero_id", 0)) < int(b.get("hero_id", 0))
+	)
+	var party_size: int = clamp(int(quest.get("party_size", 3)), 2, 5)
+	var party_ids: Array = []
+	var can_accept := false
+	var reason := ""
+	if normalized_selected_ids.is_empty():
+		var available_heroes: Array = []
+		for entry in eligible:
+			available_heroes.append(int(entry.get("hero_id", -1)))
+		party_ids = _choose_party_for_offer(available_heroes, quest)
+		can_accept = party_ids.size() >= party_size
+		reason = "" if can_accept else "Need %d ready adventurers" % party_size
+	else:
+		if normalized_selected_ids.size() != party_size:
+			reason = "Select exactly %d heroes" % party_size
+		else:
+			var invalid_reasons: Array = []
+			for hero_id in normalized_selected_ids:
+				var selected_entry := _find_selection_entry(eligible, ineligible, hero_id)
+				if selected_entry.is_empty() or not bool(selected_entry.get("eligible", false)):
+					invalid_reasons.append(str(selected_entry.get("reason", "Unavailable")))
+				else:
+					party_ids.append(hero_id)
+			can_accept = invalid_reasons.is_empty() and party_ids.size() == party_size
+			reason = "" if can_accept else ", ".join(invalid_reasons)
+	var risk_label := _party_risk_label(quest, party_ids, building_system)
+	return {
+		"can_accept": can_accept,
+		"reason": reason,
+		"party_ids": party_ids.duplicate(),
+		"eligible": eligible,
+		"ineligible": ineligible,
+		"risk_label": risk_label
+	}
+
+func _find_selection_entry(eligible: Array, ineligible: Array, hero_id: int) -> Dictionary:
+	for entry in eligible:
+		if int(entry.get("hero_id", -1)) == hero_id:
+			return entry
+	for entry in ineligible:
+		if int(entry.get("hero_id", -1)) == hero_id:
+			return entry
+	return {}
+
+func _hero_selection_entry(hero_id: int, hero: Dictionary, quest: Dictionary) -> Dictionary:
+	var reason := ""
+	if hero.get("state", "") != "idling":
+		reason = "Already away"
+	elif not hero.get("current_quest", {}).is_empty():
+		reason = "Already away"
+	elif str(hero.get("wound_state", "healthy")) != "healthy" or int(hero.get("health", 0)) < int(hero.get("max_health", 0)):
+		reason = "Wounded"
+	elif int(hero.get("idle_ticks_remaining", 0)) > 120:
+		reason = "Fatigued"
+	var score := _hero_quest_score(hero, quest) if reason == "" else -999.0
+	return {
+		"hero_id": hero_id,
+		"name": str(hero.get("name", "?")),
+		"career_id": str(hero.get("career_id", "")),
+		"career": str(hero.get("career_role", hero.get("career", ""))),
+		"level": int(hero.get("level", 1)),
+		"health": int(hero.get("health", 0)),
+		"max_health": int(hero.get("max_health", 0)),
+		"eligible": reason == "",
+		"reason": reason,
+		"score": score
+	}
+
+func _party_risk_label(quest: Dictionary, party_ids: Array, building_system: Object) -> String:
+	if party_ids.is_empty():
+		return "Dangerous"
+	var power: float = 0.0
+	for hero_id_variant in party_ids:
+		var hero: Dictionary = GameState.heroes.get(int(hero_id_variant), {})
+		if hero.is_empty():
+			continue
+		power += float(_hero_resolution_power(hero, quest))
+		if quest.get("preferred_careers", []).has(hero.get("career_id", "")):
+			power += 2.0
+	power += float(_building_bonus(building_system, "weapons_shop", "quest_success_bonus"))
+	power += float(_building_bonus(building_system, "temple", "survival_bonus")) * 0.5
+	var target: float = float(int(quest.get("difficulty", 1)) * 3 * max(1, party_ids.size()) + int(quest.get("risk_level", 1)) * 2)
+	var ratio: float = power / max(1.0, target)
+	if ratio >= 1.4:
+		return "Strong"
+	if ratio >= 1.05:
+		return "Fair"
+	if ratio >= 0.82:
+		return "Risky"
+	return "Dangerous"
 
 func _available_idle_heroes(building_system: Object) -> Array:
 	var hero_ids: Array = []

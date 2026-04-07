@@ -93,6 +93,8 @@ var _selected_entity_kind: String = ""
 var _details_expanded: bool = false
 var _selected_quest_id: String = ""
 var _selected_quest_kind: String = "available"
+var _selected_quest_party_ids: Array = []
+var _selected_quest_party_offer_id: String = ""
 var _quest_list_collapsed: bool = false
 var _ui_sfx: Dictionary = {}
 var _ui_textures: Dictionary = {}
@@ -667,6 +669,10 @@ func _apply_visual_design_system() -> void:
 	var quest_suitability := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestSuitabilityCard")
 	if quest_suitability:
 		quest_suitability.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_PAPER, 0.92), Color(UI_BORDER_SUBTLE, 0.20), 18, 0, 14))
+	_ensure_quest_party_selector_ui()
+	var quest_party_card := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestPartyCard")
+	if quest_party_card:
+		quest_party_card.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_PAPER, 0.92), Color(UI_BORDER_SUBTLE, 0.20), 18, 0, 14))
 	var active_card := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestLowerRow/ActiveQuestCard")
 	if active_card:
 		active_card.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_2, 0.92), Color(UI_ACCENT, 0.18), 18, 0, 12))
@@ -747,6 +753,8 @@ func _apply_visual_design_system() -> void:
 	_apply_label_role(get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestDetailHeader/QuestDetailHeaderVBox/QuestDetailKicker"), "section", true)
 	_apply_label_role(get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestDetailHeader/QuestDetailHeaderVBox/QuestDetailTitleLabel"), "quest_title", true)
 	_apply_label_role(get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestDetailHeader/QuestDetailHeaderVBox/QuestDetailSummaryLabel"), "body", true)
+	_apply_label_role(get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestPartyCard/QuestPartyVBox/QuestPartyTitle"), "section")
+	_apply_label_role(get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestPartyCard/QuestPartyVBox/QuestPartySummary"), "meta")
 
 	var help := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestHelp")
 	if help:
@@ -1858,6 +1866,7 @@ func _refresh_quest_map() -> void:
 	_populate_map_terrain(terrain_root)
 	_populate_map_routes(routes_root)
 	_populate_map_landmarks(landmarks_root)
+	_populate_map_blocker_states(markers_root)
 	_populate_map_markers(markers_root)
 	_populate_map_active_markers(markers_root)
 	_populate_map_expeditions(expeditions_root)
@@ -2046,6 +2055,48 @@ func _populate_map_landmarks(root: Control) -> void:
 func _populate_map_markers(root: Control) -> void:
 	for quest_offer: Dictionary in GameState.quests:
 		_add_quest_map_marker(root, quest_offer, false)
+
+func _populate_map_blocker_states(root: Control) -> void:
+	for blocker_variant in GameState.blockers.values():
+		var blocker: Dictionary = blocker_variant
+		var state: String = str(blocker.get("state", ""))
+		if state not in ["known_blocked", "discovered", "active_quest"]:
+			continue
+		if state == "discovered" and _quest_for_blocker_exists(str(blocker.get("blocker_id", ""))):
+			continue
+		if state == "active_quest":
+			continue
+		_add_blocker_state_marker(root, blocker)
+
+func _quest_for_blocker_exists(blocker_id: String) -> bool:
+	for quest_offer: Dictionary in GameState.quests:
+		if str(quest_offer.get("blocker_id", "")) == blocker_id:
+			return true
+	return false
+
+func _add_blocker_state_marker(root: Control, blocker: Dictionary) -> void:
+	var location := DataLoader.get_map_location(str(blocker.get("location_id", "")))
+	if location.is_empty():
+		return
+	var state: String = str(blocker.get("state", "known_blocked"))
+	var marker_center := _quest_marker_center(location)
+	var seal := Panel.new()
+	seal.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	seal.size = Vector2(26, 26)
+	seal.position = marker_center - seal.size * 0.5 + Vector2(20, -8)
+	var fill := Color(0.16, 0.13, 0.11, 0.72) if state == "known_blocked" else Color(UI_WARNING, 0.82)
+	var border := Color(0.32, 0.08, 0.08, 0.45) if state == "known_blocked" else Color(0.98, 0.92, 0.80, 0.72)
+	seal.add_theme_stylebox_override("panel", _make_style(fill, border, 13, 1, 4))
+	root.add_child(seal)
+	var icon := TextureRect.new()
+	icon.texture = _load_runtime_texture(ICON_SKULL_PATH if state == "known_blocked" else ICON_SHIELD_PATH)
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	icon.size = Vector2(16, 16)
+	icon.position = seal.position + Vector2(5, 5)
+	icon.modulate = Color(0.92, 0.90, 0.84, 0.9)
+	root.add_child(icon)
 
 func _add_quest_map_marker(root: Control, quest_offer: Dictionary, is_active: bool) -> void:
 	var location := DataLoader.get_map_location(str(quest_offer.get("location_id", "")))
@@ -2755,6 +2806,44 @@ func _sample_polyline_position(points: PackedVector2Array, distance: float) -> V
 func _family_badge_text(quest: Dictionary) -> String:
 	return str(QUEST_FAMILY_NAMES.get(str(quest.get("quest_family", "tavern")), "Rumour"))
 
+func _ensure_quest_party_selector_ui() -> void:
+	var detail_column := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn") as VBoxContainer
+	if detail_column == null:
+		return
+	if detail_column.get_node_or_null("QuestPartyCard") != null:
+		return
+	var action_button := detail_column.get_node_or_null("QuestActionButton")
+	var card := PanelContainer.new()
+	card.name = "QuestPartyCard"
+	var vbox := VBoxContainer.new()
+	vbox.name = "QuestPartyVBox"
+	vbox.add_theme_constant_override("separation", 8)
+	card.add_child(vbox)
+	var title := Label.new()
+	title.name = "QuestPartyTitle"
+	title.text = "Choose Party"
+	vbox.add_child(title)
+	var summary := Label.new()
+	summary.name = "QuestPartySummary"
+	summary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	summary.text = "Select the heroes you want to send."
+	vbox.add_child(summary)
+	var list := VBoxContainer.new()
+	list.name = "QuestPartyList"
+	list.add_theme_constant_override("separation", 6)
+	vbox.add_child(list)
+	detail_column.add_child(card)
+	if action_button != null:
+		detail_column.move_child(card, action_button.get_index())
+
+func _quest_party_nodes() -> Dictionary:
+	return {
+		"card": get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestPartyCard"),
+		"title": get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestPartyCard/QuestPartyVBox/QuestPartyTitle"),
+		"summary": get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestPartyCard/QuestPartyVBox/QuestPartySummary"),
+		"list": get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestPartyCard/QuestPartyVBox/QuestPartyList")
+	}
+
 func _refresh_selected_quest_detail() -> void:
 	match _selected_quest_kind:
 		"active":
@@ -2779,15 +2868,19 @@ func _quest_detail_nodes() -> Dictionary:
 
 func _refresh_detail_for_available() -> void:
 	var n := _quest_detail_nodes()
+	var party_nodes := _quest_party_nodes()
 	var quest := _get_quest_offer(_selected_quest_id)
 	if quest.is_empty():
 		if n.title: n.title.text = "No quest available"
 		if n.summary: n.summary.text = "Produce rumours at the Inn before the board can offer expeditions."
 		if n.kicker: n.kicker.text = "Mission Board"
 		if n.action: n.action.disabled = true; n.action.text = "Accept Quest"
+		if party_nodes.card: party_nodes.card.visible = false
 		return
 	var template_id := str(quest.get("template_id", ""))
-	var preview: Dictionary = sim.get_quest_acceptance_preview(int(quest.get("offer_id", -1)))
+	_sync_selected_party_for_offer(quest)
+	var selection_state: Dictionary = sim.get_quest_party_selection_state(int(quest.get("offer_id", -1)), _selected_quest_party_ids)
+	var preview: Dictionary = sim.get_quest_acceptance_preview(int(quest.get("offer_id", -1)), _selected_quest_party_ids)
 	var location_name := str(quest.get("location_name", "Unknown Site"))
 	var family_name := _family_badge_text(quest)
 	if n.kicker: n.kicker.text = "%s  •  %s" % [family_name, location_name]
@@ -2800,9 +2893,10 @@ func _refresh_detail_for_available() -> void:
 		]
 	if n.reward: n.reward.text = "Reward  %dg  •  Site  %s" % [int(quest.get("gold_reward", 0)), location_name]
 	if n.xp: n.xp.text = "Experience  %dxp to the party  •  Family  %s" % [int(quest.get("xp_reward", 0)), family_name]
-	if n.risk: n.risk.text = "Risk  %s   Party %d   %s" % [_risk_label(int(quest.get("risk_level", 1))), int(quest.get("party_size", 3)), _quest_expiry_short_label(quest)]
+	if n.risk: n.risk.text = "Risk  %s   Party %d   %s" % [str(preview.get("risk_label", _risk_label(int(quest.get("risk_level", 1))))), int(quest.get("party_size", 3)), _quest_expiry_short_label(quest)]
 	if n.requirement: n.requirement.text = "Requirements  %s" % _quest_requirements_text(quest)
-	if n.suitability: n.suitability.text = _quest_suitability_text(quest, preview)
+	if n.suitability: n.suitability.text = _quest_suitability_text(quest, preview, selection_state)
+	_refresh_quest_party_selection_ui(quest, selection_state)
 	if n.action:
 		if bool(quest.get("active", false)):
 			n.action.disabled = true
@@ -2815,10 +2909,12 @@ func _refresh_detail_for_available() -> void:
 
 func _refresh_detail_for_active() -> void:
 	var n := _quest_detail_nodes()
+	var party_nodes := _quest_party_nodes()
 	var party_id := int(_selected_quest_id) if _selected_quest_id.is_valid_int() else -1
 	if party_id < 0:
 		if n.title: n.title.text = "No expedition selected"
 		if n.action: n.action.disabled = true; n.action.text = "In Progress"
+		if party_nodes.card: party_nodes.card.visible = false
 		return
 	var quest: Dictionary = {}
 	var members: Array = []
@@ -2834,6 +2930,7 @@ func _refresh_detail_for_active() -> void:
 	if quest.is_empty():
 		if n.title: n.title.text = "Expedition not found"
 		if n.action: n.action.disabled = true; n.action.text = "In Progress"
+		if party_nodes.card: party_nodes.card.visible = false
 		return
 	var location_name := str(quest.get("location_name", "Unknown Site"))
 	if n.kicker: n.kicker.text = "Expedition  •  %s" % location_name
@@ -2863,9 +2960,12 @@ func _refresh_detail_for_active() -> void:
 		n.action.disabled = true
 		n.action.text = "Expedition in Progress"
 		n.action.icon = _load_runtime_texture(ICON_CHARACTER_PATH)
+	if party_nodes.card:
+		party_nodes.card.visible = false
 
 func _refresh_detail_for_completed() -> void:
 	var n := _quest_detail_nodes()
+	var party_nodes := _quest_party_nodes()
 	var idx := int(_selected_quest_id) if _selected_quest_id.is_valid_int() else -1
 	var completed := GameState.completed_quests.duplicate()
 	completed.reverse()
@@ -2873,6 +2973,7 @@ func _refresh_detail_for_completed() -> void:
 	if entry.is_empty():
 		if n.title: n.title.text = "No completed quest selected"
 		if n.action: n.action.disabled = true; n.action.text = "Completed"
+		if party_nodes.card: party_nodes.card.visible = false
 		return
 	var success: bool = bool(entry.get("success", false))
 	var quest_name := str(entry.get("quest_name", "?"))
@@ -2899,6 +3000,8 @@ func _refresh_detail_for_completed() -> void:
 		n.action.disabled = true
 		n.action.text = "Quest Completed"
 		n.action.icon = _load_runtime_texture(ICON_AWARD_PATH)
+	if party_nodes.card:
+		party_nodes.card.visible = false
 
 func _get_quest_offer(offer_id: String) -> Dictionary:
 	for quest: Dictionary in GameState.quests:
@@ -2950,7 +3053,85 @@ func _quest_summary_text(quest: Dictionary) -> String:
 		_:
 			return "A town opportunity for autonomous adventurers."
 
-func _quest_suitability_text(quest: Dictionary, preview: Dictionary) -> String:
+func _sync_selected_party_for_offer(quest: Dictionary) -> void:
+	var offer_id := str(quest.get("offer_id", ""))
+	if _selected_quest_party_offer_id != offer_id:
+		_selected_quest_party_offer_id = offer_id
+		var preview: Dictionary = sim.get_quest_acceptance_preview(int(quest.get("offer_id", -1)))
+		_selected_quest_party_ids = preview.get("party_ids", []).duplicate()
+		return
+	var valid_ids := {}
+	for hero_id in GameState.heroes.keys():
+		valid_ids[int(hero_id)] = true
+	var filtered: Array = []
+	for hero_id_variant in _selected_quest_party_ids:
+		var hero_id: int = int(hero_id_variant)
+		if valid_ids.has(hero_id):
+			filtered.append(hero_id)
+	_selected_quest_party_ids = filtered
+
+func _refresh_quest_party_selection_ui(quest: Dictionary, selection_state: Dictionary) -> void:
+	var nodes := _quest_party_nodes()
+	var card := nodes.get("card") as Control
+	var summary := nodes.get("summary") as Label
+	var list := nodes.get("list") as VBoxContainer
+	if card == null or summary == null or list == null:
+		return
+	card.visible = true
+	_clear_control_children(list)
+	var party_size: int = int(quest.get("party_size", 2))
+	var selected_count: int = _selected_quest_party_ids.size()
+	var risk_label: String = str(selection_state.get("risk_label", "Dangerous"))
+	summary.text = "Select %d heroes. Chosen %d/%d. Current outlook: %s." % [party_size, selected_count, party_size, risk_label]
+	for entry_variant in selection_state.get("eligible", []):
+		var entry: Dictionary = entry_variant
+		var hero_id: int = int(entry.get("hero_id", -1))
+		var selected := _selected_quest_party_ids.has(hero_id)
+		var button := Button.new()
+		button.toggle_mode = true
+		button.button_pressed = selected
+		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		button.text = "%s  •  %s L%d  •  HP %d/%d" % [
+			str(entry.get("name", "?")),
+			str(entry.get("career", "")),
+			int(entry.get("level", 1)),
+			int(entry.get("health", 0)),
+			int(entry.get("max_health", 0))
+		]
+		_apply_button_theme(button, "offer", selected)
+		_wire_button_sfx(button)
+		button.pressed.connect(func() -> void:
+			_toggle_quest_party_member(hero_id, party_size)
+		)
+		list.add_child(button)
+	for entry_variant in selection_state.get("ineligible", []):
+		var entry: Dictionary = entry_variant
+		var button := Button.new()
+		button.disabled = true
+		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		button.text = "%s  •  %s L%d  •  %s" % [
+			str(entry.get("name", "?")),
+			str(entry.get("career", "")),
+			int(entry.get("level", 1)),
+			str(entry.get("reason", "Unavailable"))
+		]
+		_apply_button_theme(button, "offer", false)
+		button.modulate = Color(1, 1, 1, 0.68)
+		list.add_child(button)
+
+func _toggle_quest_party_member(hero_id: int, party_size: int) -> void:
+	if _selected_quest_kind != "available":
+		return
+	if _selected_quest_party_ids.has(hero_id):
+		_selected_quest_party_ids.erase(hero_id)
+	else:
+		if _selected_quest_party_ids.size() >= party_size:
+			_selected_quest_party_ids.pop_front()
+		_selected_quest_party_ids.append(hero_id)
+	_refresh_selected_quest_detail()
+	_pulse_control(get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestPartyCard") as CanvasItem, "quest_party_focus", Vector2(1.01, 1.01))
+
+func _quest_suitability_text(quest: Dictionary, preview: Dictionary, selection_state: Dictionary = {}) -> String:
 	var names: Array = []
 	for career_id in quest.get("preferred_careers", []):
 		match str(career_id):
@@ -2964,14 +3145,16 @@ func _quest_suitability_text(quest: Dictionary, preview: Dictionary) -> String:
 				names.append(str(career_id).replace("_", " ").capitalize())
 	var preview_names: Array = preview.get("party_names", [])
 	preview_names.sort()
-	var party_line := "Ready party: %s" % ", ".join(preview_names) if not preview_names.is_empty() else "Launch status: %s" % str(preview.get("reason", "Waiting for a ready party"))
-	return "Likely interested adventurers: %s\nRecommended party size: %d\nResolution focus: %s\nMap site: %s (%s)\n%s" % [
+	var party_line := "Selected party: %s" % ", ".join(preview_names) if not preview_names.is_empty() else "Launch status: %s" % str(preview.get("reason", "Waiting for a ready party"))
+	var risk_line := "Current party outlook: %s" % str(selection_state.get("risk_label", preview.get("risk_label", "Dangerous")))
+	return "Likely interested adventurers: %s\nRecommended party size: %d\nResolution focus: %s\nMap site: %s (%s)\n%s\n%s" % [
 		", ".join(names),
 		int(quest.get("party_size", 3)),
 		str(quest.get("resolution_stat", "might")).capitalize(),
 		str(quest.get("location_name", "Unknown Site")),
 		str(quest.get("location_category", "unknown")),
-		party_line
+		party_line,
+		risk_line
 	]
 
 func _quest_expiry_minutes(expiry_ticks: int) -> float:
@@ -3010,11 +3193,13 @@ func _accept_selected_quest() -> void:
 	var quest := _get_quest_offer(_selected_quest_id)
 	if quest.is_empty():
 		return
-	var result: Dictionary = sim.accept_quest(int(quest.get("offer_id", -1)))
+	var result: Dictionary = sim.accept_quest(int(quest.get("offer_id", -1)), _selected_quest_party_ids)
 	if result.is_empty():
 		_set_status("No ready party can take that quest yet")
 	else:
 		_set_status("Accepted %s for %d adventurers" % [result.get("quest_name", "quest"), int(result.get("party_size", 0))])
+		_selected_quest_party_ids.clear()
+		_selected_quest_party_offer_id = ""
 	_refresh_quest_ui()
 
 func _set_all_quest_filters(enabled: bool) -> void:

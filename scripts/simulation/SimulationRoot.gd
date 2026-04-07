@@ -52,11 +52,14 @@ func start_building_upgrade(id: int) -> Dictionary:
 func set_building_output_mode(id: int) -> Dictionary:
 	return building_system.set_output_mode(id)
 
-func accept_quest(offer_id: int) -> Dictionary:
-	return quest_system.accept_quest_offer(offer_id, building_system)
+func accept_quest(offer_id: int, hero_ids: Array = []) -> Dictionary:
+	return quest_system.accept_quest_offer(offer_id, building_system, hero_ids)
 
-func get_quest_acceptance_preview(offer_id: int) -> Dictionary:
-	return quest_system.get_acceptance_preview(offer_id, building_system)
+func get_quest_acceptance_preview(offer_id: int, hero_ids: Array = []) -> Dictionary:
+	return quest_system.get_acceptance_preview(offer_id, building_system, hero_ids)
+
+func get_quest_party_selection_state(offer_id: int, hero_ids: Array = []) -> Dictionary:
+	return quest_system.get_party_selection_state(offer_id, building_system, hero_ids)
 
 func remove_building(id: int) -> void:
 	building_system.remove_building(id)

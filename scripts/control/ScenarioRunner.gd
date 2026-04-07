@@ -101,7 +101,7 @@ func _execute_command(sim: Node, cmd: Dictionary) -> void:
 				var quests: Array = sim.get_world_state().get("quests", [])
 				if not quests.is_empty():
 					offer_id = int(quests[0].get("offer_id", -1))
-			sim.accept_quest(offer_id)
+			sim.accept_quest(offer_id, cmd.get("hero_ids", []))
 		"step_ticks":
 			sim.step_ticks(cmd.get("n", 1))
 		"set_quest_enabled":
