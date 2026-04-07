@@ -2069,7 +2069,6 @@ func _add_map_river(root: Control, river: Dictionary) -> void:
 	outer.end_cap_mode = Line2D.LINE_CAP_ROUND
 	outer.antialiased = true
 	outer.points = points
-	outer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(outer)
 	var inner := Line2D.new()
 	inner.default_color = Color(river.get("inner_color", Color(0.86, 0.90, 0.92, 0.26)))
@@ -2079,7 +2078,6 @@ func _add_map_river(root: Control, river: Dictionary) -> void:
 	inner.end_cap_mode = Line2D.LINE_CAP_ROUND
 	inner.antialiased = true
 	inner.points = points
-	inner.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(inner)
 
 func _add_map_terrain_decoration(root: Control, decoration: Dictionary) -> void:
