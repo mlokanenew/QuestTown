@@ -216,6 +216,7 @@ func _available_idle_heroes(building_system: Object) -> Array:
 		if shop_has_stock and int(hero.get("gear_bonus", 0)) <= 0 and int(hero.get("gold", 0)) >= required_gear_cost:
 			continue
 		hero_ids.append(int(hero_id))
+	hero_ids.sort()
 	return hero_ids
 
 func _choose_party_assignment(available_heroes: Array, quests: Array) -> Dictionary:
@@ -237,7 +238,11 @@ func _choose_party_assignment(available_heroes: Array, quests: Array) -> Diction
 				"score": _hero_quest_score(hero, quest)
 			})
 		scored_heroes.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
-			return float(a.get("score", 0.0)) > float(b.get("score", 0.0))
+			var score_a := float(a.get("score", 0.0))
+			var score_b := float(b.get("score", 0.0))
+			if is_equal_approx(score_a, score_b):
+				return int(a.get("hero_id", 0)) < int(b.get("hero_id", 0))
+			return score_a > score_b
 		)
 		var party_ids: Array = []
 		var total_score := 0.0
@@ -269,7 +274,11 @@ func _choose_party_for_offer(available_heroes: Array, quest: Dictionary) -> Arra
 			"score": _hero_quest_score(hero, quest)
 		})
 	scored_heroes.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
-		return float(a.get("score", 0.0)) > float(b.get("score", 0.0))
+		var score_a := float(a.get("score", 0.0))
+		var score_b := float(b.get("score", 0.0))
+		if is_equal_approx(score_a, score_b):
+			return int(a.get("hero_id", 0)) < int(b.get("hero_id", 0))
+		return score_a > score_b
 	)
 	var party_ids: Array = []
 	for entry in scored_heroes.slice(0, party_size):
@@ -390,19 +399,40 @@ func _resolve_quest_party(leader_id: int, building_system: Object) -> void:
 	var member_gold_gain: int = max(1, int(round(float(party_gold_gain) / float(max(1, party_members.size())))))
 	var member_xp_gain: int = max(1, int(round(float(party_xp_gain) / float(max(1, party_members.size())))))
 	var tavern := _tavern_position()
+	var party_names: Array = []
+	var any_wounded := false
 	for hero_id_variant in party_members:
-		_resolve_party_member(int(hero_id_variant), quest, tavern, building_system, succeeded, member_gold_gain, member_xp_gain, survival_bonus)
+		var member_result := _resolve_party_member(int(hero_id_variant), quest, tavern, building_system, succeeded, member_gold_gain, member_xp_gain, survival_bonus)
+		party_names.append(str(member_result.get("hero_name", "?")))
+		any_wounded = any_wounded or bool(member_result.get("wounded", false))
+	GameState.record_completed_quest({
+		"party_id": party_id,
+		"party_names": party_names.duplicate(),
+		"hero_name": ", ".join(party_names),
+		"quest_name": quest.get("name", "?"),
+		"template_id": quest.get("template_id", ""),
+		"location_id": quest.get("location_id", ""),
+		"location_name": quest.get("location_name", ""),
+		"success": succeeded,
+		"wound_state": "minor_wounded" if any_wounded else "healthy",
+		"gold_reward": party_gold_gain,
+		"xp_reward": party_xp_gain,
+		"party_size": party_members.size(),
+		"completed_tick": GameState.tick
+	})
 
-func _resolve_party_member(hero_id: int, quest: Dictionary, tavern: Vector3, building_system: Object, succeeded: bool, gold_gain: int, xp_gain: int, survival_bonus: int) -> void:
+func _resolve_party_member(hero_id: int, quest: Dictionary, tavern: Vector3, building_system: Object, succeeded: bool, gold_gain: int, xp_gain: int, survival_bonus: int) -> Dictionary:
 	if not GameState.heroes.has(hero_id):
-		return
+		return {}
 	var hero: Dictionary = GameState.heroes[hero_id]
+	var wounded := false
 	if not succeeded:
 		var wound_chance: float = clamp(0.6 + 0.1 * float(quest.get("risk_level", 1)) - 0.05 * float(survival_bonus), 0.3, 0.95)
 		if _rng.randf() < wound_chance:
 			var damage: int = max(1, int(quest.get("risk_level", 1)))
 			GameState.heroes[hero_id]["health"] = max(1, int(hero.get("health", 1)) - damage)
 			GameState.heroes[hero_id]["wound_state"] = "minor_wounded"
+			wounded = true
 			var recovery_bonus: int = _building_bonus(building_system, "temple", "recovery_bonus")
 			GameState.heroes[hero_id]["recovery_ticks_remaining"] = max(120, 300 + int(quest.get("risk_level", 1)) * 90 - recovery_bonus * 60)
 			GameState.heroes[hero_id]["post_quest_state"] = "recovering"
@@ -418,6 +448,7 @@ func _resolve_party_member(hero_id: int, quest: Dictionary, tavern: Vector3, bui
 			var chip_damage: int = max(1, int(quest.get("risk_level", 1)))
 			GameState.heroes[hero_id]["health"] = max(1, int(hero.get("health", 1)) - chip_damage)
 			GameState.heroes[hero_id]["wound_state"] = "minor_wounded"
+			wounded = true
 		else:
 			GameState.heroes[hero_id]["wound_state"] = "healthy"
 		GameState.heroes[hero_id]["post_quest_state"] = "idling"
@@ -433,19 +464,6 @@ func _resolve_party_member(hero_id: int, quest: Dictionary, tavern: Vector3, bui
 	_apply_level_up(hero_id)
 	GameState.heroes[hero_id]["target"] = {"x": tavern.x, "y": tavern.y, "z": tavern.z}
 	GameState.set_hero_state(hero_id, "returning")
-	GameState.record_completed_quest({
-		"hero_id": hero_id,
-		"hero_name": hero.get("name", "?"),
-		"quest_name": quest.get("name", "?"),
-		"template_id": quest.get("template_id", ""),
-		"location_id": quest.get("location_id", ""),
-		"location_name": quest.get("location_name", ""),
-		"success": succeeded,
-		"wound_state": GameState.heroes[hero_id].get("wound_state", "healthy"),
-		"gold_reward": gold_gain,
-		"xp_reward": xp_gain,
-		"completed_tick": GameState.tick
-	})
 	GameState.log_event("hero_heading_home", {
 		"hero_id": hero_id,
 		"hero_name": hero.get("name", "?"),
@@ -461,6 +479,11 @@ func _resolve_party_member(hero_id: int, quest: Dictionary, tavern: Vector3, bui
 		"wound_state": GameState.heroes[hero_id].get("wound_state", "healthy"),
 		"party_size": int(hero.get("quest_party_size", 1))
 	})
+	return {
+		"hero_id": hero_id,
+		"hero_name": hero.get("name", "?"),
+		"wounded": wounded
+	}
 
 func _hero_resolution_power(hero: Dictionary, quest: Dictionary) -> int:
 	var power: int = int(hero.get("level", 1))

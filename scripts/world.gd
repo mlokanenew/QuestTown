@@ -92,6 +92,7 @@ var _event_feed_expanded: bool = false
 var _selected_entity_kind: String = ""
 var _details_expanded: bool = false
 var _selected_quest_id: String = ""
+var _selected_quest_kind: String = "available"
 var _quest_list_collapsed: bool = false
 var _ui_sfx: Dictionary = {}
 var _ui_textures: Dictionary = {}
@@ -1355,7 +1356,7 @@ func _on_hero_state_changed(hero_id: int, _new_state: String) -> void:
 	if hero_id == _selected_hero_id:
 		_refresh_hero_panel(hero_id)
 	_refresh_roster_strip()
-	_refresh_quest_ui()
+	_refresh_selected_quest_detail()
 
 func _on_hero_spawned(_hero: Dictionary) -> void:
 	_refresh_roster_strip()
@@ -1572,7 +1573,8 @@ func _setup_quest_menu() -> void:
 func _refresh_quest_ui() -> void:
 	var summary_label := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestListColumn/QuestListHeader/QuestFilterSummaryLabel")
 	if summary_label:
-		summary_label.text = "%d discovered sites" % GameState.quests.size()
+		var active_count := _get_active_quest_parties().size()
+		summary_label.text = "%d available  •  %d in progress  •  %d done" % [GameState.quests.size(), active_count, GameState.completed_quests.size()]
 	var drawer_title := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestHeader/QuestTitle")
 	if drawer_title:
 		drawer_title.text = "Quest Map"
@@ -1644,21 +1646,34 @@ func _refresh_quest_ui() -> void:
 		])
 	completed_list.text = "\n".join(completed_lines)
 
+func _make_quest_section_header(title: String) -> Label:
+	var header := Label.new()
+	header.text = title
+	header.custom_minimum_size = Vector2(0, 30)
+	header.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_apply_label_role(header, "section")
+	header.set("theme_override_colors/font_color", UI_ACCENT)
+	return header
+
 func _refresh_quest_offer_cards() -> void:
 	var list := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestListColumn/QuestOffersScroll/QuestOffersList")
 	if list == null:
 		return
 	for child in list.get_children():
 		child.queue_free()
-	if _selected_quest_id == "" and not GameState.quests.is_empty():
+
+	# --- AVAILABLE ---
+	list.add_child(_make_quest_section_header("Available (%d)" % GameState.quests.size()))
+	if _selected_quest_kind == "available" and _selected_quest_id == "" and not GameState.quests.is_empty():
 		_selected_quest_id = str(GameState.quests[0].get("offer_id", ""))
-	var has_selected := false
+	var has_selected_available := false
 	for quest_offer: Dictionary in GameState.quests:
 		var offer_id := str(quest_offer.get("offer_id", ""))
 		if offer_id == "":
 			continue
-		if offer_id == _selected_quest_id:
-			has_selected = true
+		var is_sel := _selected_quest_kind == "available" and offer_id == _selected_quest_id
+		if is_sel:
+			has_selected_available = true
 		var button := Button.new()
 		button.custom_minimum_size = Vector2(0, 98)
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
@@ -1680,14 +1695,14 @@ func _refresh_quest_offer_cards() -> void:
 			int(quest_offer.get("xp_reward", 0)),
 			urgency_line
 		]
-		_apply_button_theme(button, "offer", offer_id == _selected_quest_id)
+		_apply_button_theme(button, "offer", is_sel)
 		var quest_type := str(quest_offer.get("type", ""))
-		var quest_icon_path := str(QUEST_TYPE_ICONS.get(quest_type, ICON_BOOK_PATH))
-		button.icon = _load_runtime_texture(quest_icon_path)
+		button.icon = _load_runtime_texture(str(QUEST_TYPE_ICONS.get(quest_type, ICON_BOOK_PATH)))
 		if urgent:
 			button.modulate = Color(1.0, 0.97, 0.9, 1.0)
 		var local_offer_id := offer_id
 		button.pressed.connect(func() -> void:
+			_selected_quest_kind = "available"
 			_selected_quest_id = local_offer_id
 			_refresh_quest_ui()
 			_pulse_control(get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestDetailHeader") as CanvasItem, "quest_detail_focus", Vector2(1.015, 1.015))
@@ -1700,8 +1715,115 @@ func _refresh_quest_offer_cards() -> void:
 		empty.text = "No discovered sites yet. Run Gather Rumours at the Inn to place new contracts on the map."
 		_apply_label_role(empty, "body", true)
 		list.add_child(empty)
-	elif not has_selected:
+	elif _selected_quest_kind == "available" and not has_selected_available:
 		_selected_quest_id = str(GameState.quests[0].get("offer_id", ""))
+
+	# --- IN PROGRESS ---
+	var active_parties := _get_active_quest_parties()
+	list.add_child(_make_quest_section_header("In Progress (%d)" % active_parties.size()))
+	var has_selected_active := false
+	for party: Dictionary in active_parties:
+		var party_id: int = int(party.get("party_id", -1))
+		var quest: Dictionary = party.get("quest", {})
+		var members: Array = party.get("members", [])
+		var is_sel := _selected_quest_kind == "active" and _selected_quest_id == str(party_id)
+		if is_sel:
+			has_selected_active = true
+		var ticks_left := 0
+		var combined_state := "departing_quest"
+		for member: Dictionary in members:
+			var s := str(member.get("state", ""))
+			if s == "on_quest":
+				ticks_left = int(member.get("quest_ticks_remaining", 0))
+				combined_state = "on_quest"
+			elif s == "returning" and combined_state != "on_quest":
+				combined_state = "returning"
+		var state_str := _format_quest_state(combined_state)
+		var ticks_str := "~%.0fm left" % (float(ticks_left) / 60.0) if ticks_left > 0 else "returning"
+		var button := Button.new()
+		button.custom_minimum_size = Vector2(0, 80)
+		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		button.text = "%s\n%s\nParty %d  •  %s  •  %s" % [
+			str(quest.get("name", "Quest")),
+			str(quest.get("location_name", "Unknown Site")),
+			members.size(), state_str, ticks_str
+		]
+		_apply_button_theme(button, "offer", is_sel)
+		button.modulate = Color(1.02, 0.94, 0.78, 1.0)
+		var quest_type := str(quest.get("type", ""))
+		button.icon = _load_runtime_texture(str(QUEST_TYPE_ICONS.get(quest_type, ICON_CAMPFIRE_PATH)))
+		var local_party_id := str(party_id)
+		button.pressed.connect(func() -> void:
+			_selected_quest_kind = "active"
+			_selected_quest_id = local_party_id
+			_refresh_quest_ui()
+			_pulse_control(get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestDetailHeader") as CanvasItem, "quest_detail_focus", Vector2(1.015, 1.015))
+		)
+		_wire_button_sfx(button)
+		list.add_child(button)
+	if active_parties.is_empty():
+		var empty := Label.new()
+		empty.text = "No expeditions currently in the field."
+		_apply_label_role(empty, "body", true)
+		list.add_child(empty)
+	elif _selected_quest_kind == "active" and not has_selected_active:
+		_selected_quest_id = str(int(active_parties[0].get("party_id", -1)))
+
+	# --- COMPLETED ---
+	var completed_all: Array = GameState.completed_quests.duplicate()
+	completed_all.reverse()
+	var show_count: int = mini(10, completed_all.size())
+	list.add_child(_make_quest_section_header("Completed (%d)" % completed_all.size()))
+	var has_selected_completed := false
+	for i in range(show_count):
+		var entry: Dictionary = completed_all[i]
+		var is_sel := _selected_quest_kind == "completed" and _selected_quest_id == str(i)
+		if is_sel:
+			has_selected_completed = true
+		var success: bool = bool(entry.get("success", false))
+		var party_label := _completed_entry_party_label(entry)
+		var button := Button.new()
+		button.custom_minimum_size = Vector2(0, 72)
+		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		var wound := str(entry.get("wound_state", "healthy")).replace("_", " ")
+		button.text = "%s  %s\n%s  at  %s\n+%dg  +%dxp  %s" % [
+			str(entry.get("quest_name", "?")),
+			"✓" if success else "✗",
+			party_label,
+			str(entry.get("location_name", entry.get("location_id", "?"))),
+			int(entry.get("gold_reward", 0)),
+			int(entry.get("xp_reward", 0)),
+			wound
+		]
+		_apply_button_theme(button, "offer", is_sel)
+		if not success:
+			button.modulate = Color(1.0, 0.88, 0.82, 1.0)
+		button.icon = _load_runtime_texture(ICON_AWARD_PATH if success else ICON_SKULL_PATH)
+		var local_idx := str(i)
+		button.pressed.connect(func() -> void:
+			_selected_quest_kind = "completed"
+			_selected_quest_id = local_idx
+			_refresh_quest_ui()
+			_pulse_control(get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestDetailHeader") as CanvasItem, "quest_detail_focus", Vector2(1.015, 1.015))
+		)
+		_wire_button_sfx(button)
+		list.add_child(button)
+	if completed_all.is_empty():
+		var empty := Label.new()
+		empty.text = "No quests completed yet."
+		_apply_label_role(empty, "body", true)
+		list.add_child(empty)
+	elif _selected_quest_kind == "completed" and not has_selected_completed:
+		_selected_quest_id = "0"
+	elif _selected_quest_kind == "active" and active_parties.is_empty():
+		if not completed_all.is_empty():
+			_selected_quest_kind = "completed"
+			_selected_quest_id = "0"
+		elif not GameState.quests.is_empty():
+			_selected_quest_kind = "available"
+			_selected_quest_id = str(GameState.quests[0].get("offer_id", ""))
 
 func _refresh_quest_map() -> void:
 	var background := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestMapColumn/QuestMapCard/QuestMapMargin/QuestMapCanvas/QuestMapContent/QuestMapBackground") as TextureRect
@@ -1731,6 +1853,7 @@ func _refresh_quest_map() -> void:
 	_populate_map_routes(routes_root)
 	_populate_map_landmarks(landmarks_root)
 	_populate_map_markers(markers_root)
+	_populate_map_active_markers(markers_root)
 	_populate_map_expeditions(expeditions_root)
 	_apply_quest_map_transform()
 
@@ -1864,34 +1987,35 @@ func _add_quest_map_marker(root: Control, quest_offer: Dictionary, is_active: bo
 		return
 	var offer_id := str(quest_offer.get("offer_id", ""))
 	var marker := Button.new()
-	marker.custom_minimum_size = Vector2(56, 56)
-	marker.size = Vector2(56, 56)
+	marker.custom_minimum_size = Vector2(72, 72)
+	marker.size = Vector2(72, 72)
 	marker.icon = _load_runtime_texture(str(QUEST_TYPE_ICONS.get(str(quest_offer.get("type", "")), ICON_BOOK_PATH)))
 	marker.expand_icon = true
 	marker.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	marker.flat = true
+	marker.flat = false
 	marker.text = ""
 	marker.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	marker.mouse_filter = Control.MOUSE_FILTER_STOP
 	var marker_style := _make_style(
 		Color(0.18, 0.52, 0.42, 0.96) if not is_active else Color(0.19, 0.43, 0.73, 0.96),
 		Color(0.95, 0.93, 0.86, 0.56),
-		18,
+		22,
 		1,
-		6
+		8
 	)
 	var marker_hover := _make_style(
 		Color(0.21, 0.58, 0.47, 1.0) if not is_active else Color(0.22, 0.49, 0.80, 1.0),
 		Color(1, 1, 1, 0.78),
-		18,
+		22,
 		1,
-		6
+		8
 	)
 	var marker_pressed := _make_style(
 		Color(0.15, 0.42, 0.34, 1.0) if not is_active else Color(0.17, 0.38, 0.65, 1.0),
 		Color(1, 1, 1, 0.84),
-		18,
+		22,
 		1,
-		6
+		8
 	)
 	if offer_id == _selected_quest_id:
 		marker_style.bg_color = marker_hover.bg_color
@@ -1920,14 +2044,85 @@ func _add_quest_map_marker(root: Control, quest_offer: Dictionary, is_active: bo
 	var marker_pos := _location_canvas_position(root, location)
 	var marker_scale: float = float(location.get("landmark_scale", 1.0))
 	var icon_top_y: float = marker_pos.y - 54.0 * marker_scale * 0.72
-	marker.position = Vector2(marker_pos.x - 28.0, icon_top_y - 58.0)
+	marker.position = Vector2(marker_pos.x - 36.0, icon_top_y - 66.0)
 	marker.pressed.connect(func() -> void:
+		_selected_quest_kind = "available"
 		_selected_quest_id = offer_id
 		_refresh_quest_ui()
 		_pulse_control(get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestMapColumn/QuestMapCard") as CanvasItem, "quest_map_focus", Vector2(1.01, 1.01))
 	)
-	_wire_button_sfx(marker)
+	if not marker.pressed.is_connected(_on_any_ui_button_click):
+		marker.pressed.connect(_on_any_ui_button_click)
 	root.add_child(marker)
+
+func _populate_map_active_markers(root: Control) -> void:
+	for party: Dictionary in _get_active_quest_parties():
+		var quest: Dictionary = party.get("quest", {})
+		var party_id: int = int(party.get("party_id", -1))
+		var members: Array = party.get("members", [])
+		var location := DataLoader.get_map_location(str(quest.get("location_id", "")))
+		if location.is_empty():
+			continue
+		_add_active_quest_map_marker(root, party_id, quest, location, members)
+
+func _add_active_quest_map_marker(root: Control, party_id: int, quest: Dictionary, location: Dictionary, members: Array) -> void:
+	var marker := Button.new()
+	marker.custom_minimum_size = Vector2(72, 72)
+	marker.size = Vector2(72, 72)
+	var quest_type := str(quest.get("type", ""))
+	marker.icon = _load_runtime_texture(str(QUEST_TYPE_ICONS.get(quest_type, ICON_BOOK_PATH)))
+	marker.expand_icon = true
+	marker.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	marker.flat = false
+	marker.text = ""
+	marker.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	marker.mouse_filter = Control.MOUSE_FILTER_STOP
+	var is_selected := _selected_quest_kind == "active" and _selected_quest_id == str(party_id)
+	var amber := Color(0.82, 0.52, 0.10, 0.96)
+	var amber_hover := Color(0.92, 0.64, 0.22, 1.0)
+	var marker_style := _make_style(amber, Color(0.95, 0.93, 0.86, 0.56), 22, 1, 8)
+	if is_selected:
+		marker_style.bg_color = amber_hover
+		marker_style.border_width_left = 2
+		marker_style.border_width_top = 2
+		marker_style.border_width_right = 2
+		marker_style.border_width_bottom = 2
+	marker.add_theme_stylebox_override("normal", marker_style)
+	marker.add_theme_stylebox_override("hover", _make_style(amber_hover, Color(1, 1, 1, 0.78), 22, 1, 8))
+	marker.add_theme_stylebox_override("pressed", _make_style(Color(0.68, 0.42, 0.08, 1.0), Color(1, 1, 1, 0.84), 22, 1, 8))
+	marker.add_theme_stylebox_override("focus", _make_style(amber_hover, Color(1, 1, 1, 0.78), 22, 1, 8))
+	var marker_pos := _location_canvas_position(root, location)
+	var marker_scale: float = float(location.get("landmark_scale", 1.0))
+	var icon_top_y: float = marker_pos.y - 54.0 * marker_scale * 0.72
+	marker.position = Vector2(marker_pos.x - 36.0, icon_top_y - 66.0)
+	var local_party_id := str(party_id)
+	marker.pressed.connect(func() -> void:
+		_selected_quest_kind = "active"
+		_selected_quest_id = local_party_id
+		_refresh_quest_ui()
+		_pulse_control(get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestMapColumn/QuestMapCard") as CanvasItem, "quest_map_focus", Vector2(1.01, 1.01))
+	)
+	if not marker.pressed.is_connected(_on_any_ui_button_click):
+		marker.pressed.connect(_on_any_ui_button_click)
+	root.add_child(marker)
+
+func _get_active_quest_parties() -> Array:
+	var parties: Dictionary = {}
+	for hero_id in GameState.heroes.keys():
+		var hero: Dictionary = GameState.heroes[hero_id]
+		if hero.get("state", "") not in ["departing_quest", "on_quest"]:
+			continue
+		var current_quest: Dictionary = hero.get("current_quest", {})
+		if current_quest.is_empty():
+			continue
+		var party_id: int = int(hero.get("quest_party_id", -1))
+		if party_id < 0:
+			continue
+		var pid_str := str(party_id)
+		if not parties.has(pid_str):
+			parties[pid_str] = {"party_id": party_id, "quest": current_quest.duplicate(), "members": []}
+		parties[pid_str]["members"].append(hero.duplicate())
+	return parties.values()
 
 func _populate_map_expeditions(root: Control) -> void:
 	var town_location := DataLoader.get_map_location("questtown_centre")
@@ -2161,10 +2356,9 @@ func _add_location_label(root: Control, location: Dictionary, pos: Vector2, icon
 	var label_height := 26.0 if is_town else 20.0
 	var label_size := Vector2(label_width, label_height)
 	var x_shift := 0.0
-	var y_shift := float(location.get("label_offset", {}).get("y", 0.0))
 	var label_gap := 8.0 if is_town else 6.0
 	var anchor_y := icon_bottom_y if icon_bottom_y > 0.0 else (pos.y + 14.0)
-	var label_pos := Vector2(pos.x + x_shift - label_width * 0.5, anchor_y + label_gap + y_shift)
+	var label_pos := Vector2(pos.x + x_shift - label_width * 0.5, anchor_y + label_gap)
 	label_shadow.position = label_pos + Vector2(1, 1)
 	label_shadow.size = label_size
 	label.position = label_pos
@@ -2496,60 +2690,149 @@ func _family_badge_text(quest: Dictionary) -> String:
 	return str(QUEST_FAMILY_NAMES.get(str(quest.get("quest_family", "tavern")), "Rumour"))
 
 func _refresh_selected_quest_detail() -> void:
-	var detail_title := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestDetailHeader/QuestDetailHeaderVBox/QuestDetailTitleLabel")
-	var detail_summary := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestDetailHeader/QuestDetailHeaderVBox/QuestDetailSummaryLabel")
-	var detail_kicker := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestDetailHeader/QuestDetailHeaderVBox/QuestDetailKicker")
-	var reward_label := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestMetaCard/QuestMetaVBox/QuestRewardLabel")
-	var xp_label := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestMetaCard/QuestMetaVBox/QuestXpLabel")
-	var risk_label := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestMetaCard/QuestMetaVBox/QuestRiskLabel")
-	var requirement_label := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestMetaCard/QuestMetaVBox/QuestRequirementLabel")
-	var suitability_label := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestSuitabilityCard/QuestSuitabilityLabel")
-	var action_button := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestActionButton")
+	match _selected_quest_kind:
+		"active":
+			_refresh_detail_for_active()
+		"completed":
+			_refresh_detail_for_completed()
+		_:
+			_refresh_detail_for_available()
+
+func _quest_detail_nodes() -> Dictionary:
+	return {
+		"title": get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestDetailHeader/QuestDetailHeaderVBox/QuestDetailTitleLabel"),
+		"summary": get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestDetailHeader/QuestDetailHeaderVBox/QuestDetailSummaryLabel"),
+		"kicker": get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestDetailHeader/QuestDetailHeaderVBox/QuestDetailKicker"),
+		"reward": get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestMetaCard/QuestMetaVBox/QuestRewardLabel"),
+		"xp": get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestMetaCard/QuestMetaVBox/QuestXpLabel"),
+		"risk": get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestMetaCard/QuestMetaVBox/QuestRiskLabel"),
+		"requirement": get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestMetaCard/QuestMetaVBox/QuestRequirementLabel"),
+		"suitability": get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestSuitabilityCard/QuestSuitabilityLabel"),
+		"action": get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestActionButton"),
+	}
+
+func _refresh_detail_for_available() -> void:
+	var n := _quest_detail_nodes()
 	var quest := _get_quest_offer(_selected_quest_id)
 	if quest.is_empty():
-		if detail_title:
-			detail_title.text = "No quest available"
-		if detail_summary:
-			detail_summary.text = "Produce rumours at the Inn before the board can offer expeditions."
-		if detail_kicker:
-			detail_kicker.text = "Mission Board"
-		if action_button:
-			action_button.disabled = true
-			action_button.text = "Accept Quest"
+		if n.title: n.title.text = "No quest available"
+		if n.summary: n.summary.text = "Produce rumours at the Inn before the board can offer expeditions."
+		if n.kicker: n.kicker.text = "Mission Board"
+		if n.action: n.action.disabled = true; n.action.text = "Accept Quest"
 		return
 	var template_id := str(quest.get("template_id", ""))
 	var preview: Dictionary = sim.get_quest_acceptance_preview(int(quest.get("offer_id", -1)))
 	var location_name := str(quest.get("location_name", "Unknown Site"))
 	var family_name := _family_badge_text(quest)
-	if detail_kicker:
-		detail_kicker.text = "%s  •  %s" % [family_name, location_name]
-	if detail_title:
-		detail_title.text = str(quest.get("name", template_id))
-	if detail_summary:
-		detail_summary.text = "%s\n%s\n%s" % [
+	if n.kicker: n.kicker.text = "%s  •  %s" % [family_name, location_name]
+	if n.title: n.title.text = str(quest.get("name", template_id))
+	if n.summary:
+		n.summary.text = "%s\n%s\n%s" % [
 			_quest_summary_text(quest),
 			str(quest.get("location_description", "")),
 			_quest_expiry_text(quest)
 		]
-	if reward_label:
-		reward_label.text = "Reward  %dg  •  Site  %s" % [int(quest.get("gold_reward", 0)), location_name]
-	if xp_label:
-		xp_label.text = "Experience  %dxp to the party  •  Family  %s" % [int(quest.get("xp_reward", 0)), family_name]
-	if risk_label:
-		risk_label.text = "Risk  %s   Party %d   %s" % [_risk_label(int(quest.get("risk_level", 1))), int(quest.get("party_size", 3)), _quest_expiry_short_label(quest)]
-	if requirement_label:
-		requirement_label.text = "Requirements  %s" % _quest_requirements_text(quest)
-	if suitability_label:
-		suitability_label.text = _quest_suitability_text(quest, preview)
-	if action_button:
+	if n.reward: n.reward.text = "Reward  %dg  •  Site  %s" % [int(quest.get("gold_reward", 0)), location_name]
+	if n.xp: n.xp.text = "Experience  %dxp to the party  •  Family  %s" % [int(quest.get("xp_reward", 0)), family_name]
+	if n.risk: n.risk.text = "Risk  %s   Party %d   %s" % [_risk_label(int(quest.get("risk_level", 1))), int(quest.get("party_size", 3)), _quest_expiry_short_label(quest)]
+	if n.requirement: n.requirement.text = "Requirements  %s" % _quest_requirements_text(quest)
+	if n.suitability: n.suitability.text = _quest_suitability_text(quest, preview)
+	if n.action:
 		if bool(quest.get("active", false)):
-			action_button.disabled = true
-			action_button.text = "Expedition in Progress"
-			action_button.icon = _load_runtime_texture(ICON_CHARACTER_PATH)
+			n.action.disabled = true
+			n.action.text = "Expedition in Progress"
+			n.action.icon = _load_runtime_texture(ICON_CHARACTER_PATH)
 		else:
-			action_button.disabled = not bool(preview.get("can_accept", false))
-			action_button.text = ("Accept Urgent Quest" if bool(quest.get("urgent", false)) else "Accept Quest") if bool(preview.get("can_accept", false)) else str(preview.get("reason", "Need party"))
-			action_button.icon = _load_runtime_texture(ICON_SWORD_PATH) if bool(preview.get("can_accept", false)) else _load_runtime_texture(ICON_SHIELD_PATH)
+			n.action.disabled = not bool(preview.get("can_accept", false))
+			n.action.text = ("Accept Urgent Quest" if bool(quest.get("urgent", false)) else "Accept Quest") if bool(preview.get("can_accept", false)) else str(preview.get("reason", "Need party"))
+			n.action.icon = _load_runtime_texture(ICON_SWORD_PATH) if bool(preview.get("can_accept", false)) else _load_runtime_texture(ICON_SHIELD_PATH)
+
+func _refresh_detail_for_active() -> void:
+	var n := _quest_detail_nodes()
+	var party_id := int(_selected_quest_id) if _selected_quest_id.is_valid_int() else -1
+	if party_id < 0:
+		if n.title: n.title.text = "No expedition selected"
+		if n.action: n.action.disabled = true; n.action.text = "In Progress"
+		return
+	var quest: Dictionary = {}
+	var members: Array = []
+	for hero_id in GameState.heroes.keys():
+		var hero: Dictionary = GameState.heroes[hero_id]
+		if hero.get("state", "") not in ["departing_quest", "on_quest", "returning"]:
+			continue
+		if int(hero.get("quest_party_id", -1)) != party_id:
+			continue
+		members.append(hero.duplicate())
+		if quest.is_empty():
+			quest = hero.get("current_quest", {}).duplicate()
+	if quest.is_empty():
+		if n.title: n.title.text = "Expedition not found"
+		if n.action: n.action.disabled = true; n.action.text = "In Progress"
+		return
+	var location_name := str(quest.get("location_name", "Unknown Site"))
+	if n.kicker: n.kicker.text = "Expedition  •  %s" % location_name
+	if n.title: n.title.text = str(quest.get("name", "Quest"))
+	var member_lines: Array = []
+	var ticks_remaining := 0
+	for member: Dictionary in members:
+		var state_str := _format_quest_state(str(member.get("state", "")))
+		var hp := int(member.get("health", 0))
+		var max_hp := int(member.get("max_health", 0))
+		member_lines.append("%s — %s  HP %d/%d" % [str(member.get("name", "?")), state_str, hp, max_hp])
+		if str(member.get("state", "")) == "on_quest":
+			ticks_remaining = int(member.get("quest_ticks_remaining", 0))
+	var time_str := "~%.0f minutes remaining" % (float(ticks_remaining) / 60.0) if ticks_remaining > 0 else "Party is returning to town"
+	if n.summary: n.summary.text = "%s\n\nParty:\n%s" % [time_str, "\n".join(member_lines)]
+	if n.reward: n.reward.text = "Expected reward  %dg  +  %dxp  (paid on return)" % [int(quest.get("gold_reward", 0)), int(quest.get("xp_reward", 0))]
+	if n.xp: n.xp.text = "Party size  %d  •  %s family" % [members.size(), _family_badge_text(quest)]
+	if n.risk: n.risk.text = "Risk  %s  •  Difficulty %d" % [_risk_label(int(quest.get("risk_level", 1))), int(quest.get("difficulty", 1))]
+	if n.requirement: n.requirement.text = "Site  %s  (%s)" % [location_name, str(quest.get("location_category", ""))]
+	if n.suitability:
+		var careers: Array = quest.get("preferred_careers", [])
+		n.suitability.text = "Resolution stat  %s\nPreferred careers  %s" % [
+			str(quest.get("resolution_stat", "")).capitalize(),
+			", ".join(careers) if not careers.is_empty() else "any"
+		]
+	if n.action:
+		n.action.disabled = true
+		n.action.text = "Expedition in Progress"
+		n.action.icon = _load_runtime_texture(ICON_CHARACTER_PATH)
+
+func _refresh_detail_for_completed() -> void:
+	var n := _quest_detail_nodes()
+	var idx := int(_selected_quest_id) if _selected_quest_id.is_valid_int() else -1
+	var completed := GameState.completed_quests.duplicate()
+	completed.reverse()
+	var entry: Dictionary = completed[idx] if idx >= 0 and idx < completed.size() else {}
+	if entry.is_empty():
+		if n.title: n.title.text = "No completed quest selected"
+		if n.action: n.action.disabled = true; n.action.text = "Completed"
+		return
+	var success: bool = bool(entry.get("success", false))
+	var quest_name := str(entry.get("quest_name", "?"))
+	var location_name := str(entry.get("location_name", entry.get("location_id", "Unknown")))
+	var hero_name := _completed_entry_party_label(entry)
+	var wound := str(entry.get("wound_state", "healthy")).replace("_", " ")
+	if n.kicker: n.kicker.text = "%s  •  %s" % ["Successful Expedition" if success else "Failed Expedition", location_name]
+	if n.title: n.title.text = "%s  %s" % [quest_name, "✓" if success else "✗"]
+	if n.summary:
+		var outcome := "The expedition to %s succeeded. The party returned from %s." % [quest_name, location_name] if success else \
+			"The expedition to %s did not succeed. The party struggled at %s." % [quest_name, location_name]
+		n.summary.text = "%s\n\n%s — %s" % [outcome, hero_name, wound]
+	if n.reward: n.reward.text = ("%s  %dg  +  %dxp  for the party" % ["Earned" if success else "Salvaged", int(entry.get("gold_reward", 0)), int(entry.get("xp_reward", 0))])
+	if n.xp: n.xp.text = "Party  %s  •  Completed at tick %d" % [hero_name, int(entry.get("completed_tick", 0))]
+	if n.risk: n.risk.text = "Outcome  %s" % ("Success" if success else "Failed")
+	if n.requirement: n.requirement.text = "Site  %s" % location_name
+	if n.suitability:
+		n.suitability.text = "Party  %s\nWound state  %s\nGold earned  %dg\nXP earned  %dxp" % [
+			hero_name, wound,
+			int(entry.get("gold_reward", 0)),
+			int(entry.get("xp_reward", 0))
+		]
+	if n.action:
+		n.action.disabled = true
+		n.action.text = "Quest Completed"
+		n.action.icon = _load_runtime_texture(ICON_AWARD_PATH)
 
 func _get_quest_offer(offer_id: String) -> Dictionary:
 	for quest: Dictionary in GameState.quests:
@@ -2563,6 +2846,14 @@ func _get_quest_offer(offer_id: String) -> Dictionary:
 			active_quest["active"] = true
 			return active_quest
 	return {}
+
+func _completed_entry_party_label(entry: Dictionary) -> String:
+	var party_names: Array = entry.get("party_names", [])
+	if party_names.size() <= 1:
+		return str(entry.get("hero_name", "?"))
+	if party_names.size() == 2:
+		return "%s + %s" % [str(party_names[0]), str(party_names[1])]
+	return "%s +%d" % [str(party_names[0]), party_names.size() - 1]
 
 func _quest_requirements_text(quest: Dictionary) -> String:
 	var parts: Array[String] = []
@@ -2606,6 +2897,7 @@ func _quest_suitability_text(quest: Dictionary, preview: Dictionary) -> String:
 			_:
 				names.append(str(career_id).replace("_", " ").capitalize())
 	var preview_names: Array = preview.get("party_names", [])
+	preview_names.sort()
 	var party_line := "Ready party: %s" % ", ".join(preview_names) if not preview_names.is_empty() else "Launch status: %s" % str(preview.get("reason", "Waiting for a ready party"))
 	return "Likely interested adventurers: %s\nRecommended party size: %d\nResolution focus: %s\nMap site: %s (%s)\n%s" % [
 		", ".join(names),
@@ -2647,7 +2939,7 @@ func _risk_label(risk_level: int) -> String:
 			return "high"
 
 func _accept_selected_quest() -> void:
-	if _selected_quest_id == "":
+	if _selected_quest_id == "" or _selected_quest_kind != "available":
 		return
 	var quest := _get_quest_offer(_selected_quest_id)
 	if quest.is_empty():
@@ -3179,6 +3471,7 @@ func prepare_snapshot_target(target: String) -> void:
 	_selected_hero_id = -1
 	_selected_building_id = -1
 	_selected_quest_id = ""
+	_selected_quest_kind = "available"
 	_quest_map_zoom = 1.0
 	_quest_map_offset = Vector2.ZERO
 	_quest_map_dragging = false
@@ -3204,20 +3497,24 @@ func prepare_snapshot_target(target: String) -> void:
 			if not GameState.heroes.is_empty():
 				_show_hero_panel(int(GameState.heroes.keys()[0]))
 		"quest_board_open":
+			_selected_quest_kind = "available"
 			_selected_quest_id = str(GameState.quests[0].get("offer_id", "")) if not GameState.quests.is_empty() else ""
 			if not _is_quest_drawer_open():
 				_toggle_quest_drawer()
 		"quest_selected_unavailable":
+			_selected_quest_kind = "available"
 			_selected_quest_id = _first_unavailable_offer_id()
 			if _selected_quest_id == "" and not GameState.quests.is_empty():
 				_selected_quest_id = str(GameState.quests[0].get("offer_id", ""))
 			if not _is_quest_drawer_open():
 				_toggle_quest_drawer()
 		"expedition_in_progress":
+			_selected_quest_kind = "available"
 			_selected_quest_id = _first_ready_offer_id()
 			if not _is_quest_drawer_open():
 				_toggle_quest_drawer()
 		"ready_to_launch":
+			_selected_quest_kind = "available"
 			_selected_quest_id = _first_ready_offer_id()
 			if _selected_quest_id == "" and not GameState.quests.is_empty():
 				_selected_quest_id = str(GameState.quests[0].get("offer_id", ""))
