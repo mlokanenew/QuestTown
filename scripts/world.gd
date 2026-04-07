@@ -1749,14 +1749,8 @@ func _clear_control_children(root: Node) -> void:
 func _populate_map_routes(root: Control) -> void:
 	var straight_texture := _load_runtime_texture(MAP_PATH_STRAIGHT_PATH)
 	var corner_texture := _load_runtime_texture(MAP_PATH_CORNER_PATH)
-	var split_texture := _load_runtime_texture(MAP_PATH_SPLIT_PATH)
-	var crossing_texture := _load_runtime_texture(MAP_PATH_CROSSING_PATH)
-	var end_texture := _load_runtime_texture(MAP_PATH_END_PATH)
-	if straight_texture == null or corner_texture == null or split_texture == null or crossing_texture == null or end_texture == null:
+	if straight_texture == null or corner_texture == null:
 		return
-	var route_points_by_id: Dictionary = {}
-	var route_meta_by_id: Dictionary = {}
-	var location_dirs: Dictionary = {}
 	for route_variant in DataLoader.map_routes:
 		if not (route_variant is Dictionary):
 			continue
@@ -1766,22 +1760,11 @@ func _populate_map_routes(root: Control) -> void:
 		if from_location.is_empty() or to_location.is_empty():
 			continue
 		var style: Dictionary = MAP_ROUTE_STYLES.get(str(route.get("route_type", "track")), MAP_ROUTE_STYLES["track"])
-		var points := _route_canvas_points(root, route, from_location, to_location)
+		var points := _route_render_points(root, route, from_location, to_location)
 		if points.size() < 2:
 			continue
-		var route_id := str(route.get("route_id", "%s_%s" % [route.get("from_location_id", ""), route.get("to_location_id", "")]))
-		route_points_by_id[route_id] = points
-		route_meta_by_id[route_id] = route
-		_register_location_direction(location_dirs, str(route.get("from_location_id", "")), (points[1] - points[0]).normalized())
-		_register_location_direction(location_dirs, str(route.get("to_location_id", "")), (points[points.size() - 2] - points[points.size() - 1]).normalized())
-	for route_id_variant in route_points_by_id.keys():
-		var route_id := str(route_id_variant)
-		var points: PackedVector2Array = route_points_by_id[route_id]
-		var route: Dictionary = route_meta_by_id[route_id]
-		var style: Dictionary = MAP_ROUTE_STYLES.get(str(route.get("route_type", "track")), MAP_ROUTE_STYLES["track"])
 		_add_route_straights(root, straight_texture, points, style)
 		_add_route_corners(root, corner_texture, points, style)
-	_render_route_junctions(root, location_dirs, split_texture, crossing_texture, end_texture)
 
 func _populate_map_landmarks(root: Control) -> void:
 	var compass_texture := _load_runtime_texture(MAP_COMPASS_PATH)
@@ -2102,24 +2085,38 @@ func _route_canvas_points(root: Control, route: Dictionary, from_location: Dicti
 	points.append(_location_canvas_position(root, to_location))
 	return points
 
-func _register_location_direction(location_dirs: Dictionary, location_id: String, direction: Vector2) -> void:
-	if location_id == "" or direction.length_squared() <= 0.0001:
-		return
-	if not location_dirs.has(location_id):
-		location_dirs[location_id] = []
-	var entries: Array = location_dirs[location_id]
-	for existing_variant in entries:
-		var existing: Vector2 = existing_variant
-		if abs(existing.angle_to(direction)) < 0.12:
-			return
-	entries.append(direction.normalized())
-	location_dirs[location_id] = entries
+func _route_render_points(root: Control, route: Dictionary, from_location: Dictionary, to_location: Dictionary) -> PackedVector2Array:
+	var points := _route_canvas_points(root, route, from_location, to_location)
+	if points.size() < 2:
+		return points
+	var start_dir: Vector2 = (points[1] - points[0]).normalized()
+	var end_dir: Vector2 = (points[points.size() - 2] - points[points.size() - 1]).normalized()
+	if start_dir.length_squared() > 0.0001:
+		points[0] += start_dir * _location_route_margin(from_location)
+	if end_dir.length_squared() > 0.0001:
+		points[points.size() - 1] += end_dir * _location_route_margin(to_location)
+	return points
+
+func _location_route_margin(location: Dictionary) -> float:
+	var scale := float(location.get("landmark_scale", 1.0))
+	var location_type := str(location.get("location_type", ""))
+	match location_type:
+		"town":
+			return 34.0 * scale
+		"bridge", "ford":
+			return 20.0 * scale
+		"road":
+			return 18.0 * scale
+		"shrine", "ruins", "graveyard", "watchtower":
+			return 18.0 * scale
+		_:
+			return 16.0 * scale
 
 func _add_route_straights(root: Control, texture: Texture2D, points: PackedVector2Array, style: Dictionary) -> void:
 	if points.size() < 2:
 		return
 	var piece_size := _route_piece_size(style)
-	var step := piece_size.x * 0.58
+	var step := piece_size.x * 0.96
 	for point_index in range(points.size() - 1):
 		var from_pos := points[point_index]
 		var to_pos := points[point_index + 1]
@@ -2128,12 +2125,12 @@ func _add_route_straights(root: Control, texture: Texture2D, points: PackedVecto
 		if segment_length <= 8.0:
 			continue
 		var direction := segment.normalized()
-		var trim_start := piece_size.x * (0.52 if point_index == 0 else 0.42)
-		var trim_end := piece_size.x * (0.52 if point_index == points.size() - 2 else 0.42)
+		var trim_start := piece_size.x * (0.10 if point_index == 0 else 0.50)
+		var trim_end := piece_size.x * (0.10 if point_index == points.size() - 2 else 0.50)
 		var usable_length := segment_length - trim_start - trim_end
 		if usable_length <= piece_size.x * 0.35:
 			continue
-		var cursor := trim_start + step * 0.5
+		var cursor := trim_start
 		while cursor < segment_length - trim_end:
 			var center := from_pos + direction * cursor
 			_add_map_piece(root, texture, center, piece_size, direction.angle() + PI * 0.5, _route_piece_color(style))
@@ -2158,55 +2155,6 @@ func _add_route_corners(root: Control, texture: Texture2D, points: PackedVector2
 		if bisector.length_squared() <= 0.0001:
 			continue
 		_add_map_piece(root, texture, pivot, piece_size, bisector.angle() + PI * 0.25, _route_piece_color(style))
-
-func _render_route_junctions(root: Control, location_dirs: Dictionary, split_texture: Texture2D, crossing_texture: Texture2D, end_texture: Texture2D) -> void:
-	for location: Dictionary in DataLoader.map_locations:
-		var location_id := str(location.get("id", ""))
-		if not location_dirs.has(location_id):
-			continue
-		var dirs: Array = location_dirs[location_id]
-		var count := dirs.size()
-		if count <= 0:
-			continue
-		var position := _location_canvas_position(root, location)
-		var route_type := "track"
-		for route_variant in DataLoader.map_routes:
-			if not (route_variant is Dictionary):
-				continue
-			var route: Dictionary = route_variant
-			if str(route.get("from_location_id", "")) == location_id or str(route.get("to_location_id", "")) == location_id:
-				if str(route.get("route_type", "")) == "main_road":
-					route_type = "main_road"
-					break
-				if str(route.get("route_type", "")) == "sacred_trail" and route_type != "main_road":
-					route_type = "sacred_trail"
-		var style: Dictionary = MAP_ROUTE_STYLES.get(route_type, MAP_ROUTE_STYLES["track"])
-		var piece_size := _route_piece_size(style)
-		if count == 1:
-			var end_dir: Vector2 = dirs[0]
-			_add_map_piece(root, end_texture, position, piece_size, end_dir.angle() + PI * 0.5, _route_piece_color(style))
-		elif count == 3:
-			var rotation := _split_rotation_from_dirs(dirs)
-			_add_map_piece(root, split_texture, position, piece_size, rotation, _route_piece_color(style))
-		elif count >= 4:
-			_add_map_piece(root, crossing_texture, position, piece_size, 0.0, _route_piece_color(style))
-
-func _split_rotation_from_dirs(dirs: Array) -> float:
-	var angles: Array = []
-	for dir_variant in dirs:
-		var dir: Vector2 = dir_variant
-		angles.append(wrapf(dir.angle(), 0.0, TAU))
-	angles.sort()
-	var largest_gap := -1.0
-	var gap_mid := 0.0
-	for index in angles.size():
-		var current_angle: float = angles[index]
-		var next_angle: float = angles[(index + 1) % angles.size()] + (TAU if index == angles.size() - 1 else 0.0)
-		var gap := next_angle - current_angle
-		if gap > largest_gap:
-			largest_gap = gap
-			gap_mid = current_angle + gap * 0.5
-	return wrapf(gap_mid - PI, -PI, PI)
 
 func _route_piece_size(style: Dictionary) -> Vector2:
 	var route_width := float(style.get("piece_size", 42.0))
