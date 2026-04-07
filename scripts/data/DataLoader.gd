@@ -104,7 +104,10 @@ func _normalize_map_locations(raw_locations: Array) -> Array:
 			"description": raw_location.get("description", ""),
 			"unlock_tags": raw_location.get("unlock_tags", []).duplicate(true),
 			"landmark_scale": float(raw_location.get("landmark_scale", 1.0)),
-			"label_offset": raw_location.get("label_offset", {"x": -36, "y": 12}).duplicate(true) if raw_location.get("label_offset", {}) is Dictionary else {"x": -36, "y": 12}
+			"label_offset": raw_location.get("label_offset", {"x": -36, "y": 12}).duplicate(true) if raw_location.get("label_offset", {}) is Dictionary else {"x": -36, "y": 12},
+			"label_width": float(raw_location.get("label_width", 132.0)),
+			"terrain_hints": raw_location.get("terrain_hints", []).duplicate(true),
+			"icon_overlays": raw_location.get("icon_overlays", []).duplicate(true)
 		}
 		normalized.append(normalized_location)
 	return normalized

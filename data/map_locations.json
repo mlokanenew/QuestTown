@@ -8,8 +8,12 @@
       "icon_type": "town",
       "description": "A hopeful roadside town where rumours gather faster than wagons.",
       "unlock_tags": [],
-      "landmark_scale": 1.45,
-      "label_offset": {"x": -42, "y": 30}
+      "landmark_scale": 1.68,
+      "label_offset": {"x": -56, "y": 36},
+      "label_width": 156,
+      "icon_overlays": [
+        {"icon_type": "banner", "offset": {"x": 0, "y": -28}, "scale": 0.55, "alpha": 0.88}
+      ]
     },
     {
       "id": "old_cellar",
@@ -19,8 +23,11 @@
       "icon_type": "cellar",
       "description": "A damp roadside cellar where poor seasons, vermin, and worried whispers collect.",
       "unlock_tags": ["tavern"],
-      "landmark_scale": 0.92,
-      "label_offset": {"x": -40, "y": 18}
+      "landmark_scale": 0.98,
+      "label_offset": {"x": -42, "y": 18},
+      "terrain_hints": [
+        {"icon_type": "house_small", "offset": {"x": -18, "y": -10}, "scale": 0.55, "alpha": 0.42}
+      ]
     },
     {
       "id": "millers_hamlet",
@@ -30,8 +37,12 @@
       "icon_type": "hamlet",
       "description": "A tight cluster of cottages and grain sheds where every missing cart is noticed by dusk.",
       "unlock_tags": ["tavern"],
-      "landmark_scale": 1.0,
-      "label_offset": {"x": -48, "y": 20}
+      "landmark_scale": 1.1,
+      "label_offset": {"x": -56, "y": 22},
+      "terrain_hints": [
+        {"icon_type": "house_small", "offset": {"x": -18, "y": -12}, "scale": 0.55, "alpha": 0.40},
+        {"icon_type": "house_small", "offset": {"x": 15, "y": -10}, "scale": 0.48, "alpha": 0.34}
+      ]
     },
     {
       "id": "stone_bridge",
@@ -41,8 +52,11 @@
       "icon_type": "bridge",
       "description": "A weathered crossing where trade, tolls, and danger all narrow to one point.",
       "unlock_tags": ["general_goods"],
-      "landmark_scale": 1.16,
-      "label_offset": {"x": -34, "y": 16}
+      "landmark_scale": 1.3,
+      "label_offset": {"x": -44, "y": 20},
+      "terrain_hints": [
+        {"icon_type": "bridge", "offset": {"x": 0, "y": -10}, "scale": 0.55, "alpha": 0.34}
+      ]
     },
     {
       "id": "north_road",
@@ -52,8 +66,9 @@
       "icon_type": "road",
       "description": "The broad road north where merchants move fastest and trouble is quickest to spread.",
       "unlock_tags": ["general_goods"],
-      "landmark_scale": 1.04,
-      "label_offset": {"x": -26, "y": -26}
+      "landmark_scale": 1.14,
+      "label_offset": {"x": -34, "y": -32},
+      "label_width": 120
     },
     {
       "id": "graveyard_hill",
@@ -63,8 +78,11 @@
       "icon_type": "graveyard",
       "description": "A wind-bent hill of old stones and crows, where the ground remembers too much.",
       "unlock_tags": ["temple"],
-      "landmark_scale": 1.14,
-      "label_offset": {"x": -44, "y": -18}
+      "landmark_scale": 1.22,
+      "label_offset": {"x": -52, "y": -26},
+      "terrain_hints": [
+        {"icon_type": "rocks", "offset": {"x": -12, "y": 20}, "scale": 0.64, "alpha": 0.40}
+      ]
     },
     {
       "id": "watch_hut",
@@ -74,8 +92,8 @@
       "icon_type": "watchtower",
       "description": "An empty watch post that still commands a clean view of the northern approach.",
       "unlock_tags": ["general_goods", "tavern"],
-      "landmark_scale": 0.96,
-      "label_offset": {"x": -56, "y": -20}
+      "landmark_scale": 1.04,
+      "label_offset": {"x": -62, "y": -24}
     },
     {
       "id": "old_copse",
@@ -85,8 +103,12 @@
       "icon_type": "woods",
       "description": "A knot of older trees full of herb-lore, spoor, and warnings never written down.",
       "unlock_tags": ["tavern", "general_goods"],
-      "landmark_scale": 1.08,
-      "label_offset": {"x": -34, "y": -26}
+      "landmark_scale": 1.16,
+      "label_offset": {"x": -38, "y": -34},
+      "terrain_hints": [
+        {"icon_type": "woods_small", "offset": {"x": -26, "y": 6}, "scale": 0.62, "alpha": 0.44},
+        {"icon_type": "woods_small", "offset": {"x": 18, "y": 12}, "scale": 0.58, "alpha": 0.36}
+      ]
     },
     {
       "id": "broken_ford",
@@ -96,8 +118,11 @@
       "icon_type": "bridge",
       "description": "A shallow crossing where wagons bog down, boots soak through, and tempers turn quickly.",
       "unlock_tags": ["general_goods"],
-      "landmark_scale": 1.04,
-      "label_offset": {"x": -36, "y": 18}
+      "landmark_scale": 1.1,
+      "label_offset": {"x": -42, "y": 18},
+      "terrain_hints": [
+        {"icon_type": "bridge_rope", "offset": {"x": 0, "y": -10}, "scale": 0.50, "alpha": 0.34}
+      ]
     },
     {
       "id": "wayside_shrine",
@@ -107,8 +132,11 @@
       "icon_type": "shrine",
       "description": "A small roadside shrine where offerings vanish and candlelight burns unnaturally late.",
       "unlock_tags": ["temple"],
-      "landmark_scale": 1.12,
-      "label_offset": {"x": -44, "y": 18}
+      "landmark_scale": 1.2,
+      "label_offset": {"x": -48, "y": 20},
+      "terrain_hints": [
+        {"icon_type": "church", "offset": {"x": 18, "y": 8}, "scale": 0.42, "alpha": 0.26}
+      ]
     },
     {
       "id": "ruined_chapel",
@@ -118,8 +146,12 @@
       "icon_type": "ruins",
       "description": "An old chapel shell whose broken nave still feels claimed by something sacred and wrong.",
       "unlock_tags": ["temple"],
-      "landmark_scale": 1.14,
-      "label_offset": {"x": -40, "y": 20}
+      "landmark_scale": 1.24,
+      "label_offset": {"x": -46, "y": 22},
+      "terrain_hints": [
+        {"icon_type": "rocks", "offset": {"x": -18, "y": -4}, "scale": 0.62, "alpha": 0.36},
+        {"icon_type": "ruins", "offset": {"x": 16, "y": 8}, "scale": 0.42, "alpha": 0.26}
+      ]
     },
     {
       "id": "bandit_track",
@@ -129,8 +161,11 @@
       "icon_type": "crossroads",
       "description": "A half-hidden side track off the trade route where wagons disappear before the toll collectors hear why.",
       "unlock_tags": ["general_goods", "tavern"],
-      "landmark_scale": 1.02,
-      "label_offset": {"x": -34, "y": 18}
+      "landmark_scale": 1.08,
+      "label_offset": {"x": -40, "y": 18},
+      "terrain_hints": [
+        {"icon_type": "skull", "offset": {"x": 14, "y": -10}, "scale": 0.54, "alpha": 0.66}
+      ]
     }
   ],
   "routes": [

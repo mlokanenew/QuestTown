@@ -143,6 +143,12 @@ const MAP_LOCATION_ICONS := {
 	"watchtower": MAP_ICON_WATCHTOWER_PATH,
 	"crossroads": MAP_ICON_SKULL_PATH,
 	"ruins": MAP_ICON_RUINS_PATH,
+	"banner": MAP_BANNER_PATH,
+	"house_small": MAP_ICON_HOUSE_SMALL_PATH,
+	"woods_small": MAP_ICON_WOODS_SMALL_PATH,
+	"bridge_rope": MAP_ICON_BRIDGE_ROPE_PATH,
+	"skull": MAP_ICON_SKULL_PATH,
+	"rocks": MAP_ICON_ROCKS_PATH,
 }
 
 const QUEST_MAP_MIN_ZOOM := 1.0
@@ -1790,11 +1796,12 @@ func _populate_map_landmarks(root: Control) -> void:
 		compass.modulate = Color(0.39, 0.30, 0.18, 0.74)
 		root.add_child(compass)
 	for location: Dictionary in DataLoader.map_locations:
+		_add_location_terrain_hints(root, location)
 		var icon_path := str(MAP_LOCATION_ICONS.get(str(location.get("icon_type", location.get("location_type", ""))), MAP_ICON_HOUSE_PATH))
 		var texture := _load_runtime_texture(icon_path)
 		var pos := _location_canvas_position(root, location)
 		var scale: float = float(location.get("landmark_scale", 1.0))
-		var icon_size := Vector2(34, 34) * scale
+		var icon_size := Vector2(42, 42) * scale
 		if texture != null:
 			var icon := TextureRect.new()
 			icon.texture = texture
@@ -1806,16 +1813,8 @@ func _populate_map_landmarks(root: Control) -> void:
 			icon.position = pos - Vector2(icon_size.x * 0.5, icon_size.y * 0.72)
 			icon.modulate = Color(0.28, 0.21, 0.12, 0.94) if str(location.get("id", "")) == "questtown_centre" else Color(0.40, 0.30, 0.18, 0.80)
 			root.add_child(icon)
-		var label := Label.new()
-		label.text = str(location.get("display_name", "?"))
-		label.autowrap_mode = TextServer.AUTOWRAP_OFF
-		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		_apply_label_role(label, "panel_title" if str(location.get("id", "")) == "questtown_centre" else "meta", true)
-		var label_offset := _location_label_offset(location)
-		label.position = pos + label_offset
-		label.size = Vector2(132, 22)
-		root.add_child(label)
+		_add_location_icon_overlays(root, location)
+		_add_location_label(root, location, pos)
 
 func _populate_map_markers(root: Control) -> void:
 	for quest_offer: Dictionary in GameState.quests:
@@ -2013,6 +2012,87 @@ func _map_anchor_to_canvas(root: Control, anchor_variant: Variant) -> Vector2:
 func _location_label_offset(location: Dictionary) -> Vector2:
 	var offset: Dictionary = location.get("label_offset", {})
 	return Vector2(float(offset.get("x", -36)), float(offset.get("y", 12)))
+
+func _location_label_width(location: Dictionary) -> float:
+	return float(location.get("label_width", 132.0))
+
+func _add_location_label(root: Control, location: Dictionary, pos: Vector2) -> void:
+	var text := str(location.get("display_name", "?"))
+	var is_town := str(location.get("id", "")) == "questtown_centre"
+	var label_shadow := Label.new()
+	label_shadow.text = text
+	label_shadow.autowrap_mode = TextServer.AUTOWRAP_OFF
+	label_shadow.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label_shadow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_apply_label_role(label_shadow, "panel_title" if is_town else "meta", true)
+	label_shadow.set("theme_override_colors/font_color", Color(0.08, 0.07, 0.05, 0.28))
+	var label := Label.new()
+	label.text = text
+	label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_apply_label_role(label, "panel_title" if is_town else "meta", true)
+	label.set("theme_override_colors/font_color", Color(0.19, 0.15, 0.10, 0.95) if is_town else Color(0.24, 0.20, 0.14, 0.84))
+	var label_offset := _location_label_offset(location)
+	var label_size := Vector2(_location_label_width(location), 26 if is_town else 22)
+	label_shadow.position = pos + label_offset + Vector2(1, 1)
+	label_shadow.size = label_size
+	label.position = pos + label_offset
+	label.size = label_size
+	root.add_child(label_shadow)
+	root.add_child(label)
+
+func _add_location_terrain_hints(root: Control, location: Dictionary) -> void:
+	var pos := _location_canvas_position(root, location)
+	for hint_variant in location.get("terrain_hints", []):
+		if not (hint_variant is Dictionary):
+			continue
+		var hint: Dictionary = hint_variant
+		var icon_path := str(MAP_LOCATION_ICONS.get(str(hint.get("icon_type", "")), ""))
+		if icon_path == "":
+			continue
+		var texture := _load_runtime_texture(icon_path)
+		if texture == null:
+			continue
+		var hint_scale := float(hint.get("scale", 0.6))
+		var hint_size := Vector2(42, 42) * hint_scale
+		var offset: Dictionary = hint.get("offset", {})
+		var node := TextureRect.new()
+		node.texture = texture
+		node.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		node.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		node.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		node.custom_minimum_size = hint_size
+		node.size = hint_size
+		node.position = pos + Vector2(float(offset.get("x", 0)), float(offset.get("y", 0))) - hint_size * 0.5
+		node.modulate = Color(0.31, 0.24, 0.14, float(hint.get("alpha", 0.34)))
+		root.add_child(node)
+
+func _add_location_icon_overlays(root: Control, location: Dictionary) -> void:
+	var pos := _location_canvas_position(root, location)
+	for overlay_variant in location.get("icon_overlays", []):
+		if not (overlay_variant is Dictionary):
+			continue
+		var overlay: Dictionary = overlay_variant
+		var icon_path := str(MAP_LOCATION_ICONS.get(str(overlay.get("icon_type", "")), ""))
+		if icon_path == "":
+			continue
+		var texture := _load_runtime_texture(icon_path)
+		if texture == null:
+			continue
+		var overlay_scale := float(overlay.get("scale", 0.6))
+		var overlay_size := Vector2(42, 42) * overlay_scale
+		var offset: Dictionary = overlay.get("offset", {})
+		var node := TextureRect.new()
+		node.texture = texture
+		node.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		node.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		node.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		node.custom_minimum_size = overlay_size
+		node.size = overlay_size
+		node.position = pos + Vector2(float(offset.get("x", 0)), float(offset.get("y", 0))) - overlay_size * 0.5
+		node.modulate = Color(0.33, 0.24, 0.14, float(overlay.get("alpha", 0.84)))
+		root.add_child(node)
 
 func _route_canvas_points(root: Control, route: Dictionary, from_location: Dictionary, to_location: Dictionary) -> PackedVector2Array:
 	var points := PackedVector2Array()
