@@ -772,7 +772,7 @@ func _building_bonus(building_system: Object, building_type: String, effect_key:
 	if level <= 0 or level > levels.size():
 		return 0
 	var effects: Dictionary = levels[level - 1].get("effects", {})
-	return int(effects.get(effect_key, 0))
+	return int(effects.get(effect_key, 0)) + GameState.get_building_resource_effect_bonus(int(building.get("id", 0)), effect_key)
 
 func _pick_quest_destination() -> Vector3:
 	var direction := -1.0 if _rng.randf() < 0.5 else 1.0

@@ -717,6 +717,7 @@ func _apply_visual_design_system() -> void:
 	_apply_button_theme(get_node_or_null("UILayer/LeftPanel/VBox/ContextUpgradeButton"), "accent")
 	_apply_button_theme(get_node_or_null("UILayer/RightPanel/VBox/ActionCard/ActionVBox/ActionButtons/BuildingActionButton"), "accent")
 	_apply_button_theme(get_node_or_null("UILayer/RightPanel/VBox/ActionCard/ActionVBox/ActionButtons/OutputActionButton"), "paper")
+	_ensure_building_resource_ui()
 	_apply_button_theme(get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestActionButton"), "accent")
 	var quest_button := get_node_or_null("UILayer/TopBar/TopBarRow/QuestDrawerButton")
 	if quest_button:
@@ -755,6 +756,8 @@ func _apply_visual_design_system() -> void:
 	_apply_label_role(get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestDetailHeader/QuestDetailHeaderVBox/QuestDetailSummaryLabel"), "body", true)
 	_apply_label_role(get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestPartyCard/QuestPartyVBox/QuestPartyTitle"), "section")
 	_apply_label_role(get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestPartyCard/QuestPartyVBox/QuestPartySummary"), "meta")
+	_apply_label_role(get_node_or_null("UILayer/RightPanel/VBox/ResourceCard/ResourceVBox/ResourceTitle"), "section")
+	_apply_label_role(get_node_or_null("UILayer/RightPanel/VBox/ResourceCard/ResourceVBox/ResourceSummary"), "meta")
 
 	var help := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestHelp")
 	if help:
@@ -937,6 +940,8 @@ func _ready() -> void:
 		GameState.quests_changed.connect(_refresh_quest_ui)
 		GameState.quest_filters_changed.connect(_refresh_quest_ui)
 		GameState.quest_history_changed.connect(_refresh_quest_ui)
+		GameState.blockers_changed.connect(_on_blockers_changed)
+		GameState.building_resources_changed.connect(_on_building_resources_changed)
 		GameState.state_reloaded.connect(_on_state_reloaded)
 		_setup_quest_menu()
 		_apply_visual_design_system()
@@ -1084,6 +1089,9 @@ func _refresh_hero_panel(hero_id: int) -> void:
 	if not GameState.heroes.has(hero_id):
 		return
 	var h: Dictionary = GameState.heroes[hero_id]
+	var resource_nodes := _building_resource_nodes()
+	if resource_nodes.card:
+		resource_nodes.card.visible = false
 	var portrait := get_node_or_null("UILayer/RightPanel/VBox/SummaryCard/SummaryRow/PortraitPanel/PortraitMargin/PortraitTexture")
 	var title_lbl := get_node_or_null("UILayer/RightPanel/VBox/Header/EntityTitle")
 	var lead_lbl := get_node_or_null("UILayer/RightPanel/VBox/InspectorLeadLabel")
@@ -1239,6 +1247,7 @@ func _refresh_building_panel(building_id: int) -> void:
 	var building: Dictionary = GameState.buildings.get(building_id, {})
 	if building.is_empty():
 		return
+	_ensure_building_resource_ui()
 	var portrait := get_node_or_null("UILayer/RightPanel/VBox/SummaryCard/SummaryRow/PortraitPanel/PortraitMargin/PortraitTexture")
 	var title_lbl := get_node_or_null("UILayer/RightPanel/VBox/Header/EntityTitle")
 	var lead_lbl := get_node_or_null("UILayer/RightPanel/VBox/InspectorLeadLabel")
@@ -1264,6 +1273,8 @@ func _refresh_building_panel(building_id: int) -> void:
 	var data: Dictionary = DataLoader.buildings_by_id.get(building_type, {})
 	var level: int = int(building.get("level", 1))
 	var levels: Array = data.get("levels", [])
+	var installed_resources: Array = GameState.get_building_installed_resources(building_id)
+	var slot_capacity: int = GameState.get_building_slot_capacity(building_id)
 	var level_name: String = ""
 	if level > 0 and level <= levels.size():
 		level_name = str(levels[level - 1].get("name", ""))
@@ -1321,7 +1332,7 @@ func _refresh_building_panel(building_id: int) -> void:
 	if gold_lbl:
 		gold_lbl.text = "Base cost  %dg" % int(data.get("base_cost", 0))
 	if bias_lbl:
-		bias_lbl.text = "Site  %.0f, %.0f\nStored output  %d" % [float(building.get("position", {}).get("x", 0.0)), float(building.get("position", {}).get("z", 0.0)), int(building.get("output_stock", 0))]
+		bias_lbl.text = "Site  %.0f, %.0f\nStored output  %d  •  Slots %d/%d" % [float(building.get("position", {}).get("x", 0.0)), float(building.get("position", {}).get("z", 0.0)), int(building.get("output_stock", 0)), installed_resources.size(), slot_capacity]
 	if stats_lbl:
 		stats_lbl.text = "Upgrade path  %s" % ("Available" if level < levels.size() else "Maxed")
 	if skills_lbl:
@@ -1330,11 +1341,14 @@ func _refresh_building_panel(building_id: int) -> void:
 		var effect_names: Array = []
 		if level > 0 and level <= levels.size():
 			effect_names = data.get("levels", [])[level - 1].get("effects", {}).keys()
+		for resource in installed_resources:
+			effect_names.append(str(resource.get("display_name", "")))
 		tags_lbl.text = "Effects  %s" % _compact_list_text(effect_names, 5)
 	if quest_lbl:
 		quest_lbl.text = "Current use  Supports quests and town services"
 	if desc_lbl:
 		desc_lbl.text = data.get("description", "")
+	_refresh_building_resource_ui(building)
 	_refresh_building_action_button()
 	_refresh_output_action_button()
 	_refresh_details_visibility()
@@ -1427,6 +1441,15 @@ func _on_building_action_changed(building_id: int, _action: String) -> void:
 		_refresh_building_panel(building_id)
 	_refresh_build_ui()
 	_refresh_quest_ui()
+
+func _on_blockers_changed() -> void:
+	if _selected_entity_kind == "building" and _selected_building_id >= 0 and GameState.buildings.has(_selected_building_id):
+		_refresh_building_panel(_selected_building_id)
+	_refresh_quest_ui()
+
+func _on_building_resources_changed(building_id: int) -> void:
+	if building_id == _selected_building_id and GameState.buildings.has(building_id):
+		_refresh_building_panel(building_id)
 
 func _on_state_reloaded() -> void:
 	_hide_hero_panel()
@@ -2806,6 +2829,43 @@ func _sample_polyline_position(points: PackedVector2Array, distance: float) -> V
 func _family_badge_text(quest: Dictionary) -> String:
 	return str(QUEST_FAMILY_NAMES.get(str(quest.get("quest_family", "tavern")), "Rumour"))
 
+func _ensure_building_resource_ui() -> void:
+	var panel_vbox := get_node_or_null("UILayer/RightPanel/VBox") as VBoxContainer
+	if panel_vbox == null:
+		return
+	if panel_vbox.get_node_or_null("ResourceCard") != null:
+		return
+	var action_card := panel_vbox.get_node_or_null("ActionCard")
+	var card := PanelContainer.new()
+	card.name = "ResourceCard"
+	var vbox := VBoxContainer.new()
+	vbox.name = "ResourceVBox"
+	vbox.add_theme_constant_override("separation", 8)
+	card.add_child(vbox)
+	var title := Label.new()
+	title.name = "ResourceTitle"
+	title.text = "Route Resources"
+	vbox.add_child(title)
+	var summary := Label.new()
+	summary.name = "ResourceSummary"
+	summary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	vbox.add_child(summary)
+	var list := VBoxContainer.new()
+	list.name = "ResourceList"
+	list.add_theme_constant_override("separation", 6)
+	vbox.add_child(list)
+	panel_vbox.add_child(card)
+	if action_card != null:
+		panel_vbox.move_child(card, action_card.get_index() + 1)
+
+func _building_resource_nodes() -> Dictionary:
+	return {
+		"card": get_node_or_null("UILayer/RightPanel/VBox/ResourceCard"),
+		"title": get_node_or_null("UILayer/RightPanel/VBox/ResourceCard/ResourceVBox/ResourceTitle"),
+		"summary": get_node_or_null("UILayer/RightPanel/VBox/ResourceCard/ResourceVBox/ResourceSummary"),
+		"list": get_node_or_null("UILayer/RightPanel/VBox/ResourceCard/ResourceVBox/ResourceList")
+	}
+
 func _ensure_quest_party_selector_ui() -> void:
 	var detail_column := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn") as VBoxContainer
 	if detail_column == null:
@@ -2843,6 +2903,63 @@ func _quest_party_nodes() -> Dictionary:
 		"summary": get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestPartyCard/QuestPartyVBox/QuestPartySummary"),
 		"list": get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestPartyCard/QuestPartyVBox/QuestPartyList")
 	}
+
+func _refresh_building_resource_ui(building: Dictionary) -> void:
+	var nodes := _building_resource_nodes()
+	var card: Control = nodes.get("card")
+	var summary: Label = nodes.get("summary")
+	var list: VBoxContainer = nodes.get("list")
+	if card == null or summary == null or list == null:
+		return
+	if _selected_entity_kind != "building":
+		card.visible = false
+		return
+	card.visible = true
+	for child in list.get_children():
+		child.queue_free()
+	var building_id: int = int(building.get("id", -1))
+	var building_type: String = str(building.get("type", ""))
+	var installed_resources: Array = GameState.get_building_installed_resources(building_id)
+	var slot_capacity: int = GameState.get_building_slot_capacity(building_id)
+	var unlocked_matching: Array = []
+	for resource_variant in GameState.unlocked_resources.values():
+		var resource: Dictionary = resource_variant
+		if str(resource.get("building_type", "")) == building_type:
+			unlocked_matching.append(resource)
+	unlocked_matching.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		return str(a.get("display_name", "")) < str(b.get("display_name", ""))
+	)
+	summary.text = "Slots %d/%d  •  %d unlocked from cleared routes" % [installed_resources.size(), slot_capacity, unlocked_matching.size()]
+	if unlocked_matching.is_empty():
+		var empty_label := Label.new()
+		empty_label.text = "No route rewards for this building yet. Clear nearby blockers and install the unlocked rewards here."
+		empty_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		list.add_child(empty_label)
+		return
+	for resource in unlocked_matching:
+		var button := Button.new()
+		var resource_id: String = str(resource.get("resource_id", resource.get("id", "")))
+		var slot_type: String = str(resource.get("slot_type", "resource")).capitalize()
+		var installed_here: bool = int(resource.get("installed_building_id", -1)) == building_id
+		var installed_elsewhere: bool = bool(resource.get("installed", false)) and not installed_here
+		button.text = "%s  •  %s" % [resource.get("display_name", resource_id), slot_type]
+		button.tooltip_text = str(resource.get("description", ""))
+		button.custom_minimum_size = Vector2(0, 38)
+		_apply_button_theme(button, "paper")
+		if installed_here:
+			button.disabled = true
+			button.text += "  •  Installed"
+		elif installed_elsewhere:
+			button.disabled = true
+			button.text += "  •  Installed Elsewhere"
+		elif installed_resources.size() >= slot_capacity:
+			button.disabled = true
+			button.text += "  •  No Free Slot"
+		else:
+			button.pressed.connect(func() -> void: _install_selected_building_resource(resource_id))
+			_wire_button_sfx(button, "confirm")
+			button.text += "  •  Install"
+		list.add_child(button)
 
 func _refresh_selected_quest_detail() -> void:
 	match _selected_quest_kind:
@@ -3249,6 +3366,9 @@ func _refresh_details_visibility() -> void:
 	var output_action_btn := get_node_or_null("UILayer/RightPanel/VBox/ActionCard/ActionVBox/ActionButtons/OutputActionButton")
 	if output_action_btn:
 		output_action_btn.visible = _selected_entity_kind == "building" and GameState.buildings.has(_selected_building_id)
+	var resource_card := get_node_or_null("UILayer/RightPanel/VBox/ResourceCard")
+	if resource_card:
+		resource_card.visible = _selected_entity_kind == "building" and GameState.buildings.has(_selected_building_id)
 
 func _upgrade_selected_building() -> void:
 	_start_selected_building_upgrade()
@@ -3274,6 +3394,16 @@ func _set_selected_building_output_mode() -> void:
 	_refresh_context_upgrade_button()
 	_refresh_building_action_button()
 	_refresh_output_action_button()
+
+func _install_selected_building_resource(resource_id: String) -> void:
+	if _selected_building_id < 0 or resource_id == "":
+		return
+	var result: Dictionary = sim.install_building_resource(_selected_building_id, resource_id)
+	if result.is_empty():
+		_set_status("That route reward cannot be installed here right now")
+		return
+	_set_status("Installed %s" % str(result.get("display_name", resource_id)))
+	_refresh_building_panel(_selected_building_id)
 
 func _building_action_summary(building: Dictionary) -> String:
 	var current_action: String = building.get("current_action", "idle")

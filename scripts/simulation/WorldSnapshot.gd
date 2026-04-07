@@ -30,6 +30,8 @@ func _buildings() -> Array:
 			"action_progress_ticks": b.get("action_progress_ticks", 0),
 			"action_required_ticks": b.get("action_required_ticks", 0),
 			"output_stock": b.get("output_stock", 0),
+			"resource_slot_capacity": GameState.get_building_slot_capacity(int(b["id"])),
+			"installed_resource_ids": b.get("installed_resource_ids", []).duplicate(true),
 			"rotation_degrees_y": b.get("rotation_degrees_y", 0.0),
 			"position": b["position"]
 		})

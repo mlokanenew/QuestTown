@@ -114,6 +114,17 @@ func _handle(cmd: Dictionary) -> void:
 			else:
 				_respond({"ok": true, "result": output_result})
 
+		"install_building_resource":
+			var install_building_id: int = int(cmd.get("id", -1))
+			if install_building_id < 0 and cmd.has("type"):
+				var install_building: Dictionary = _sim.get_building_of_type(cmd.get("type", ""))
+				install_building_id = int(install_building.get("id", -1))
+			var install_result: Variant = _sim.install_building_resource(install_building_id, str(cmd.get("resource_id", "")))
+			if install_result.is_empty():
+				_respond({"ok": false, "error": "install building resource failed"})
+			else:
+				_respond({"ok": true, "result": install_result})
+
 		"accept_quest":
 			var offer_id: int = int(cmd.get("offer_id", -1))
 			if offer_id < 0:

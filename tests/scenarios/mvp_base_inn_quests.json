@@ -1,6 +1,6 @@
 {
-  "name": "MVP base Inn only generates the simplest quest",
-  "goal": "Verify a base Inn only produces the simplest first-hour quest.",
+  "name": "MVP base Inn reveals blocker-backed town rumours",
+  "goal": "Verify a base Inn reveals route blockers as rumour-backed missions rather than generic jobs.",
   "seed": 42,
   "max_ticks": 240,
   "commands": [
@@ -9,6 +9,7 @@
   ],
   "assertions": [
     {"assert": "quest_count_gte", "value": 1},
-    {"assert": "quest_templates_only", "value": ["clear_rats_cellar", "escort_peddler_ford"]}
+    {"assert": "quests_have_nonempty_field", "value": "blocker_id"},
+    {"assert": "quests_have_nonempty_field", "value": "reward_resource_id"}
   ]
 }

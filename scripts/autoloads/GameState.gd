@@ -14,6 +14,7 @@ signal quests_changed()
 signal quest_filters_changed()
 signal quest_history_changed()
 signal blockers_changed()
+signal building_resources_changed(building_id: int)
 signal event_logged(event: Dictionary)
 signal gold_changed(new_amount: int)
 signal state_reloaded()
@@ -82,6 +83,7 @@ func add_building(type: String, position: Vector3) -> Dictionary:
 		"action_progress_ticks": 0,
 		"action_required_ticks": 0,
 		"output_stock": 0,
+		"installed_resource_ids": [],
 		"rotation_degrees_y": 0.0,
 		"position": {"x": position.x, "y": position.y, "z": position.z}
 	}
@@ -246,11 +248,84 @@ func unlock_resource(resource_id: String, blocker_id: String) -> void:
 		"building_type": resource_data.get("building_type", ""),
 		"slot_type": resource_data.get("slot_type", "resource"),
 		"description": resource_data.get("description", ""),
+		"effects": resource_data.get("effects", {}).duplicate(true),
 		"unlocked_tick": tick,
 		"source_blocker_id": blocker_id,
-		"active": true
+		"active": true,
+		"installed": false,
+		"installed_building_id": -1
 	}
 	blockers_changed.emit()
+
+func get_building_slot_capacity(building_id: int) -> int:
+	var building: Dictionary = buildings.get(building_id, {})
+	if building.is_empty():
+		return 0
+	var building_data: Dictionary = DataLoader.buildings_by_id.get(str(building.get("type", "")), {})
+	var levels: Array = building_data.get("levels", [])
+	var level: int = int(building.get("level", 1))
+	if level <= 0 or level > levels.size():
+		return 0
+	return int(levels[level - 1].get("resource_slot_capacity", level))
+
+func get_building_installed_resources(building_id: int) -> Array:
+	var result: Array = []
+	var building: Dictionary = buildings.get(building_id, {})
+	if building.is_empty():
+		return result
+	for resource_id_variant in building.get("installed_resource_ids", []):
+		var resource_id: String = str(resource_id_variant)
+		if unlocked_resources.has(resource_id):
+			result.append(unlocked_resources[resource_id].duplicate(true))
+	return result
+
+func get_building_resource_effect_bonus(building_id: int, effect_key: String) -> int:
+	var total: int = 0
+	var building: Dictionary = buildings.get(building_id, {})
+	if building.is_empty():
+		return 0
+	for resource_id_variant in building.get("installed_resource_ids", []):
+		var resource_id: String = str(resource_id_variant)
+		var resource: Dictionary = unlocked_resources.get(resource_id, {})
+		if resource.is_empty() or not bool(resource.get("active", false)):
+			continue
+		var effects: Dictionary = resource.get("effects", {})
+		var value: Variant = effects.get(effect_key, 0)
+		if value is bool:
+			total += 1 if value else 0
+		else:
+			total += int(value)
+	return total
+
+func install_resource(building_id: int, resource_id: String) -> Dictionary:
+	var building: Dictionary = buildings.get(building_id, {})
+	if building.is_empty():
+		return {}
+	var unlocked: Dictionary = unlocked_resources.get(resource_id, {})
+	if unlocked.is_empty() or not bool(unlocked.get("active", false)):
+		return {}
+	if str(unlocked.get("building_type", "")) != str(building.get("type", "")):
+		return {}
+	var installed_ids: Array = building.get("installed_resource_ids", []).duplicate()
+	if installed_ids.has(resource_id):
+		return unlocked.duplicate(true)
+	if bool(unlocked.get("installed", false)):
+		return {}
+	if installed_ids.size() >= get_building_slot_capacity(building_id):
+		return {}
+	installed_ids.append(resource_id)
+	buildings[building_id]["installed_resource_ids"] = installed_ids
+	unlocked_resources[resource_id]["installed"] = true
+	unlocked_resources[resource_id]["installed_building_id"] = building_id
+	building_resources_changed.emit(building_id)
+	blockers_changed.emit()
+	log_event("resource_installed", {
+		"resource_id": resource_id,
+		"display_name": unlocked.get("display_name", resource_id),
+		"building_id": building_id,
+		"building_type": building.get("type", "")
+	})
+	return unlocked_resources[resource_id].duplicate(true)
 
 func is_quest_enabled(quest_id: String) -> bool:
 	return bool(enabled_quest_ids.get(quest_id, true))
@@ -306,7 +381,10 @@ func import_state(data: Dictionary) -> void:
 	gold = int(data.get("gold", _starting_gold()))
 	buildings.clear()
 	for building: Dictionary in data.get("buildings", []):
-		buildings[int(building.get("id", 0))] = building.duplicate(true)
+		var building_copy: Dictionary = building.duplicate(true)
+		if not building_copy.has("installed_resource_ids"):
+			building_copy["installed_resource_ids"] = []
+		buildings[int(building_copy.get("id", 0))] = building_copy
 	heroes.clear()
 	for hero: Dictionary in data.get("heroes", []):
 		heroes[int(hero.get("id", 0))] = hero.duplicate(true)
@@ -315,6 +393,14 @@ func import_state(data: Dictionary) -> void:
 	enabled_quest_ids = data.get("enabled_quest_ids", {}).duplicate(true)
 	blockers = data.get("blockers", {}).duplicate(true)
 	unlocked_resources = data.get("unlocked_resources", {}).duplicate(true)
+	for resource_id in unlocked_resources.keys():
+		if not unlocked_resources[resource_id].has("effects"):
+			var resource_data: Dictionary = DataLoader.get_world_resource(str(resource_id))
+			unlocked_resources[resource_id]["effects"] = resource_data.get("effects", {}).duplicate(true)
+		if not unlocked_resources[resource_id].has("installed"):
+			unlocked_resources[resource_id]["installed"] = false
+		if not unlocked_resources[resource_id].has("installed_building_id"):
+			unlocked_resources[resource_id]["installed_building_id"] = -1
 	events = data.get("events", []).duplicate(true)
 	_next_building_id = int(data.get("next_building_id", buildings.size() + 1))
 	_next_hero_id = int(data.get("next_hero_id", heroes.size() + 1))
@@ -323,6 +409,8 @@ func import_state(data: Dictionary) -> void:
 	quest_filters_changed.emit()
 	quest_history_changed.emit()
 	blockers_changed.emit()
+	for building_id in buildings.keys():
+		building_resources_changed.emit(int(building_id))
 	state_reloaded.emit()
 
 func _starting_gold() -> int:

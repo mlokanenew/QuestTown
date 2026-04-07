@@ -1,6 +1,6 @@
 {
-  "name": "MVP store upgrades unlock the herbs quest",
-  "goal": "Verify upgraded Inn and General Store unlock the herb-gathering quest.",
+  "name": "MVP General Store opens blocker missions with route rewards",
+  "goal": "Verify an early General Store lets the Tavern reveal blocker missions that carry installable route rewards.",
   "seed": 42,
   "max_ticks": 0,
   "commands": [
@@ -22,6 +22,7 @@
   ],
   "assertions": [
     {"assert": "quest_count_gte", "value": 1},
-    {"assert": "quest_templates_include", "value": ["gather_rare_herbs"]}
+    {"assert": "quests_have_nonempty_field", "value": "blocker_id"},
+    {"assert": "quests_have_nonempty_field", "value": "reward_resource_id"}
   ]
 }

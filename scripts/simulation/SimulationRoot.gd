@@ -52,6 +52,9 @@ func start_building_upgrade(id: int) -> Dictionary:
 func set_building_output_mode(id: int) -> Dictionary:
 	return building_system.set_output_mode(id)
 
+func install_building_resource(id: int, resource_id: String) -> Dictionary:
+	return GameState.install_resource(id, resource_id)
+
 func accept_quest(offer_id: int, hero_ids: Array = []) -> Dictionary:
 	return quest_system.accept_quest_offer(offer_id, building_system, hero_ids)
 

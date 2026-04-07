@@ -5,42 +5,66 @@
       "display_name": "Southmere Travellers",
       "building_type": "tavern",
       "slot_type": "connection",
-      "description": "Travellers from Southmere begin using the inn once the forest road is safe."
+      "description": "Travellers from Southmere begin using the inn once the forest road is safe.",
+      "effects": {
+        "adventurer_capacity": 1,
+        "lodging_income": 1
+      }
     },
     {
       "id": "high_market_arms",
       "display_name": "High Market Arms",
       "building_type": "weapons_shop",
       "slot_type": "trade",
-      "description": "A reopened northern route brings stronger packs, tools, and trade goods."
+      "description": "A reopened northern route brings stronger packs, tools, and trade goods.",
+      "effects": {
+        "gear_spending": 1,
+        "quest_success_bonus": 1
+      }
     },
     {
       "id": "silver_ore_supply",
       "display_name": "Silver Ore Supply",
       "building_type": "weapons_shop",
       "slot_type": "ore",
-      "description": "Silver ore from the reopened mine improves higher-value trade stock."
+      "description": "Silver ore from the reopened mine improves higher-value trade stock.",
+      "effects": {
+        "gear_spending": 1,
+        "quest_success_bonus": 1
+      }
     },
     {
       "id": "iron_ore_supply",
       "display_name": "Iron Ore Supply",
       "building_type": "weapons_shop",
       "slot_type": "ore",
-      "description": "Iron ore from the pass supports sturdier tools and weapons."
+      "description": "Iron ore from the pass supports sturdier tools and weapons.",
+      "effects": {
+        "gear_spending": 1,
+        "quest_success_bonus": 2
+      }
     },
     {
       "id": "shrine_relic",
       "display_name": "Shrine Relic",
       "building_type": "temple",
       "slot_type": "relic",
-      "description": "A restored shrine yields a relic that strengthens healing rites."
+      "description": "A restored shrine yields a relic that strengthens healing rites.",
+      "effects": {
+        "recovery_bonus": 1,
+        "survival_bonus": 1
+      }
     },
     {
       "id": "temple_relic",
       "display_name": "Temple Relic",
       "building_type": "temple",
       "slot_type": "relic",
-      "description": "Recovering the old temple restores a relic of deeper spiritual power."
+      "description": "Recovering the old temple restores a relic of deeper spiritual power.",
+      "effects": {
+        "recovery_bonus": 1,
+        "survival_bonus": 2
+      }
     }
   ],
   "blockers": [

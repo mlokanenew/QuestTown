@@ -90,6 +90,12 @@ func _execute_command(sim: Node, cmd: Dictionary) -> void:
 				var output_building: Dictionary = sim.get_building_of_type(cmd.get("type", ""))
 				output_building_id = int(output_building.get("id", -1))
 			sim.set_building_output_mode(output_building_id)
+		"install_building_resource":
+			var install_building_id: int = int(cmd.get("id", -1))
+			if install_building_id < 0:
+				var install_building: Dictionary = sim.get_building_of_type(cmd.get("type", ""))
+				install_building_id = int(install_building.get("id", -1))
+			sim.install_building_resource(install_building_id, str(cmd.get("resource_id", "")))
 		"accept_quest":
 			var offer_id: int = int(cmd.get("offer_id", -1))
 			if offer_id < 0 and cmd.has("index"):
@@ -162,6 +168,16 @@ func _check(assertion: Dictionary, state: Dictionary) -> bool:
 			for b in state["buildings"]:
 				if b["type"] == assertion.get("type", ""):
 					return int(b.get("output_stock", 0)) >= int(assertion.get("value", 1))
+			return false
+		"building_installed_resource_count_gte":
+			for b in state["buildings"]:
+				if b["type"] == assertion.get("type", ""):
+					return b.get("installed_resource_ids", []).size() >= int(assertion.get("value", 1))
+			return false
+		"building_has_installed_resource":
+			for b in state["buildings"]:
+				if b["type"] == assertion.get("type", ""):
+					return b.get("installed_resource_ids", []).has(assertion.get("value", ""))
 			return false
 		"gold_eq":
 			return int(state.get("gold", -1)) == int(assertion.get("value", -1))

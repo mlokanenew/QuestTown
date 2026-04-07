@@ -1,7 +1,7 @@
 {
   "name": "MVP successful quests can still cause minor wounds",
   "goal": "Verify that risky first-hour quests can still return an adventurer with a minor wound.",
-  "seed": 42,
+  "seed": 7,
   "max_ticks": 7200,
   "commands": [
     {"cmd": "set_gold", "value": 180},

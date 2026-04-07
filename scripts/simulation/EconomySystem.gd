@@ -276,6 +276,7 @@ func _building_effect(building_system: Object, building_type: String, effect_key
 		return 0
 	var effects: Dictionary = levels[level - 1].get("effects", {})
 	var value: Variant = effects.get(effect_key, 0)
+	var resource_bonus: int = GameState.get_building_resource_effect_bonus(int(building.get("id", 0)), effect_key)
 	if value is bool:
-		return 1 if value else 0
-	return int(value)
+		return (1 if value else 0) + resource_bonus
+	return int(value) + resource_bonus

@@ -180,7 +180,8 @@ func _normalize_world_resources(raw_resources: Array) -> Array:
 			"display_name": str(raw_resource.get("display_name", resource_id.capitalize())),
 			"building_type": str(raw_resource.get("building_type", "")),
 			"slot_type": str(raw_resource.get("slot_type", "resource")),
-			"description": str(raw_resource.get("description", ""))
+			"description": str(raw_resource.get("description", "")),
+			"effects": raw_resource.get("effects", {}).duplicate(true)
 		})
 	return normalized
 

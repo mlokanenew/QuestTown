@@ -1,6 +1,6 @@
 {
-  "name": "MVP temple upgrades unlock the strange lights quest",
-  "goal": "Verify upgraded Inn and Temple unlock the strange shrine quest.",
+  "name": "MVP Temple opens sacred blocker missions",
+  "goal": "Verify an early Temple allows the Tavern to reveal sacred blocker missions with temple rewards.",
   "seed": 42,
   "max_ticks": 0,
   "commands": [
@@ -24,6 +24,7 @@
   ],
   "assertions": [
     {"assert": "quest_count_gte", "value": 1},
-    {"assert": "quest_templates_include", "value": ["investigate_strange_lights"]}
+    {"assert": "quests_have_nonempty_field", "value": "blocker_id"},
+    {"assert": "quests_have_nonempty_field", "value": "reward_resource_id"}
   ]
 }

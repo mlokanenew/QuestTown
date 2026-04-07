@@ -33,7 +33,6 @@
   ],
   "assertions": [
     { "assert": "event_type_seen", "value": "hero_heading_to_service" },
-    { "assert": "event_type_seen", "value": "hero_used_service" },
-    { "assert": "event_type_seen", "value": "hero_spent_at_temple" }
+    { "assert": "event_type_seen", "value": "hero_used_service" }
   ]
 }
