@@ -853,14 +853,14 @@ func _resolve_party_member(hero_id: int, quest: Dictionary, tavern: Vector3, bui
 	var hero: Dictionary = GameState.heroes[hero_id]
 	var wounded := false
 	if not succeeded:
-		var wound_chance: float = clamp(0.6 + 0.1 * float(quest.get("risk_level", 1)) - 0.05 * float(survival_bonus), 0.3, 0.95)
+		var wound_chance: float = clamp(0.34 + 0.07 * float(quest.get("risk_level", 1)) - 0.05 * float(survival_bonus), 0.18, 0.72)
 		if _rng.randf() < wound_chance:
 			var damage: int = max(1, int(quest.get("risk_level", 1)))
 			GameState.heroes[hero_id]["health"] = max(1, int(hero.get("health", 1)) - damage)
 			GameState.heroes[hero_id]["wound_state"] = "minor_wounded"
 			wounded = true
 			var recovery_bonus: int = _building_bonus(building_system, "temple", "recovery_bonus")
-			GameState.heroes[hero_id]["recovery_ticks_remaining"] = max(120, 300 + int(quest.get("risk_level", 1)) * 90 - recovery_bonus * 60)
+			GameState.heroes[hero_id]["recovery_ticks_remaining"] = max(120, 240 + int(quest.get("risk_level", 1)) * 75 - recovery_bonus * 60)
 			GameState.heroes[hero_id]["post_quest_state"] = "recovering"
 			GameState.heroes[hero_id]["return_idle_ticks"] = 0
 		else:
@@ -868,8 +868,8 @@ func _resolve_party_member(hero_id: int, quest: Dictionary, tavern: Vector3, bui
 			GameState.heroes[hero_id]["post_quest_state"] = "idling"
 			GameState.heroes[hero_id]["return_idle_ticks"] = 180
 	else:
-		var wound_chance: float = 0.22 + 0.12 * float(quest.get("risk_level", 1))
-		wound_chance = clamp(wound_chance - 0.03 * float(survival_bonus), 0.18, 0.65)
+		var wound_chance: float = 0.09 + 0.06 * float(quest.get("risk_level", 1))
+		wound_chance = clamp(wound_chance - 0.03 * float(survival_bonus), 0.06, 0.36)
 		if _rng.randf() < wound_chance:
 			var chip_damage: int = max(1, int(quest.get("risk_level", 1)))
 			GameState.heroes[hero_id]["health"] = max(1, int(hero.get("health", 1)) - chip_damage)

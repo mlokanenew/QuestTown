@@ -198,6 +198,14 @@ const MAP_DRAWN_ROUTE_STYLES := {
 	}
 }
 
+const ROUTE_STATE_OVERRIDES := {
+	"known_blocked": {"color": Color(0.23, 0.10, 0.09, 0.78), "dot_radius": 1.9, "dot_spacing": 10.0, "wobble": 0.34},
+	"discovered": {"color": Color(0.74, 0.39, 0.18, 0.90), "dot_radius": 2.0, "dot_spacing": 9.5, "wobble": 0.34},
+	"active_quest": {"color": Color(0.82, 0.56, 0.18, 0.96), "dot_radius": 2.2, "dot_spacing": 9.0, "wobble": 0.30},
+	"unblocked": {"color": Color(0.33, 0.50, 0.33, 0.48), "dot_radius": 1.5, "dot_spacing": 10.5, "wobble": 0.24},
+	"degraded": {"color": Color(0.60, 0.28, 0.15, 0.88), "dot_radius": 2.0, "dot_spacing": 9.8, "wobble": 0.30}
+}
+
 func _make_style(bg: Color, border: Color, radius: int = RADIUS_PANEL, border_width: int = 1, padding: int = 12) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
 	style.bg_color = bg
@@ -673,6 +681,10 @@ func _apply_visual_design_system() -> void:
 	var quest_party_card := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestPartyCard")
 	if quest_party_card:
 		quest_party_card.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_PAPER, 0.92), Color(UI_BORDER_SUBTLE, 0.20), 18, 0, 14))
+	_ensure_quest_town_tasks_ui()
+	var quest_town_tasks_card := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestTownTasksCard")
+	if quest_town_tasks_card:
+		quest_town_tasks_card.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_2, 0.92), Color(UI_ACCENT, 0.18), 18, 0, 14))
 	var active_card := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestLowerRow/ActiveQuestCard")
 	if active_card:
 		active_card.set("theme_override_styles/panel", _make_style(Color(UI_SURFACE_2, 0.92), Color(UI_ACCENT, 0.18), 18, 0, 12))
@@ -756,6 +768,8 @@ func _apply_visual_design_system() -> void:
 	_apply_label_role(get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestDetailHeader/QuestDetailHeaderVBox/QuestDetailSummaryLabel"), "body", true)
 	_apply_label_role(get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestPartyCard/QuestPartyVBox/QuestPartyTitle"), "section")
 	_apply_label_role(get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestPartyCard/QuestPartyVBox/QuestPartySummary"), "meta")
+	_apply_label_role(get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestTownTasksCard/QuestTownTasksVBox/QuestTownTasksTitle"), "section")
+	_apply_label_role(get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestTownTasksCard/QuestTownTasksVBox/QuestTownTasksSummary"), "meta")
 	_apply_label_role(get_node_or_null("UILayer/RightPanel/VBox/ResourceCard/ResourceVBox/ResourceTitle"), "section")
 	_apply_label_role(get_node_or_null("UILayer/RightPanel/VBox/ResourceCard/ResourceVBox/ResourceSummary"), "meta")
 
@@ -1593,6 +1607,8 @@ func _refresh_output_action_button() -> void:
 
 func _setup_quest_menu() -> void:
 	_quest_filter_boxes.clear()
+	_ensure_quest_party_selector_ui()
+	_ensure_quest_town_tasks_ui()
 	var summary_label := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestListColumn/QuestListHeader/QuestFilterSummaryLabel")
 	if summary_label:
 		summary_label.text = "0 discovered sites"
@@ -1619,7 +1635,14 @@ func _refresh_quest_ui() -> void:
 		list_title.text = "Discovered Rumours" if not _quest_list_collapsed else "Rumours"
 	var map_legend := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestMapColumn/QuestMapHeader/QuestMapLegend")
 	if map_legend:
-		map_legend.text = "Inn rumours reveal contracts. Wheel zooms the map, and hold RMB to drag."
+		map_legend.text = "Inn rumours reveal blockers. Wheel zooms the map, hold RMB to drag, and darker routes show current trouble."
+	var map_footer := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestMapColumn/QuestMapFooter")
+	if map_footer:
+		var installable_count := 0
+		for resource_variant in GameState.unlocked_resources.values():
+			if bool((resource_variant as Dictionary).get("active", false)) and not bool((resource_variant as Dictionary).get("installed", false)):
+				installable_count += 1
+		map_footer.text = "%d discovered offers  •  %d active expeditions  •  %d installable route rewards" % [GameState.quests.size(), _get_active_quest_parties().size(), installable_count]
 
 	_refresh_quest_offer_cards()
 	_refresh_quest_map()
@@ -2028,7 +2051,66 @@ func _populate_map_routes(root: Control) -> void:
 		var points := _build_drawn_route_points(root, route, from_location, to_location)
 		if points.size() < 2:
 			continue
-		_render_drawn_route(root, points, MAP_DRAWN_ROUTE_STYLES.get(str(route.get("route_type", "track")), MAP_DRAWN_ROUTE_STYLES["track"]), str(route.get("route_id", "")))
+		var route_state: String = _route_state_for_route(route)
+		var style: Dictionary = _route_style_for_state(route, route_state)
+		_render_drawn_route(root, points, style, str(route.get("route_id", "")))
+		_add_route_state_caption(root, points, route_state)
+
+func _route_state_for_route(route: Dictionary) -> String:
+	var route_id: String = str(route.get("route_id", ""))
+	var from_location_id: String = str(route.get("from_location_id", ""))
+	var to_location_id: String = str(route.get("to_location_id", ""))
+	var best_rank := -1
+	var best_state := ""
+	var state_rank := {
+		"active_quest": 5,
+		"discovered": 4,
+		"degraded": 3,
+		"known_blocked": 2,
+		"unblocked": 1
+	}
+	for blocker_variant in GameState.blockers.values():
+		var blocker: Dictionary = blocker_variant
+		var blocker_state: String = str(blocker.get("state", ""))
+		if not state_rank.has(blocker_state):
+			continue
+		var matches := false
+		if str(blocker.get("target_kind", "")) == "route":
+			matches = str(blocker.get("target_id", "")) == route_id
+		else:
+			var location_id: String = str(blocker.get("location_id", ""))
+			matches = location_id == from_location_id or location_id == to_location_id
+		if not matches:
+			continue
+		var rank: int = int(state_rank.get(blocker_state, 0))
+		if rank > best_rank:
+			best_rank = rank
+			best_state = blocker_state
+	return best_state
+
+func _route_style_for_state(route: Dictionary, route_state: String) -> Dictionary:
+	var base_style: Dictionary = MAP_DRAWN_ROUTE_STYLES.get(str(route.get("route_type", "track")), MAP_DRAWN_ROUTE_STYLES["track"]).duplicate(true)
+	if route_state == "":
+		return base_style
+	var override: Dictionary = ROUTE_STATE_OVERRIDES.get(route_state, {})
+	for key in override.keys():
+		base_style[key] = override[key]
+	return base_style
+
+func _add_route_state_caption(root: Control, points: PackedVector2Array, route_state: String) -> void:
+	if route_state not in ["active_quest", "discovered", "degraded"]:
+		return
+	var label := Label.new()
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	label.text = {
+		"active_quest": "Active",
+		"discovered": "Known threat",
+		"degraded": "Disrupted"
+	}.get(route_state, "")
+	label.position = _sample_polyline_position(points, _polyline_length(points) * 0.52) + Vector2(8, -6)
+	_apply_label_role(label, "meta")
+	label.add_theme_color_override("font_color", UI_TEXT_DARK if route_state == "discovered" else UI_TEXT_PRIMARY)
+	root.add_child(label)
 
 func _populate_map_terrain(root: Control) -> void:
 	var generated: Dictionary = _ensure_quest_map_generator().generate(_quest_map_canvas_size(root), DataLoader.map_locations, DataLoader.map_routes, 1337)
@@ -2903,6 +2985,43 @@ func _building_resource_nodes() -> Dictionary:
 		"list": get_node_or_null("UILayer/RightPanel/VBox/ResourceCard/ResourceVBox/ResourceList")
 	}
 
+func _ensure_quest_town_tasks_ui() -> void:
+	var detail_column := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn") as VBoxContainer
+	if detail_column == null:
+		return
+	if detail_column.get_node_or_null("QuestTownTasksCard") != null:
+		return
+	var action_button := detail_column.get_node_or_null("QuestActionButton")
+	var card := PanelContainer.new()
+	card.name = "QuestTownTasksCard"
+	var vbox := VBoxContainer.new()
+	vbox.name = "QuestTownTasksVBox"
+	vbox.add_theme_constant_override("separation", 8)
+	card.add_child(vbox)
+	var title := Label.new()
+	title.name = "QuestTownTasksTitle"
+	title.text = "Town Tasks"
+	vbox.add_child(title)
+	var summary := Label.new()
+	summary.name = "QuestTownTasksSummary"
+	summary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	vbox.add_child(summary)
+	var list := VBoxContainer.new()
+	list.name = "QuestTownTasksList"
+	list.add_theme_constant_override("separation", 6)
+	vbox.add_child(list)
+	detail_column.add_child(card)
+	if action_button != null:
+		detail_column.move_child(card, action_button.get_index())
+
+func _quest_town_task_nodes() -> Dictionary:
+	return {
+		"card": get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestTownTasksCard"),
+		"title": get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestTownTasksCard/QuestTownTasksVBox/QuestTownTasksTitle"),
+		"summary": get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestTownTasksCard/QuestTownTasksVBox/QuestTownTasksSummary"),
+		"list": get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestTownTasksCard/QuestTownTasksVBox/QuestTownTasksList")
+	}
+
 func _ensure_quest_party_selector_ui() -> void:
 	var detail_column := get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn") as VBoxContainer
 	if detail_column == null:
@@ -3017,6 +3136,7 @@ func _refresh_selected_quest_detail() -> void:
 			_refresh_detail_for_completed()
 		_:
 			_refresh_detail_for_available()
+	_refresh_quest_town_tasks_ui()
 
 func _quest_detail_nodes() -> Dictionary:
 	return {
@@ -3030,6 +3150,104 @@ func _quest_detail_nodes() -> Dictionary:
 		"suitability": get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestSuitabilityCard/QuestSuitabilityLabel"),
 		"action": get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestActionButton"),
 	}
+
+func _refresh_quest_town_tasks_ui() -> void:
+	var nodes := _quest_town_task_nodes()
+	var card := nodes.get("card") as Control
+	var summary := nodes.get("summary") as Label
+	var list := nodes.get("list") as VBoxContainer
+	if card == null or summary == null or list == null:
+		return
+	card.visible = true
+	_clear_control_children(list)
+	var active_parties: Array = _get_active_quest_parties()
+	var installable_resources: Array = []
+	for resource_variant in GameState.unlocked_resources.values():
+		var resource: Dictionary = resource_variant
+		if not bool(resource.get("active", false)) or bool(resource.get("installed", false)):
+			continue
+		installable_resources.append(resource)
+	installable_resources.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		return str(a.get("display_name", "")) < str(b.get("display_name", ""))
+	)
+	var idle_building_actions: Array = []
+	for building_variant in GameState.buildings.values():
+		var building: Dictionary = building_variant
+		if str(building.get("current_action", "idle")) != "idle":
+			continue
+		var building_type: String = str(building.get("type", ""))
+		if int(building.get("output_stock", 0)) < (1 + int(building.get("level", 1))):
+			idle_building_actions.append(building_type)
+	summary.text = "%d expeditions active  •  %d installable rewards  •  %d idle building jobs" % [
+		active_parties.size(),
+		installable_resources.size(),
+		idle_building_actions.size()
+	]
+	if _selected_quest_kind == "completed":
+		var label := Label.new()
+		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		label.text = "Town tasks are paused here because you are reviewing a completed expedition."
+		list.add_child(label)
+		return
+	var created := false
+	for resource in installable_resources:
+		var building_type: String = str(resource.get("building_type", ""))
+		var building := _get_building_of_type(building_type)
+		if building.is_empty():
+			continue
+		var button := Button.new()
+		button.text = "Install %s in %s" % [str(resource.get("display_name", "")), DataLoader.buildings_by_id.get(building_type, {}).get("name", building_type.capitalize())]
+		button.custom_minimum_size = Vector2(0, 36)
+		_apply_button_theme(button, "paper")
+		var building_id := int(building.get("id", -1))
+		var resource_id := str(resource.get("resource_id", ""))
+		button.pressed.connect(func() -> void:
+			var result: Dictionary = sim.install_building_resource(building_id, resource_id)
+			if not result.is_empty():
+				_set_status("Installed %s" % str(result.get("display_name", resource_id)))
+				_refresh_quest_ui()
+				if _selected_entity_kind == "building" and _selected_building_id >= 0:
+					_refresh_building_panel(_selected_building_id)
+		)
+		_wire_button_sfx(button, "confirm")
+		list.add_child(button)
+		created = true
+	for building_type in idle_building_actions:
+		var building := _get_building_of_type(building_type)
+		if building.is_empty():
+			continue
+		var button := Button.new()
+		button.text = "Run %s" % _building_output_action_name(building_type)
+		button.custom_minimum_size = Vector2(0, 34)
+		_apply_button_theme(button, "paper")
+		var building_id := int(building.get("id", -1))
+		button.pressed.connect(func() -> void:
+			sim.set_building_output_mode(building_id)
+			_refresh_build_ui()
+			_refresh_quest_ui()
+		)
+		_wire_button_sfx(button)
+		list.add_child(button)
+		created = true
+	var discovered_count := 0
+	var degraded_count := 0
+	for blocker_variant in GameState.blockers.values():
+		var blocker_state: String = str((blocker_variant as Dictionary).get("state", ""))
+		if blocker_state == "discovered":
+			discovered_count += 1
+		elif blocker_state == "degraded":
+			degraded_count += 1
+	if discovered_count > 0 or degraded_count > 0:
+		var notice := Label.new()
+		notice.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		notice.text = "Known routes: %d discovered, %d disrupted. You can still gather rumours, stock buildings, or install rewards while parties are away." % [discovered_count, degraded_count]
+		list.add_child(notice)
+		created = true
+	if not created:
+		var empty := Label.new()
+		empty.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		empty.text = "No immediate town tasks. Let time pass or inspect the route network for the next problem."
+		list.add_child(empty)
 
 func _refresh_detail_for_available() -> void:
 	var n := _quest_detail_nodes()
@@ -3057,6 +3275,11 @@ func _refresh_detail_for_available() -> void:
 			_quest_expiry_text(quest)
 		]
 	if n.reward: n.reward.text = "Reward  %dg  •  Site  %s" % [int(quest.get("gold_reward", 0)), location_name]
+	var reward_resource_id := str(quest.get("reward_resource_id", ""))
+	if reward_resource_id != "" and n.reward:
+		var reward_resource: Dictionary = DataLoader.get_world_resource(reward_resource_id)
+		if not reward_resource.is_empty():
+			n.reward.text += "  •  Unlocks %s" % str(reward_resource.get("display_name", reward_resource_id))
 	if n.xp: n.xp.text = "Experience  %dxp to the party  •  Family  %s" % [int(quest.get("xp_reward", 0)), family_name]
 	if n.risk: n.risk.text = "Risk  %s   Party %d   %s" % [str(preview.get("risk_label", _risk_label(int(quest.get("risk_level", 1))))), int(quest.get("party_size", 3)), _quest_expiry_short_label(quest)]
 	if n.requirement: n.requirement.text = "Requirements  %s" % _quest_requirements_text(quest)
@@ -3102,6 +3325,7 @@ func _refresh_detail_for_active() -> void:
 	if n.title: n.title.text = str(quest.get("name", "Quest"))
 	var member_lines: Array = []
 	var ticks_remaining := 0
+	var total_ticks := int(quest.get("quest_total_ticks", quest.get("duration_ticks", 0)))
 	for member: Dictionary in members:
 		var state_str := _format_quest_state(str(member.get("state", "")))
 		var hp := int(member.get("health", 0))
@@ -3112,6 +3336,10 @@ func _refresh_detail_for_active() -> void:
 	var phase_label := _active_party_phase_label(quest, members)
 	var phase_progress := _active_party_phase_progress(quest, members)
 	var time_str := "~%.0f minutes remaining" % (float(ticks_remaining) / 60.0) if ticks_remaining > 0 else "Party is returning to town"
+	var elapsed_ticks := maxi(0, total_ticks - ticks_remaining)
+	var outlook := _risk_label(int(quest.get("risk_level", 1)))
+	if int(quest.get("runtime_survival_bonus", 0)) + int(quest.get("runtime_success_bonus", 0)) >= 2:
+		outlook = "Fair"
 	var recent_events: Array = quest.get("quest_recent_events", [])
 	var recent_lines: Array = []
 	for event_variant in recent_events:
@@ -3120,10 +3348,10 @@ func _refresh_detail_for_active() -> void:
 	var recent_text := "\n".join(recent_lines)
 	if recent_text == "":
 		recent_text = "• No field reports yet."
-	if n.summary: n.summary.text = "%s\nPhase  %s  (%d%%)\n\nParty:\n%s\n\nField reports:\n%s" % [time_str, phase_label, int(round(phase_progress * 100.0)), "\n".join(member_lines), recent_text]
+	if n.summary: n.summary.text = "%s\nElapsed  %.1fm / %.1fm  •  Phase  %s  (%d%%)\n\nParty:\n%s\n\nField reports:\n%s" % [time_str, float(elapsed_ticks) / 60.0, float(total_ticks) / 60.0, phase_label, int(round(phase_progress * 100.0)), "\n".join(member_lines), recent_text]
 	if n.reward: n.reward.text = "Expected reward  %dg  +  %dxp  (paid on return)" % [int(quest.get("gold_reward", 0)), int(quest.get("xp_reward", 0))]
 	if n.xp: n.xp.text = "Party size  %d  •  %s family" % [members.size(), _family_badge_text(quest)]
-	if n.risk: n.risk.text = "Risk  %s  •  Difficulty %d  •  Phase %s" % [_risk_label(int(quest.get("risk_level", 1))), int(quest.get("difficulty", 1)), phase_label]
+	if n.risk: n.risk.text = "Risk  %s  •  Difficulty %d  •  Current outlook %s" % [_risk_label(int(quest.get("risk_level", 1))), int(quest.get("difficulty", 1)), outlook]
 	if n.requirement: n.requirement.text = "Site  %s  (%s)" % [location_name, str(quest.get("location_category", ""))]
 	if n.suitability:
 		var careers: Array = quest.get("preferred_careers", [])
