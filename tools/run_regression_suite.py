@@ -74,12 +74,12 @@ def discover_scenarios(pattern: str) -> list[Path]:
     return sorted(PROJECT_DIR.glob(pattern))
 
 
-def scenario_is_llm_only(path: Path) -> bool:
+def scenario_is_non_scripted(path: Path) -> bool:
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
     except Exception:
         return False
-    return bool(data.get("llm_only", False))
+    return bool(data.get("llm_only", False) or data.get("heuristic_only", False))
 
 
 def main() -> int:
@@ -112,7 +112,7 @@ def main() -> int:
         return 1
 
     for scenario in scenarios:
-        if scenario_is_llm_only(scenario):
+        if scenario_is_non_scripted(scenario):
             continue
         cmd = [
             sys.executable,

@@ -14,6 +14,7 @@ func snapshot() -> Dictionary:
 		"quests":    _quests(),
 		"blockers":  _blockers(),
 		"unlocked_resources": _resources(),
+		"metrics": GameState.metrics.duplicate(true),
 		"completed_quests": GameState.completed_quests.duplicate(true),
 		"events":    GameState.get_recent_events(100),
 		"warnings":  warnings

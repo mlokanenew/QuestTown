@@ -41,6 +41,7 @@ var blockers: Dictionary = {}
 var unlocked_resources: Dictionary = {}
 # Array of event dicts {tick, type, ...}
 var events: Array = []
+var metrics: Dictionary = {}
 
 var _next_building_id: int = 1
 var _next_hero_id: int = 1
@@ -68,6 +69,13 @@ func reset(p_seed: int) -> void:
 		blockers[str(blocker_template.get("blocker_id", ""))] = blocker_state
 	unlocked_resources = {}
 	events.clear()
+	metrics = {
+		"first_blocker_discovered_tick": -1,
+		"first_route_cleared_tick": -1,
+		"first_resource_unlocked_tick": -1,
+		"first_resource_installed_tick": -1,
+		"route_reblock_count": 0
+	}
 	_next_building_id = 1
 	_next_hero_id = 1
 	blockers_changed.emit()
@@ -231,11 +239,35 @@ func set_blocker_state(blocker_id: String, next_state: String, discovered: bool 
 	blockers[blocker_id]["active"] = active
 	if discovered:
 		blockers[blocker_id]["last_discovered_tick"] = tick
+		if int(metrics.get("first_blocker_discovered_tick", -1)) < 0:
+			metrics["first_blocker_discovered_tick"] = tick
 	if next_state == "unblocked":
 		blockers[blocker_id]["last_cleared_tick"] = tick
 		blockers[blocker_id]["unlock_active"] = true
+		if int(metrics.get("first_route_cleared_tick", -1)) < 0:
+			metrics["first_route_cleared_tick"] = tick
 	elif next_state in ["known_blocked", "degraded", "active_quest"]:
 		blockers[blocker_id]["unlock_active"] = false
+	blockers_changed.emit()
+
+func set_blocker_variant(blocker_id: String, variant: Dictionary) -> void:
+	if not blockers.has(blocker_id) or variant.is_empty():
+		return
+	blockers[blocker_id]["variant_id"] = str(variant.get("variant_id", ""))
+	blockers[blocker_id]["name"] = str(variant.get("name", blockers[blocker_id].get("name", blocker_id)))
+	blockers[blocker_id]["blocker_type"] = str(variant.get("blocker_type", blockers[blocker_id].get("blocker_type", "threat")))
+	blockers[blocker_id]["preferred_careers"] = variant.get("preferred_careers", []).duplicate(true)
+	blockers[blocker_id]["resolution_stat"] = str(variant.get("resolution_stat", blockers[blocker_id].get("resolution_stat", "")))
+	blockers[blocker_id]["secondary_resolution_stat"] = str(variant.get("secondary_resolution_stat", blockers[blocker_id].get("secondary_resolution_stat", "")))
+	blockers[blocker_id]["secondary_stat_weight"] = float(variant.get("secondary_stat_weight", blockers[blocker_id].get("secondary_stat_weight", 0.0)))
+	blockers[blocker_id]["difficulty"] = int(variant.get("difficulty", blockers[blocker_id].get("difficulty", 1)))
+	blockers[blocker_id]["party_size"] = int(variant.get("party_size", blockers[blocker_id].get("party_size", 2)))
+	blockers[blocker_id]["duration_ticks"] = int(variant.get("duration_ticks", blockers[blocker_id].get("duration_ticks", 300)))
+	blockers[blocker_id]["gold_reward"] = int(variant.get("gold_reward", blockers[blocker_id].get("gold_reward", 20)))
+	blockers[blocker_id]["xp_reward"] = int(variant.get("xp_reward", blockers[blocker_id].get("xp_reward", 8)))
+	blockers[blocker_id]["risk_level"] = int(variant.get("risk_level", blockers[blocker_id].get("risk_level", 1)))
+	blockers[blocker_id]["expected_risk"] = str(variant.get("expected_risk", blockers[blocker_id].get("expected_risk", "Risky")))
+	blockers[blocker_id]["flavour_text"] = str(variant.get("flavour_text", blockers[blocker_id].get("flavour_text", "")))
 	blockers_changed.emit()
 
 func unlock_resource(resource_id: String, blocker_id: String) -> void:
@@ -249,6 +281,8 @@ func unlock_resource(resource_id: String, blocker_id: String) -> void:
 		unlocked_resources[resource_id]["source_blocker_id"] = blocker_id
 		if not unlocked_resources[resource_id].has("effects"):
 			unlocked_resources[resource_id]["effects"] = resource_data.get("effects", {}).duplicate(true)
+		if int(metrics.get("first_resource_unlocked_tick", -1)) < 0:
+			metrics["first_resource_unlocked_tick"] = tick
 		blockers_changed.emit()
 		return
 	unlocked_resources[resource_id] = {
@@ -264,6 +298,8 @@ func unlock_resource(resource_id: String, blocker_id: String) -> void:
 		"installed": false,
 		"installed_building_id": -1
 	}
+	if int(metrics.get("first_resource_unlocked_tick", -1)) < 0:
+		metrics["first_resource_unlocked_tick"] = tick
 	blockers_changed.emit()
 
 func set_resource_active(resource_id: String, active: bool) -> void:
@@ -349,6 +385,8 @@ func install_resource(building_id: int, resource_id: String) -> Dictionary:
 		"building_id": building_id,
 		"building_type": building.get("type", "")
 	})
+	if int(metrics.get("first_resource_installed_tick", -1)) < 0:
+		metrics["first_resource_installed_tick"] = tick
 	return unlocked_resources[resource_id].duplicate(true)
 
 func is_quest_enabled(quest_id: String) -> bool:
@@ -394,6 +432,7 @@ func export_state() -> Dictionary:
 		"enabled_quest_ids": enabled_quest_ids.duplicate(true),
 		"blockers": blockers.duplicate(true),
 		"unlocked_resources": unlocked_resources.duplicate(true),
+		"metrics": metrics.duplicate(true),
 		"events": events.duplicate(true),
 		"next_building_id": _next_building_id,
 		"next_hero_id": _next_hero_id,
@@ -417,6 +456,15 @@ func import_state(data: Dictionary) -> void:
 	enabled_quest_ids = data.get("enabled_quest_ids", {}).duplicate(true)
 	blockers = data.get("blockers", {}).duplicate(true)
 	unlocked_resources = data.get("unlocked_resources", {}).duplicate(true)
+	metrics = data.get("metrics", {}).duplicate(true)
+	if metrics.is_empty():
+		metrics = {
+			"first_blocker_discovered_tick": -1,
+			"first_route_cleared_tick": -1,
+			"first_resource_unlocked_tick": -1,
+			"first_resource_installed_tick": -1,
+			"route_reblock_count": 0
+		}
 	for resource_id in unlocked_resources.keys():
 		if not unlocked_resources[resource_id].has("effects"):
 			var resource_data: Dictionary = DataLoader.get_world_resource(str(resource_id))

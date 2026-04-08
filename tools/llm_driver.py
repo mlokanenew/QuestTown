@@ -396,6 +396,7 @@ def build_balance_report(state: dict, scenario: dict) -> dict:
     buildings = state.get("buildings", [])
     blockers = state.get("blockers", [])
     unlocked_resources = state.get("unlocked_resources", [])
+    metrics = state.get("metrics", {})
     current_gold = int(state.get("gold", 0))
     town_profit = current_gold - STARTING_GOLD
     route_loop_required = scenario_requires_route_loop(scenario)
@@ -581,6 +582,30 @@ def build_balance_report(state: dict, scenario: dict) -> dict:
             "installed_resource_count": installed_resource_count,
             "disrupted_resource_count": disrupted_resource_count,
             "active_phase_names": active_phase_names,
+        },
+        "progression": {
+            "first_blocker_discovered_tick": int(metrics.get("first_blocker_discovered_tick", -1)),
+            "first_route_cleared_tick": int(metrics.get("first_route_cleared_tick", -1)),
+            "first_resource_unlocked_tick": int(metrics.get("first_resource_unlocked_tick", -1)),
+            "first_resource_installed_tick": int(metrics.get("first_resource_installed_tick", -1)),
+            "route_reblock_count": int(metrics.get("route_reblock_count", 0)),
+            "active_open_routes": sum(1 for blocker in blockers if str(blocker.get("state", "")) == "unblocked"),
+            "discovered_or_active_routes": sum(
+                1 for blocker in blockers if str(blocker.get("state", "")) in {"discovered", "active_quest", "degraded"}
+            ),
+            "hero_utilization_ratio": round2(
+                safe_div(
+                    len({int(event.get("hero_id", -1)) for event in events if event.get("type") == "hero_completed_quest"}),
+                    max(1, len(heroes)),
+                )
+            ),
+            "slot_usage": {
+                str(building.get("type", "")): {
+                    "used": len(building.get("installed_resource_ids", [])),
+                    "capacity": int(building.get("resource_slot_capacity", 0)),
+                }
+                for building in buildings
+            },
         },
         "economy": {
             "starting_gold": STARTING_GOLD,
@@ -879,6 +904,7 @@ def summarize_state_for_llm(state: dict) -> dict:
                 }
                 for resource in unlocked_resources
             ],
+            "metrics": state.get("metrics", {}),
         },
         "quest_summary": {
             "completed": len(completed),
@@ -919,6 +945,70 @@ def fallback_quest_party(quests: list[dict], heroes: list[dict]) -> dict | None:
     if len(available) < party_size:
         return None
     return {"cmd": "accept_quest", "offer_id": int(quest.get("offer_id", -1))}
+
+
+def choose_heuristic_command(state: dict, target_tick: int) -> dict:
+    tick = int(state.get("tick", 0))
+    buildings = state.get("buildings", [])
+    building_types = {building.get("type") for building in buildings}
+    building_levels = {building.get("type"): int(building.get("level", 1)) for building in buildings}
+    building_actions = {building.get("type"): str(building.get("current_action", "idle")) for building in buildings}
+    heroes = state.get("heroes", [])
+    quests = state.get("quests", [])
+    blockers = state.get("blockers", [])
+    gold = int(state.get("gold", 0))
+
+    if "tavern" not in building_types:
+        return {"cmd": "place_building", "type": "tavern", "x": 0, "z": 0}
+
+    installable = first_installable_resource(state)
+    if installable is not None:
+        return {
+            "cmd": "install_building_resource",
+            "type": str(installable.get("building_type", "")),
+            "resource_id": str(installable.get("resource_id", "")),
+        }
+
+    if building_actions.get("tavern", "idle") == "idle":
+        return {"cmd": "set_building_output_mode", "type": "tavern"}
+    if not heroes:
+        return {"cmd": "run_until", "event": "hero_arrived_at_tavern", "max_ticks": 1800}
+
+    if quests:
+        party_cmd = fallback_quest_party(quests, heroes)
+        if party_cmd is not None:
+            return party_cmd
+
+    if any(hero.get("state") in {"departing_quest", "on_quest", "returning"} for hero in heroes):
+        return {"cmd": "step_ticks", "n": 600}
+
+    blockers_by_building: dict[str, int] = {}
+    for blocker in blockers:
+        if str(blocker.get("state", "")) not in {"known_blocked", "discovered", "degraded"}:
+            continue
+        building_type = str(blocker.get("required_building", ""))
+        blockers_by_building[building_type] = blockers_by_building.get(building_type, 0) + 1
+
+    build_costs = {"weapons_shop": 35, "temple": 25}
+    for building_type in sorted(blockers_by_building, key=lambda key: (-blockers_by_building[key], build_costs.get(key, 999))):
+        if building_type in {"tavern", ""}:
+            continue
+        if building_type not in building_types and gold >= build_costs.get(building_type, 999):
+            placement = {"weapons_shop": {"x": 3, "z": 0}, "temple": {"x": -3, "z": 0}}.get(building_type, {"x": 0, "z": 0})
+            return {"cmd": "place_building", "type": building_type, **placement}
+
+    for building_type in ("weapons_shop", "temple"):
+        if building_type in building_types and building_actions.get(building_type, "idle") == "idle":
+            return {"cmd": "set_building_output_mode", "type": building_type}
+
+    upgrade_cost_floor = {"tavern": 8, "weapons_shop": 12, "temple": 8}
+    for building_type in ("tavern", "weapons_shop", "temple"):
+        if building_type in building_types and building_levels.get(building_type, 1) < 2 and gold >= upgrade_cost_floor.get(building_type, 12):
+            return {"cmd": "upgrade_building", "type": building_type}
+
+    if tick < target_tick:
+        return {"cmd": "step_ticks", "n": min(600, max(60, target_tick - tick))}
+    return {"cmd": "get_world_state"}
 
 
 def choose_fallback_command(state: dict, failures: list) -> dict:
@@ -1308,6 +1398,30 @@ async def run_scripted(reader, writer, scenario: dict) -> dict:
     return await execute_scenario_commands(reader, writer, scenario)
 
 
+async def run_heuristic(reader, writer, scenario: dict) -> dict:
+    seed = scenario.get("seed", 42)
+    await tcp_cmd(reader, writer, {"cmd": "reset_world", "seed": seed})
+    for cmd in scenario.get("commands", []):
+        await tcp_cmd(reader, writer, cmd)
+
+    target_tick = int(scenario.get("max_ticks", 3600))
+    last_cmd = None
+    for _turn in range(MAX_LLM_TURNS * 8):
+        state_resp = await tcp_cmd(reader, writer, {"cmd": "get_world_state"})
+        state = state_resp.get("result", {})
+        if int(state.get("tick", 0)) >= target_tick:
+            return state
+        cmd = choose_heuristic_command(state, target_tick)
+        if not is_useful_command(cmd, state, last_cmd, []):
+            cmd = {"cmd": "step_ticks", "n": 300}
+        resp = await tcp_cmd(reader, writer, cmd)
+        print(f"[heuristic] {json.dumps(cmd)} -> {json.dumps(resp)}")
+        last_cmd = cmd
+
+    final = await tcp_cmd(reader, writer, {"cmd": "get_world_state"})
+    return final.get("result", {})
+
+
 async def run_llm(reader, writer, scenario: dict, model: str, api_kind: str, api_url: str) -> dict:
     goal = scenario.get("goal", "Run the scenario.")
     assertions = scenario.get("assertions", [])
@@ -1366,7 +1480,12 @@ async def main(args):
 
     print(f"[driver] scenario : {scenario.get('name', '?')}")
     print(f"[driver] goal     : {scenario.get('goal', '(none)')}")
-    print(f"[driver] model    : {'--no-llm (scripted)' if args.no_llm else args.model}")
+    var_model = args.model
+    if args.no_llm:
+        var_model = "--no-llm (scripted)"
+    elif args.heuristic:
+        var_model = "--heuristic"
+    print(f"[driver] model    : {var_model}")
     print(f"[driver] backend  : {args.api_kind} @ {args.api_url}")
     print(f"[driver] tcp port : {tcp_port}")
 
@@ -1407,7 +1526,9 @@ async def main(args):
         writer = writer_holder[0]
         print("[driver] Godot connected - starting scenario")
 
-        if args.no_llm:
+        if args.heuristic:
+            final_state = await run_heuristic(reader, writer, scenario)
+        elif args.no_llm:
             final_state = await run_scripted(reader, writer, scenario)
         else:
             final_state = await run_llm(reader, writer, scenario, args.model, args.api_kind, args.api_url)
@@ -1434,6 +1555,8 @@ async def main(args):
         }
         if llm_analysis is not None:
             result["llm_analysis"] = llm_analysis
+        if args.json_out:
+            Path(args.json_out).write_text(json.dumps(result, indent=2), encoding="utf-8")
         print(f"[analysis] {balance_report['summary']}")
         print(json.dumps(result, indent=2))
         sys.exit(0 if passed else 1)
@@ -1455,5 +1578,7 @@ if __name__ == "__main__":
     parser.add_argument("--api-url", default=OLLAMA_URL, help="LLM API endpoint URL")
     parser.add_argument("--port", type=int, default=0, help="TCP port for Godot callback; 0 chooses a free port")
     parser.add_argument("--no-llm", action="store_true", help="Use scripted sequence instead of LLM")
+    parser.add_argument("--heuristic", action="store_true", help="Use deterministic heuristic control instead of scripted or LLM")
     parser.add_argument("--analysis-llm", action="store_true", help="Ask the LLM for a post-run balance assessment")
+    parser.add_argument("--json-out", default="", help="Write final result JSON to a file")
     asyncio.run(main(parser.parse_args()))

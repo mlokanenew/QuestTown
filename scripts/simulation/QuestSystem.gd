@@ -13,6 +13,8 @@ func reset(seed_value: int) -> void:
 	_rng.seed = seed_value + 101
 	_next_offer_id = 1
 	GameState.set_available_quests([])
+	for blocker_id_variant in GameState.blockers.keys():
+		_assign_blocker_variant(str(blocker_id_variant), false)
 
 func step(building_system: Object) -> void:
 	_step_reblocking()
@@ -171,6 +173,22 @@ func _blocker_priority_score(blocker: Dictionary) -> int:
 		score += 4
 	score += max(0, 5 - int(blocker.get("difficulty", 1)))
 	return score
+
+func _assign_blocker_variant(blocker_id: String, prefer_different: bool) -> Dictionary:
+	var variants: Array = DataLoader.get_world_blocker_variants(blocker_id)
+	if variants.is_empty():
+		return {}
+	var current_variant_id: String = str(GameState.blockers.get(blocker_id, {}).get("variant_id", ""))
+	var candidate_variants: Array = variants.duplicate(true)
+	if prefer_different and candidate_variants.size() > 1 and current_variant_id != "":
+		candidate_variants = candidate_variants.filter(func(variant: Dictionary) -> bool:
+			return str(variant.get("variant_id", "")) != current_variant_id
+		)
+		if candidate_variants.is_empty():
+			candidate_variants = variants.duplicate(true)
+	var chosen_variant: Dictionary = candidate_variants[_rng.randi_range(0, candidate_variants.size() - 1)]
+	GameState.set_blocker_variant(blocker_id, chosen_variant)
+	return chosen_variant
 
 func _blocker_is_unlocked(blocker: Dictionary, building_system: Object) -> bool:
 	var required_building: String = str(blocker.get("required_building", ""))
@@ -1102,13 +1120,23 @@ func _step_reblocking() -> void:
 			continue
 		if GameState.tick - cleared_tick < reblock_after_ticks:
 			continue
+		var previous_variant_id: String = str(blocker.get("variant_id", ""))
+		var new_variant: Dictionary = _assign_blocker_variant(blocker_id, true)
 		GameState.set_blocker_state(blocker_id, "degraded", false, false)
+		GameState.metrics["route_reblock_count"] = int(GameState.metrics.get("route_reblock_count", 0)) + 1
 		var disrupted_resource: Dictionary = GameState.disrupt_resource_from_blocker(blocker_id)
 		GameState.log_event("route_reblocked", {
 			"blocker_id": blocker_id,
-			"quest_name": blocker.get("name", "?"),
+			"quest_name": GameState.blockers[blocker_id].get("name", "?"),
 			"location_name": blocker.get("location_id", "")
 		})
+		if not new_variant.is_empty() and str(new_variant.get("variant_id", "")) != previous_variant_id:
+			GameState.log_event("blocker_variant_changed", {
+				"blocker_id": blocker_id,
+				"previous_variant_id": previous_variant_id,
+				"variant_id": new_variant.get("variant_id", ""),
+				"quest_name": new_variant.get("name", "")
+			})
 		if not disrupted_resource.is_empty():
 			GameState.log_event("resource_disrupted", {
 				"resource_id": disrupted_resource.get("resource_id", ""),

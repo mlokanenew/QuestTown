@@ -194,10 +194,52 @@ func _normalize_world_blockers(raw_blockers: Array) -> Array:
 		var blocker_id := str(raw_blocker.get("blocker_id", ""))
 		if blocker_id == "":
 			continue
+		var normalized_variants: Array = []
+		var raw_variants: Array = raw_blocker.get("variants", [])
+		if raw_variants.is_empty():
+			raw_variants = [{
+				"variant_id": "%s_default" % blocker_id,
+				"name": raw_blocker.get("name", blocker_id.capitalize()),
+				"blocker_type": raw_blocker.get("blocker_type", "threat"),
+				"preferred_careers": raw_blocker.get("preferred_careers", []).duplicate(true),
+				"resolution_stat": raw_blocker.get("resolution_stat", ""),
+				"secondary_resolution_stat": raw_blocker.get("secondary_resolution_stat", ""),
+				"secondary_stat_weight": raw_blocker.get("secondary_stat_weight", 0.0),
+				"difficulty": raw_blocker.get("difficulty", 1),
+				"party_size": raw_blocker.get("party_size", 2),
+				"duration_ticks": raw_blocker.get("duration_ticks", 300),
+				"gold_reward": raw_blocker.get("gold_reward", 20),
+				"xp_reward": raw_blocker.get("xp_reward", 8),
+				"risk_level": raw_blocker.get("risk_level", 1),
+				"expected_risk": raw_blocker.get("expected_risk", "Risky"),
+				"flavour_text": raw_blocker.get("flavour_text", "")
+			}]
+		for raw_variant_variant in raw_variants:
+			if not (raw_variant_variant is Dictionary):
+				continue
+			var raw_variant: Dictionary = raw_variant_variant
+			normalized_variants.append({
+				"variant_id": str(raw_variant.get("variant_id", "%s_variant_%d" % [blocker_id, normalized_variants.size() + 1])),
+				"name": str(raw_variant.get("name", raw_blocker.get("name", blocker_id.capitalize()))),
+				"blocker_type": str(raw_variant.get("blocker_type", raw_blocker.get("blocker_type", "threat"))),
+				"preferred_careers": raw_variant.get("preferred_careers", raw_blocker.get("preferred_careers", [])).duplicate(true),
+				"resolution_stat": str(raw_variant.get("resolution_stat", raw_blocker.get("resolution_stat", ""))),
+				"secondary_resolution_stat": str(raw_variant.get("secondary_resolution_stat", raw_blocker.get("secondary_resolution_stat", ""))),
+				"secondary_stat_weight": float(raw_variant.get("secondary_stat_weight", raw_blocker.get("secondary_stat_weight", 0.0))),
+				"difficulty": int(raw_variant.get("difficulty", raw_blocker.get("difficulty", 1))),
+				"party_size": int(raw_variant.get("party_size", raw_blocker.get("party_size", 2))),
+				"duration_ticks": int(raw_variant.get("duration_ticks", raw_blocker.get("duration_ticks", 300))),
+				"gold_reward": int(raw_variant.get("gold_reward", raw_blocker.get("gold_reward", 20))),
+				"xp_reward": int(raw_variant.get("xp_reward", raw_blocker.get("xp_reward", 8))),
+				"risk_level": int(raw_variant.get("risk_level", raw_blocker.get("risk_level", 1))),
+				"expected_risk": str(raw_variant.get("expected_risk", raw_blocker.get("expected_risk", "Risky"))),
+				"flavour_text": str(raw_variant.get("flavour_text", raw_blocker.get("flavour_text", "")))
+			})
+		var default_variant: Dictionary = normalized_variants[0] if not normalized_variants.is_empty() else {}
 		normalized.append({
 			"blocker_id": blocker_id,
-			"name": str(raw_blocker.get("name", blocker_id.capitalize())),
-			"blocker_type": str(raw_blocker.get("blocker_type", "threat")),
+			"name": str(default_variant.get("name", raw_blocker.get("name", blocker_id.capitalize()))),
+			"blocker_type": str(default_variant.get("blocker_type", raw_blocker.get("blocker_type", "threat"))),
 			"route_family": str(raw_blocker.get("route_family", "town")),
 			"target_kind": str(raw_blocker.get("target_kind", "route")),
 			"target_id": str(raw_blocker.get("target_id", "")),
@@ -205,20 +247,22 @@ func _normalize_world_blockers(raw_blockers: Array) -> Array:
 			"discovered_by": str(raw_blocker.get("discovered_by", "tavern_rumours")),
 			"required_building": str(raw_blocker.get("required_building", "tavern")),
 			"required_building_level": int(raw_blocker.get("required_building_level", 1)),
-			"preferred_careers": raw_blocker.get("preferred_careers", []).duplicate(true),
-			"resolution_stat": str(raw_blocker.get("resolution_stat", "")),
-			"secondary_resolution_stat": str(raw_blocker.get("secondary_resolution_stat", "")),
-			"secondary_stat_weight": float(raw_blocker.get("secondary_stat_weight", 0.0)),
-			"difficulty": int(raw_blocker.get("difficulty", 1)),
-			"party_size": int(raw_blocker.get("party_size", 2)),
-			"duration_ticks": int(raw_blocker.get("duration_ticks", 300)),
-			"gold_reward": int(raw_blocker.get("gold_reward", 20)),
-			"xp_reward": int(raw_blocker.get("xp_reward", 8)),
-			"risk_level": int(raw_blocker.get("risk_level", 1)),
-			"expected_risk": str(raw_blocker.get("expected_risk", "Risky")),
-			"flavour_text": str(raw_blocker.get("flavour_text", "")),
+			"preferred_careers": default_variant.get("preferred_careers", []).duplicate(true),
+			"resolution_stat": str(default_variant.get("resolution_stat", "")),
+			"secondary_resolution_stat": str(default_variant.get("secondary_resolution_stat", "")),
+			"secondary_stat_weight": float(default_variant.get("secondary_stat_weight", 0.0)),
+			"difficulty": int(default_variant.get("difficulty", 1)),
+			"party_size": int(default_variant.get("party_size", 2)),
+			"duration_ticks": int(default_variant.get("duration_ticks", 300)),
+			"gold_reward": int(default_variant.get("gold_reward", 20)),
+			"xp_reward": int(default_variant.get("xp_reward", 8)),
+			"risk_level": int(default_variant.get("risk_level", 1)),
+			"expected_risk": str(default_variant.get("expected_risk", "Risky")),
+			"flavour_text": str(default_variant.get("flavour_text", "")),
 			"unlocks_resource_id": str(raw_blocker.get("unlocks_resource_id", "")),
-			"reblock_after_ticks": int(raw_blocker.get("reblock_after_ticks", 1800))
+			"reblock_after_ticks": int(raw_blocker.get("reblock_after_ticks", 1800)),
+			"variant_id": str(default_variant.get("variant_id", "%s_default" % blocker_id)),
+			"variants": normalized_variants.duplicate(true)
 		})
 	return normalized
 
@@ -291,6 +335,9 @@ func get_world_resource(resource_id: String) -> Dictionary:
 
 func get_world_blocker(blocker_id: String) -> Dictionary:
 	return world_blockers_by_id.get(blocker_id, {})
+
+func get_world_blocker_variants(blocker_id: String) -> Array:
+	return get_world_blocker(blocker_id).get("variants", []).duplicate(true)
 
 func get_starting_gold() -> int:
 	return int(gameplay_config.get("starting_gold", 70))
