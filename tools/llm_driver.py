@@ -256,6 +256,12 @@ def check_assertions(assertions: list, state: dict) -> tuple[bool, list]:
             target_value = str(assertion.get("value", ""))
             if not any(str(resource.get("resource_id", "")) == target_value for resource in state.get("unlocked_resources", [])):
                 failures.append(assertion)
+        elif kind == "resource_active":
+            target_value = str(assertion.get("value", ""))
+            expected_active = bool(assertion.get("active", True))
+            match = next((resource for resource in state.get("unlocked_resources", []) if str(resource.get("resource_id", "")) == target_value), None)
+            if match is None or bool(match.get("active", False)) != expected_active:
+                failures.append(assertion)
         elif kind == "quests_include_blocker_id":
             target_value = str(assertion.get("value", ""))
             if not any(str(quest.get("blocker_id", "")) == target_value for quest in state.get("quests", [])):

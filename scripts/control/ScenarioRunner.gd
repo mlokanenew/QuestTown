@@ -251,6 +251,13 @@ func _check(assertion: Dictionary, state: Dictionary) -> bool:
 				if str(resource.get("resource_id", "")) == target_resource_id:
 					return true
 			return false
+		"resource_active":
+			var active_resource_id: String = str(assertion.get("value", ""))
+			var expected_active: bool = bool(assertion.get("active", true))
+			for resource in state.get("unlocked_resources", []):
+				if str(resource.get("resource_id", "")) == active_resource_id:
+					return bool(resource.get("active", false)) == expected_active
+			return false
 		"quests_include_blocker_id":
 			var target_blocker_id: String = str(assertion.get("value", ""))
 			for quest in state.get("quests", []):

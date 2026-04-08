@@ -234,6 +234,8 @@ func set_blocker_state(blocker_id: String, next_state: String, discovered: bool 
 	if next_state == "unblocked":
 		blockers[blocker_id]["last_cleared_tick"] = tick
 		blockers[blocker_id]["unlock_active"] = true
+	elif next_state in ["known_blocked", "degraded", "active_quest"]:
+		blockers[blocker_id]["unlock_active"] = false
 	blockers_changed.emit()
 
 func unlock_resource(resource_id: String, blocker_id: String) -> void:
@@ -241,6 +243,13 @@ func unlock_resource(resource_id: String, blocker_id: String) -> void:
 		return
 	var resource_data: Dictionary = DataLoader.get_world_resource(resource_id)
 	if resource_data.is_empty():
+		return
+	if unlocked_resources.has(resource_id):
+		unlocked_resources[resource_id]["active"] = true
+		unlocked_resources[resource_id]["source_blocker_id"] = blocker_id
+		if not unlocked_resources[resource_id].has("effects"):
+			unlocked_resources[resource_id]["effects"] = resource_data.get("effects", {}).duplicate(true)
+		blockers_changed.emit()
 		return
 	unlocked_resources[resource_id] = {
 		"resource_id": resource_id,
@@ -256,6 +265,21 @@ func unlock_resource(resource_id: String, blocker_id: String) -> void:
 		"installed_building_id": -1
 	}
 	blockers_changed.emit()
+
+func set_resource_active(resource_id: String, active: bool) -> void:
+	if not unlocked_resources.has(resource_id):
+		return
+	unlocked_resources[resource_id]["active"] = active
+	blockers_changed.emit()
+
+func disrupt_resource_from_blocker(blocker_id: String) -> Dictionary:
+	for resource_id in unlocked_resources.keys():
+		if str(unlocked_resources[resource_id].get("source_blocker_id", "")) != blocker_id:
+			continue
+		unlocked_resources[resource_id]["active"] = false
+		blockers_changed.emit()
+		return unlocked_resources[resource_id].duplicate(true)
+	return {}
 
 func get_building_slot_capacity(building_id: int) -> int:
 	var building: Dictionary = buildings.get(building_id, {})

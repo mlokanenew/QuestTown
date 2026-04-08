@@ -15,6 +15,7 @@ func reset(seed_value: int) -> void:
 	GameState.set_available_quests([])
 
 func step(building_system: Object) -> void:
+	_step_reblocking()
 	_refresh_available_quests(building_system)
 	_step_active_quests(building_system)
 	_step_recovery()
@@ -148,7 +149,8 @@ func _create_offer_for_blocker(blocker: Dictionary) -> Dictionary:
 func _discoverable_blockers(building_system: Object) -> Array:
 	var candidates: Array = []
 	for blocker_state in GameState.blockers.values():
-		if str(blocker_state.get("state", "")) != "known_blocked":
+		var blocker_status: String = str(blocker_state.get("state", ""))
+		if blocker_status not in ["known_blocked", "degraded"]:
 			continue
 		if not _blocker_is_unlocked(blocker_state, building_system):
 			continue
@@ -157,6 +159,8 @@ func _discoverable_blockers(building_system: Object) -> Array:
 
 func _blocker_priority_score(blocker: Dictionary) -> int:
 	var score := 0
+	if str(blocker.get("state", "")) == "degraded":
+		score += 12
 	var required_building: String = str(blocker.get("required_building", ""))
 	if required_building != "" and GameState.get_building_count(required_building) > 0:
 		score += 10
@@ -1069,12 +1073,46 @@ func _resolve_blocker_outcome(quest: Dictionary, succeeded: bool) -> void:
 		GameState.set_blocker_state(blocker_id, "unblocked", true, false)
 		var resource_id: String = str(quest.get("reward_resource_id", ""))
 		if resource_id != "":
+			var was_known := GameState.unlocked_resources.has(resource_id)
 			GameState.unlock_resource(resource_id, blocker_id)
 			var resource_data: Dictionary = DataLoader.get_world_resource(resource_id)
-			GameState.log_event("resource_unlocked", {
+			GameState.log_event("resource_%s" % ("restored" if was_known else "unlocked"), {
 				"resource_id": resource_id,
 				"display_name": resource_data.get("display_name", resource_id),
 				"source_blocker_id": blocker_id
 			})
+			if not was_known:
+				GameState.log_event("resource_unlocked", {
+					"resource_id": resource_id,
+					"display_name": resource_data.get("display_name", resource_id),
+					"source_blocker_id": blocker_id
+				})
 	else:
 		GameState.set_blocker_state(blocker_id, "discovered", true, false)
+
+func _step_reblocking() -> void:
+	for blocker_id_variant in GameState.blockers.keys():
+		var blocker_id: String = str(blocker_id_variant)
+		var blocker: Dictionary = GameState.blockers[blocker_id]
+		if str(blocker.get("state", "")) != "unblocked":
+			continue
+		var reblock_after_ticks: int = int(blocker.get("reblock_after_ticks", 0))
+		var cleared_tick: int = int(blocker.get("last_cleared_tick", -1))
+		if reblock_after_ticks <= 0 or cleared_tick < 0:
+			continue
+		if GameState.tick - cleared_tick < reblock_after_ticks:
+			continue
+		GameState.set_blocker_state(blocker_id, "degraded", false, false)
+		var disrupted_resource: Dictionary = GameState.disrupt_resource_from_blocker(blocker_id)
+		GameState.log_event("route_reblocked", {
+			"blocker_id": blocker_id,
+			"quest_name": blocker.get("name", "?"),
+			"location_name": blocker.get("location_id", "")
+		})
+		if not disrupted_resource.is_empty():
+			GameState.log_event("resource_disrupted", {
+				"resource_id": disrupted_resource.get("resource_id", ""),
+				"display_name": disrupted_resource.get("display_name", ""),
+				"source_blocker_id": blocker_id,
+				"installed": bool(disrupted_resource.get("installed", false))
+			})

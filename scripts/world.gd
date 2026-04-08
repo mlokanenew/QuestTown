@@ -2085,7 +2085,7 @@ func _populate_map_blocker_states(root: Control) -> void:
 	for blocker_variant in GameState.blockers.values():
 		var blocker: Dictionary = blocker_variant
 		var state: String = str(blocker.get("state", ""))
-		if state not in ["known_blocked", "discovered", "active_quest"]:
+		if state not in ["known_blocked", "degraded", "discovered", "active_quest"]:
 			continue
 		if state == "discovered" and _quest_for_blocker_exists(str(blocker.get("blocker_id", ""))):
 			continue
@@ -2109,12 +2109,21 @@ func _add_blocker_state_marker(root: Control, blocker: Dictionary) -> void:
 	seal.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	seal.size = Vector2(26, 26)
 	seal.position = marker_center - seal.size * 0.5 + Vector2(20, -8)
-	var fill := Color(0.16, 0.13, 0.11, 0.72) if state == "known_blocked" else Color(UI_WARNING, 0.82)
-	var border := Color(0.32, 0.08, 0.08, 0.45) if state == "known_blocked" else Color(0.98, 0.92, 0.80, 0.72)
+	var fill := Color(0.16, 0.13, 0.11, 0.72)
+	var border := Color(0.32, 0.08, 0.08, 0.45)
+	var icon_path := ICON_SKULL_PATH
+	if state == "degraded":
+		fill = Color(0.41, 0.21, 0.11, 0.82)
+		border = Color(0.98, 0.86, 0.68, 0.78)
+		icon_path = ICON_SWORD_PATH
+	elif state == "discovered":
+		fill = Color(UI_WARNING, 0.82)
+		border = Color(0.98, 0.92, 0.80, 0.72)
+		icon_path = ICON_SHIELD_PATH
 	seal.add_theme_stylebox_override("panel", _make_style(fill, border, 13, 1, 4))
 	root.add_child(seal)
 	var icon := TextureRect.new()
-	icon.texture = _load_runtime_texture(ICON_SKULL_PATH if state == "known_blocked" else ICON_SHIELD_PATH)
+	icon.texture = _load_runtime_texture(icon_path)
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -2957,7 +2966,14 @@ func _refresh_building_resource_ui(building: Dictionary) -> void:
 	unlocked_matching.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
 		return str(a.get("display_name", "")) < str(b.get("display_name", ""))
 	)
-	summary.text = "Slots %d/%d  •  %d unlocked from cleared routes" % [installed_resources.size(), slot_capacity, unlocked_matching.size()]
+	var active_count := 0
+	var disrupted_count := 0
+	for resource in unlocked_matching:
+		if bool(resource.get("active", false)):
+			active_count += 1
+		else:
+			disrupted_count += 1
+	summary.text = "Slots %d/%d  •  %d route rewards  •  %d active  •  %d disrupted" % [installed_resources.size(), slot_capacity, unlocked_matching.size(), active_count, disrupted_count]
 	if unlocked_matching.is_empty():
 		var empty_label := Label.new()
 		empty_label.text = "No route rewards for this building yet. Clear nearby blockers and install the unlocked rewards here."
@@ -2970,16 +2986,20 @@ func _refresh_building_resource_ui(building: Dictionary) -> void:
 		var slot_type: String = str(resource.get("slot_type", "resource")).capitalize()
 		var installed_here: bool = int(resource.get("installed_building_id", -1)) == building_id
 		var installed_elsewhere: bool = bool(resource.get("installed", false)) and not installed_here
+		var active: bool = bool(resource.get("active", false))
 		button.text = "%s  •  %s" % [resource.get("display_name", resource_id), slot_type]
-		button.tooltip_text = str(resource.get("description", ""))
+		button.tooltip_text = "%s\nStatus: %s" % [str(resource.get("description", "")), "Active" if active else "Disrupted"]
 		button.custom_minimum_size = Vector2(0, 38)
 		_apply_button_theme(button, "paper")
 		if installed_here:
 			button.disabled = true
-			button.text += "  •  Installed"
+			button.text += "  •  Installed  •  %s" % ("Active" if active else "Disrupted")
 		elif installed_elsewhere:
 			button.disabled = true
 			button.text += "  •  Installed Elsewhere"
+		elif not active:
+			button.disabled = true
+			button.text += "  •  Route Disrupted"
 		elif installed_resources.size() >= slot_capacity:
 			button.disabled = true
 			button.text += "  •  No Free Slot"
