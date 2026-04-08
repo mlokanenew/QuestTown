@@ -46,6 +46,10 @@ RUN_UNTIL_EVENTS = {
     "hero_spent_at_tavern",
     "hero_spent_at_weapons_shop",
     "hero_spent_at_temple",
+    "quest_phase_changed",
+    "quest_progress_event",
+    "resource_unlocked",
+    "resource_installed",
 }
 
 SYSTEM_PROMPT = """You control a medieval town-builder game test harness.
@@ -62,6 +66,8 @@ Allowed commands:
 {"cmd":"start_building_upgrade","type":"tavern"}
 {"cmd":"set_building_output_mode","type":"tavern"}
 {"cmd":"accept_quest","offer_id":1}
+{"cmd":"accept_quest","offer_id":1,"hero_ids":[1,3]}
+{"cmd":"install_building_resource","type":"tavern","resource_id":"southmere_travellers"}
 {"cmd":"set_quest_enabled","id":"clear_rats_cellar","enabled":true}
 {"cmd":"step_ticks","n":600}
 {"cmd":"run_until","event":"hero_arrived_at_tavern","max_ticks":1800}
@@ -70,20 +76,22 @@ Allowed commands:
 Rules:
 1. Never place a building if one of that type already exists.
 2. New buildings start idle. If a building needs to generate quests, supplies, or healing, explicitly use set_building_output_mode.
-3. Quests do not launch automatically. If a quest is available and you want heroes to go, use accept_quest.
-4. Prefer run_until or step_ticks once the needed building is placed and any required output mode is active.
-5. If the world is already close to satisfying the goal, advance time instead of placing more buildings.
-6. Output JSON only."""
+3. Tavern rumours reveal blocker quests. After a quest succeeds it may unlock a route resource that should be installed into the matching building.
+4. Quests do not launch automatically. If a quest is available and you want heroes to go, use accept_quest.
+5. Prefer run_until or step_ticks once the needed building is placed and any required output mode is active.
+6. If the world is already close to satisfying the goal, advance time instead of placing more buildings.
+7. Output JSON only."""
 
 ANALYSIS_PROMPT = """You are reviewing a fantasy town-sim MVP test run.
 
-Judge whether the loop hangs together across economy, injuries, quest outcomes, and progression.
-Be concrete. Call out if the game looks too easy, too hard, too rich, too poor, too safe, or too punishing.
+Judge whether the loop hangs together across blocker discovery, route clearing, resource unlocks, installs, economy, injuries, quest outcomes, and progression.
+Be concrete. Call out if the game looks too easy, too hard, too rich, too poor, too safe, too punishing, or if the new blocker/resource loop is not actually closing.
 Use the provided metrics and flags only. Do not invent missing data.
 
 Return JSON only:
 {
   "summary": "short overall judgment",
+  "route_loop": "short judgment",
   "economy": "short judgment",
   "difficulty": "short judgment",
   "injury_pressure": "short judgment",
@@ -158,6 +166,18 @@ def check_assertions(assertions: list, state: dict) -> tuple[bool, list]:
             match = next((b for b in buildings if b.get("type") == target_type), None)
             if match is None or int(match.get("output_stock", 0)) < target_value:
                 failures.append(assertion)
+        elif kind == "building_installed_resource_count_gte":
+            target_type = assertion.get("type", "")
+            target_value = int(assertion.get("value", 1))
+            match = next((b for b in buildings if b.get("type") == target_type), None)
+            if match is None or len(match.get("installed_resource_ids", [])) < target_value:
+                failures.append(assertion)
+        elif kind == "building_has_installed_resource":
+            target_type = assertion.get("type", "")
+            target_value = str(assertion.get("value", ""))
+            match = next((b for b in buildings if b.get("type") == target_type), None)
+            if match is None or target_value not in match.get("installed_resource_ids", []):
+                failures.append(assertion)
         elif kind == "gold_eq":
             if int(gold) != int(assertion.get("value", gold)):
                 failures.append(assertion)
@@ -207,6 +227,39 @@ def check_assertions(assertions: list, state: dict) -> tuple[bool, list]:
                     if field_value in (None, ""):
                         failures.append(assertion)
                         break
+        elif kind == "blocker_count_gte":
+            if len(state.get("blockers", [])) < int(assertion.get("value", 1)):
+                failures.append(assertion)
+        elif kind == "blocker_state_count_gte":
+            target_state = str(assertion.get("state", ""))
+            matched = sum(1 for blocker in state.get("blockers", []) if str(blocker.get("state", "")) == target_state)
+            if matched < int(assertion.get("value", 1)):
+                failures.append(assertion)
+        elif kind == "blockers_have_nonempty_field":
+            field_name = assertion.get("value", "")
+            blockers = state.get("blockers", [])
+            if not blockers:
+                failures.append(assertion)
+            else:
+                for blocker in blockers:
+                    field_value = blocker.get(field_name)
+                    if isinstance(field_value, list) and not field_value:
+                        failures.append(assertion)
+                        break
+                    if isinstance(field_value, dict) and not field_value:
+                        failures.append(assertion)
+                        break
+                    if field_value in (None, ""):
+                        failures.append(assertion)
+                        break
+        elif kind == "resource_unlocked":
+            target_value = str(assertion.get("value", ""))
+            if not any(str(resource.get("resource_id", "")) == target_value for resource in state.get("unlocked_resources", [])):
+                failures.append(assertion)
+        elif kind == "quests_include_blocker_id":
+            target_value = str(assertion.get("value", ""))
+            if not any(str(quest.get("blocker_id", "")) == target_value for quest in state.get("quests", [])):
+                failures.append(assertion)
         elif kind == "hero_careers_only":
             allowed = set(assertion.get("value", []))
             if not heroes or any(hero.get("career_id", "") not in allowed for hero in heroes):
@@ -264,6 +317,34 @@ def choose_port(port_arg: int) -> int:
         return int(sock.getsockname()[1])
 
 
+def scenario_requires_route_loop(scenario: dict) -> bool:
+    route_assertions = {
+        "blocker_count_gte",
+        "blocker_state_count_gte",
+        "blockers_have_nonempty_field",
+        "resource_unlocked",
+        "building_installed_resource_count_gte",
+        "building_has_installed_resource",
+        "quests_include_blocker_id",
+    }
+    for assertion in scenario.get("assertions", []):
+        if assertion.get("assert", "") in route_assertions:
+            return True
+    return False
+
+
+def any_hero_available_for_quest(heroes: list[dict]) -> bool:
+    for hero in heroes:
+        if hero.get("state") not in {"idling", "at_tavern", "using_service"}:
+            continue
+        if str(hero.get("wound_state", "healthy")) != "healthy":
+            continue
+        if hero.get("current_quest"):
+            continue
+        return True
+    return False
+
+
 def safe_div(numerator: float, denominator: float) -> float:
     if denominator == 0:
         return 0.0
@@ -307,8 +388,11 @@ def build_balance_report(state: dict, scenario: dict) -> dict:
     events = state.get("events", [])
     completed = state.get("completed_quests", [])
     buildings = state.get("buildings", [])
+    blockers = state.get("blockers", [])
+    unlocked_resources = state.get("unlocked_resources", [])
     current_gold = int(state.get("gold", 0))
     town_profit = current_gold - STARTING_GOLD
+    route_loop_required = scenario_requires_route_loop(scenario)
 
     hero_gold_values = [int(hero.get("gold", 0)) for hero in heroes]
     hero_level_values = [int(hero.get("level", 1)) for hero in heroes]
@@ -354,7 +438,25 @@ def build_balance_report(state: dict, scenario: dict) -> dict:
         "completed": event_count(events, "hero_completed_quest"),
         "returned": event_count(events, "hero_returned_from_quest"),
         "leveled_up": event_count(events, "hero_leveled_up"),
+        "phase_changed": event_count(events, "quest_phase_changed"),
+        "progress_events": event_count(events, "quest_progress_event"),
+        "resource_unlocked": event_count(events, "resource_unlocked"),
+        "resource_installed": event_count(events, "resource_installed"),
     }
+
+    blocker_state_counts: dict[str, int] = {}
+    for blocker in blockers:
+        state_name = str(blocker.get("state", "unknown"))
+        blocker_state_counts[state_name] = blocker_state_counts.get(state_name, 0) + 1
+
+    installed_resource_count = sum(len(building.get("installed_resource_ids", [])) for building in buildings)
+    disrupted_resource_count = sum(
+        1 for resource in unlocked_resources if bool(resource.get("installed", False)) and not bool(resource.get("active", True))
+    )
+    active_quests = [
+        hero for hero in heroes if hero.get("state") in {"departing_quest", "on_quest", "returning"} and hero.get("quest_party_leader_id", -1) == hero.get("id")
+    ]
+    active_phase_names = sorted({str(hero.get("current_quest", {}).get("quest_phase", "")) for hero in active_quests if hero.get("current_quest")})
 
     loop_health = {
         "quests_generated": len(state.get("quests", [])) + len(completed) > 0,
@@ -367,6 +469,10 @@ def build_balance_report(state: dict, scenario: dict) -> dict:
             and len(completed) > 0
             and sum(entry["count"] for entry in spending.values()) > 0
         ),
+        "blockers_discovered": blocker_state_counts.get("discovered", 0) + blocker_state_counts.get("active_quest", 0) + blocker_state_counts.get("unblocked", 0) > 0,
+        "resources_unlocked": len(unlocked_resources) > 0 or quest_event_counts["resource_unlocked"] > 0,
+        "resources_installed": installed_resource_count > 0 or quest_event_counts["resource_installed"] > 0,
+        "phased_quest_runtime_visible": quest_event_counts["phase_changed"] > 0 and quest_event_counts["progress_events"] > 0,
     }
 
     severe_flags: list[str] = []
@@ -376,6 +482,14 @@ def build_balance_report(state: dict, scenario: dict) -> dict:
         severe_flags.append("no_completed_quests")
     if not loop_health["loop_closed"]:
         severe_flags.append("loop_not_closing")
+    if route_loop_required and not loop_health["blockers_discovered"]:
+        severe_flags.append("blocker_discovery_missing")
+    if route_loop_required and not loop_health["resources_unlocked"]:
+        severe_flags.append("resource_unlock_loop_missing")
+    if route_loop_required and not loop_health["resources_installed"]:
+        severe_flags.append("resource_install_loop_missing")
+    if route_loop_required and not loop_health["phased_quest_runtime_visible"]:
+        moderate_flags.append("active_quest_progress_missing")
     if town_profit < -150:
         severe_flags.append("town_bleeds_money")
     elif town_profit > 250:
@@ -411,6 +525,10 @@ def build_balance_report(state: dict, scenario: dict) -> dict:
         severe_flags.append("party_health_too_low")
     elif heroes and average(hero_hp_ratios) > 0.98 and len(completed) >= 3 and wound_count == 0:
         moderate_flags.append("party_almost_never_takes_damage")
+    if route_loop_required and len(unlocked_resources) > 0 and installed_resource_count == 0 and any_hero_available_for_quest(heroes):
+        moderate_flags.append("unlocked_resources_left_uninstalled")
+    if route_loop_required and blocker_state_counts.get("known_blocked", 0) > 0 and quest_event_counts["started"] == 0:
+        moderate_flags.append("known_blockers_not_becoming_missions")
 
     target_overrides = scenario.get("analysis_targets", {})
     max_town_gold = target_overrides.get("max_town_gold")
@@ -449,6 +567,15 @@ def build_balance_report(state: dict, scenario: dict) -> dict:
     report = {
         "verdict": verdict,
         "loop_health": loop_health,
+        "routes": {
+            "required": route_loop_required,
+            "blocker_count": len(blockers),
+            "blocker_states": blocker_state_counts,
+            "unlocked_resource_count": len(unlocked_resources),
+            "installed_resource_count": installed_resource_count,
+            "disrupted_resource_count": disrupted_resource_count,
+            "active_phase_names": active_phase_names,
+        },
         "economy": {
             "starting_gold": STARTING_GOLD,
             "current_gold": current_gold,
@@ -498,6 +625,14 @@ def summarize_balance_report(report: dict) -> str:
         f"wound_rate={report.get('quests', {}).get('wound_rate', 0)}",
         f"avg_hero_gold={report.get('adventurers', {}).get('avg_gold', 0)}",
     ]
+    if report.get("routes", {}).get("required", False):
+        parts.append(
+            "route_loop=%s/%s"
+            % (
+                report.get("routes", {}).get("unlocked_resource_count", 0),
+                report.get("routes", {}).get("installed_resource_count", 0),
+            )
+        )
     severe = report.get("flags", {}).get("severe", [])
     moderate = report.get("flags", {}).get("moderate", [])
     if severe:
@@ -633,11 +768,21 @@ def normalize_command(cmd: dict) -> dict | None:
         if building_type not in {"tavern", "weapons_shop", "temple"}:
             return None
         return {"cmd": "set_building_output_mode", "type": building_type}
+    if name == "install_building_resource":
+        building_type = cmd.get("type", "")
+        resource_id = str(cmd.get("resource_id", ""))
+        if building_type not in {"tavern", "weapons_shop", "temple"} or not resource_id:
+            return None
+        return {"cmd": "install_building_resource", "type": building_type, "resource_id": resource_id}
     if name == "accept_quest":
         offer_id = int(cmd.get("offer_id", -1))
+        hero_ids = [int(hero_id) for hero_id in cmd.get("hero_ids", []) if int(hero_id) > 0]
         if offer_id < 0:
-            return {"cmd": "accept_quest"}
-        return {"cmd": "accept_quest", "offer_id": offer_id}
+            return {"cmd": "accept_quest", "hero_ids": hero_ids} if hero_ids else {"cmd": "accept_quest"}
+        normalized = {"cmd": "accept_quest", "offer_id": offer_id}
+        if hero_ids:
+            normalized["hero_ids"] = hero_ids
+        return normalized
     if name == "step_ticks":
         n = max(1, min(int(cmd.get("n", 60)), 3600))
         return {"cmd": "step_ticks", "n": n}
@@ -661,6 +806,12 @@ def normalize_command(cmd: dict) -> dict | None:
 
 def summarize_state_for_llm(state: dict) -> dict:
     completed = state.get("completed_quests", [])
+    blockers = state.get("blockers", [])
+    unlocked_resources = state.get("unlocked_resources", [])
+    blocker_summary: dict[str, int] = {}
+    for blocker in blockers:
+        blocker_state = str(blocker.get("state", "unknown"))
+        blocker_summary[blocker_state] = blocker_summary.get(blocker_state, 0) + 1
     return {
         "tick": state.get("tick", 0),
         "gold": state.get("gold", 0),
@@ -670,14 +821,19 @@ def summarize_state_for_llm(state: dict) -> dict:
                 "level": building.get("level", 1),
                 "current_action": building.get("current_action", "idle"),
                 "output_stock": building.get("output_stock", 0),
+                "resource_slot_capacity": building.get("resource_slot_capacity", 0),
+                "installed_resource_ids": building.get("installed_resource_ids", []),
             }
             for building in state.get("buildings", [])
         ],
         "heroes": [
             {
+                "id": hero.get("id"),
                 "name": hero.get("name"),
                 "state": hero.get("state"),
                 "level": hero.get("level", 1),
+                "career_id": hero.get("career_id", ""),
+                "wound_state": hero.get("wound_state", "healthy"),
                 "current_quest": hero.get("current_quest", {}).get("name", ""),
             }
             for hero in state.get("heroes", [])
@@ -689,9 +845,35 @@ def summarize_state_for_llm(state: dict) -> dict:
                 "name": quest.get("name", ""),
                 "type": quest.get("type", ""),
                 "difficulty": quest.get("difficulty", 1),
+                "blocker_id": quest.get("blocker_id", ""),
+                "reward_resource_id": quest.get("reward_resource_id", ""),
+                "party_size": quest.get("party_size", 0),
             }
             for quest in state.get("quests", [])
         ],
+        "routes": {
+            "blocker_states": blocker_summary,
+            "discovered_blockers": [
+                {
+                    "blocker_id": blocker.get("blocker_id", ""),
+                    "name": blocker.get("name", ""),
+                    "state": blocker.get("state", ""),
+                    "unlocks_resource_id": blocker.get("unlocks_resource_id", ""),
+                    "required_building": blocker.get("required_building", ""),
+                }
+                for blocker in blockers
+                if str(blocker.get("state", "")) in {"discovered", "active_quest", "unblocked"}
+            ],
+            "unlocked_resources": [
+                {
+                    "resource_id": resource.get("resource_id", ""),
+                    "building_type": resource.get("building_type", ""),
+                    "installed": bool(resource.get("installed", False)),
+                    "installed_building_id": resource.get("installed_building_id", -1),
+                }
+                for resource in unlocked_resources
+            ],
+        },
         "quest_summary": {
             "completed": len(completed),
             "successes": sum(1 for quest in completed if bool(quest.get("success", False))),
@@ -701,6 +883,38 @@ def summarize_state_for_llm(state: dict) -> dict:
     }
 
 
+def first_installable_resource(state: dict, building_type: str | None = None) -> dict | None:
+    buildings = state.get("buildings", [])
+    for resource in state.get("unlocked_resources", []):
+        if bool(resource.get("installed", False)):
+            continue
+        resource_building_type = str(resource.get("building_type", ""))
+        if building_type is not None and resource_building_type != building_type:
+            continue
+        if any(building.get("type") == resource_building_type for building in buildings):
+            return resource
+    return None
+
+
+def fallback_quest_party(quests: list[dict], heroes: list[dict]) -> dict | None:
+    if not quests:
+        return None
+    available = [
+        int(hero.get("id", -1))
+        for hero in heroes
+        if hero.get("state") in {"idling", "at_tavern", "using_service"}
+        and str(hero.get("wound_state", "healthy")) == "healthy"
+        and not hero.get("current_quest")
+    ]
+    if not available:
+        return None
+    quest = quests[0]
+    party_size = max(1, int(quest.get("party_size", 1)))
+    if len(available) < party_size:
+        return None
+    return {"cmd": "accept_quest", "offer_id": int(quest.get("offer_id", -1))}
+
+
 def choose_fallback_command(state: dict, failures: list) -> dict:
     buildings = state.get("buildings", [])
     building_types = {building.get("type") for building in buildings}
@@ -708,8 +922,12 @@ def choose_fallback_command(state: dict, failures: list) -> dict:
     building_actions = {building.get("type"): str(building.get("current_action", "idle")) for building in buildings}
     heroes = state.get("heroes", [])
     quests = state.get("quests", [])
+    unlocked_resources = state.get("unlocked_resources", [])
+    active_quest_running = any(hero.get("state") in {"departing_quest", "on_quest", "returning"} for hero in heroes)
     required_buildings = set()
     required_output_buildings = set()
+    required_resource_installs = set()
+    wants_quest_progress = False
 
     for failure in failures:
         kind = failure.get("assert", "")
@@ -721,6 +939,8 @@ def choose_fallback_command(state: dict, failures: list) -> dict:
             required_output_buildings.add("tavern")
         if kind == "building_output_stock_gte":
             required_output_buildings.add(failure.get("type", ""))
+        if kind in {"building_installed_resource_count_gte", "building_has_installed_resource"}:
+            required_resource_installs.add(failure.get("type", ""))
         if kind == "event_type_seen":
             event_type = failure.get("value", "")
             if event_type == "hero_spent_at_tavern":
@@ -732,9 +952,16 @@ def choose_fallback_command(state: dict, failures: list) -> dict:
             elif event_type == "hero_spent_at_temple":
                 required_buildings.add("temple")
                 required_output_buildings.add("temple")
+            elif event_type == "resource_installed":
+                required_resource_installs.update({"tavern", "weapons_shop", "temple"})
             elif event_type in {"hero_started_quest", "hero_departed_for_quest", "hero_completed_quest", "hero_heading_home", "hero_returned_from_quest"}:
                 required_buildings.add("tavern")
                 required_output_buildings.add("tavern")
+                wants_quest_progress = True
+            elif event_type in {"quest_phase_changed", "quest_progress_event", "resource_unlocked"}:
+                wants_quest_progress = True
+        elif kind in {"completed_quest_count_gte", "resource_unlocked", "building_installed_resource_count_gte", "building_has_installed_resource"}:
+            wants_quest_progress = True
 
     for building_type in ("tavern", "weapons_shop", "temple"):
         if building_type in required_buildings and building_type not in building_types:
@@ -749,6 +976,34 @@ def choose_fallback_command(state: dict, failures: list) -> dict:
         if building_type in required_output_buildings and building_type in building_types:
             if building_actions.get(building_type, "idle") == "idle":
                 return {"cmd": "set_building_output_mode", "type": building_type}
+
+    if active_quest_running:
+        return {"cmd": "step_ticks", "n": 600}
+
+    for building_type in ("tavern", "weapons_shop", "temple"):
+        if building_type in required_resource_installs:
+            resource = first_installable_resource(state, building_type)
+            if resource is not None:
+                return {
+                    "cmd": "install_building_resource",
+                    "type": building_type,
+                    "resource_id": str(resource.get("resource_id", "")),
+                }
+
+    if unlocked_resources:
+        resource = first_installable_resource(state)
+        if resource is not None:
+            return {
+                "cmd": "install_building_resource",
+                "type": str(resource.get("building_type", "")),
+                "resource_id": str(resource.get("resource_id", "")),
+            }
+
+    if wants_quest_progress and quests:
+        party_cmd = fallback_quest_party(quests, heroes)
+        if party_cmd is not None:
+            return party_cmd
+        return {"cmd": "step_ticks", "n": 180}
 
     for failure in failures:
         kind = failure.get("assert", "")
@@ -780,6 +1035,36 @@ def choose_fallback_command(state: dict, failures: list) -> dict:
                 return {"cmd": "place_building", "type": target_type, **placement}
             return {"cmd": "upgrade_building", "type": target_type}
         if kind == "quest_count_gte":
+            if "tavern" not in building_types:
+                return {"cmd": "place_building", "type": "tavern", "x": 0, "z": 0}
+            if building_actions.get("tavern", "idle") == "idle":
+                return {"cmd": "set_building_output_mode", "type": "tavern"}
+            return {"cmd": "step_ticks", "n": 300}
+        if kind == "resource_unlocked":
+            if "tavern" not in building_types:
+                return {"cmd": "place_building", "type": "tavern", "x": 0, "z": 0}
+            if building_actions.get("tavern", "idle") == "idle":
+                return {"cmd": "set_building_output_mode", "type": "tavern"}
+                if quests:
+                    party_cmd = fallback_quest_party(quests, heroes)
+                    if party_cmd is not None:
+                        return party_cmd
+                    return {"cmd": "step_ticks", "n": 180}
+                return {"cmd": "step_ticks", "n": 600}
+        if kind in {"building_installed_resource_count_gte", "building_has_installed_resource"}:
+            target_type = failure.get("type", "")
+            resource = first_installable_resource(state, target_type)
+            if resource is not None:
+                return {"cmd": "install_building_resource", "type": target_type, "resource_id": str(resource.get("resource_id", ""))}
+            if quests:
+                party_cmd = fallback_quest_party(quests, heroes)
+                if party_cmd is not None:
+                    return party_cmd
+                return {"cmd": "step_ticks", "n": 180}
+            if building_actions.get("tavern", "idle") == "idle":
+                return {"cmd": "set_building_output_mode", "type": "tavern"}
+            return {"cmd": "step_ticks", "n": 600}
+        if kind in {"blocker_count_gte", "blocker_state_count_gte", "blockers_have_nonempty_field", "quests_include_blocker_id"}:
             if "tavern" not in building_types:
                 return {"cmd": "place_building", "type": "tavern", "x": 0, "z": 0}
             if building_actions.get("tavern", "idle") == "idle":
@@ -829,7 +1114,25 @@ def choose_fallback_command(state: dict, failures: list) -> dict:
                 "hero_heading_home",
                 "hero_returned_from_quest",
             } and quests:
-                return {"cmd": "accept_quest", "offer_id": int(quests[0].get("offer_id", -1))}
+                party_cmd = fallback_quest_party(quests, heroes)
+                if party_cmd is not None:
+                    return party_cmd
+                return {"cmd": "step_ticks", "n": 180}
+            if event_type == "resource_unlocked":
+                if quests:
+                    party_cmd = fallback_quest_party(quests, heroes)
+                    if party_cmd is not None:
+                        return party_cmd
+                    return {"cmd": "step_ticks", "n": 180}
+                return {"cmd": "step_ticks", "n": 900}
+            if event_type == "resource_installed":
+                resource = first_installable_resource(state)
+                if resource is not None:
+                    return {
+                        "cmd": "install_building_resource",
+                        "type": str(resource.get("building_type", "")),
+                        "resource_id": str(resource.get("resource_id", "")),
+                    }
             if event_type == "hero_spent_at_weapons_shop" and building_actions.get("weapons_shop", "idle") == "idle":
                 return {"cmd": "set_building_output_mode", "type": "weapons_shop"}
             if event_type == "hero_spent_at_temple" and building_actions.get("temple", "idle") == "idle":
@@ -861,8 +1164,19 @@ def choose_fallback_command(state: dict, failures: list) -> dict:
         if building_type in building_types and building_actions.get(building_type, "idle") == "idle":
             return {"cmd": "set_building_output_mode", "type": building_type}
 
+    resource = first_installable_resource(state)
+    if resource is not None:
+        return {
+            "cmd": "install_building_resource",
+            "type": str(resource.get("building_type", "")),
+            "resource_id": str(resource.get("resource_id", "")),
+        }
+
     if quests:
-        return {"cmd": "accept_quest", "offer_id": int(quests[0].get("offer_id", -1))}
+        party_cmd = fallback_quest_party(quests, heroes)
+        if party_cmd is not None:
+            return party_cmd
+        return {"cmd": "step_ticks", "n": 180}
 
     if "tavern" not in building_types:
         return {"cmd": "place_building", "type": "tavern", "x": 0, "z": 0}
@@ -880,6 +1194,11 @@ def is_useful_command(cmd: dict, state: dict, last_cmd: dict | None, failures: l
     buildings = state.get("buildings", [])
     building_types = {building.get("type") for building in buildings}
     building_actions = {building.get("type"): str(building.get("current_action", "idle")) for building in buildings}
+    installed_resource_ids = {
+        resource_id
+        for building in buildings
+        for resource_id in building.get("installed_resource_ids", [])
+    }
     required_buildings = set()
     for failure in failures:
         kind = failure.get("assert", "")
@@ -910,12 +1229,44 @@ def is_useful_command(cmd: dict, state: dict, last_cmd: dict | None, failures: l
             return False
         if building_actions.get(building_type, "idle") != "idle":
             return False
+    if cmd.get("cmd") == "install_building_resource":
+        building_type = cmd.get("type")
+        resource_id = str(cmd.get("resource_id", ""))
+        if building_type not in building_types or not resource_id:
+            return False
+        if resource_id in installed_resource_ids:
+            return False
+        matching_resource = next(
+            (
+                resource
+                for resource in state.get("unlocked_resources", [])
+                if str(resource.get("resource_id", "")) == resource_id
+            ),
+            None,
+        )
+        if matching_resource is None:
+            return False
+        if str(matching_resource.get("building_type", "")) != building_type:
+            return False
     if cmd.get("cmd") == "accept_quest":
         offer_id = int(cmd.get("offer_id", -1))
         if offer_id < 0:
             return len(state.get("quests", [])) > 0
         if not any(int(quest.get("offer_id", -2)) == offer_id for quest in state.get("quests", [])):
             return False
+        hero_ids = [int(hero_id) for hero_id in cmd.get("hero_ids", []) if int(hero_id) > 0]
+        if hero_ids:
+            hero_lookup = {int(hero.get("id", -1)): hero for hero in state.get("heroes", [])}
+            for hero_id in hero_ids:
+                hero = hero_lookup.get(hero_id)
+                if hero is None:
+                    return False
+                if hero.get("state") not in {"idling", "at_tavern", "using_service"}:
+                    return False
+                if str(hero.get("wound_state", "healthy")) != "healthy":
+                    return False
+                if hero.get("current_quest"):
+                    return False
     if last_cmd is not None and cmd == last_cmd and cmd.get("cmd") != "step_ticks":
         return False
     return True

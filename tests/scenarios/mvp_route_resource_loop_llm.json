@@ -1,0 +1,30 @@
+{
+  "name": "mvp_route_resource_loop_llm",
+  "goal": "Use Tavern rumours to discover a blocker, launch a blocker-clearing mission, wait through visible quest phases, unlock the linked route resource, and install it into the correct building.",
+  "seed": 7,
+  "llm_only": true,
+  "llm_bootstrap_commands": true,
+  "max_ticks": 0,
+  "commands": [
+    {"cmd": "place_building", "type": "tavern", "x": 0, "z": 0},
+    {"cmd": "set_building_output_mode", "type": "tavern"},
+    {"cmd": "step_ticks", "n": 600}
+  ],
+  "assertions": [
+    {"assert": "building_exists", "type": "tavern"},
+    {"assert": "quest_count_gte", "value": 1},
+    {"assert": "blocker_state_count_gte", "state": "discovered", "value": 1},
+    {"assert": "quests_have_nonempty_field", "value": "blocker_id"},
+    {"assert": "quests_have_nonempty_field", "value": "reward_resource_id"},
+    {"assert": "event_type_seen", "value": "quest_phase_changed"},
+    {"assert": "event_type_seen", "value": "quest_progress_event"},
+    {"assert": "completed_quest_count_gte", "value": 1},
+    {"assert": "resource_unlocked", "value": "southmere_travellers"},
+    {"assert": "building_has_installed_resource", "type": "tavern", "value": "southmere_travellers"},
+    {"assert": "event_type_seen", "value": "resource_installed"}
+  ],
+  "analysis_targets": {
+    "max_town_gold": 180,
+    "min_town_gold": 20
+  }
+}
