@@ -3471,11 +3471,19 @@ func _sync_selected_party_for_offer(quest: Dictionary) -> void:
 	var offer_id := str(quest.get("offer_id", ""))
 	if _selected_quest_party_offer_id != offer_id:
 		_selected_quest_party_offer_id = offer_id
-		var preview: Dictionary = sim.get_quest_acceptance_preview(int(quest.get("offer_id", -1)))
-		_selected_quest_party_ids = preview.get("party_ids", []).duplicate()
+		_selected_quest_party_ids.clear()
 		return
 	var valid_ids := {}
 	for hero_id in GameState.heroes.keys():
+		var hero: Dictionary = GameState.heroes[hero_id]
+		if hero.get("state", "") != "idling":
+			continue
+		if not hero.get("current_quest", {}).is_empty():
+			continue
+		if str(hero.get("wound_state", "healthy")) != "healthy":
+			continue
+		if int(hero.get("health", 0)) < int(hero.get("max_health", 0)):
+			continue
 		valid_ids[int(hero_id)] = true
 	var filtered: Array = []
 	for hero_id_variant in _selected_quest_party_ids:
@@ -3496,7 +3504,7 @@ func _refresh_quest_party_selection_ui(quest: Dictionary, selection_state: Dicti
 	var party_size: int = int(quest.get("party_size", 2))
 	var selected_count: int = _selected_quest_party_ids.size()
 	var risk_label: String = str(selection_state.get("risk_label", "Dangerous"))
-	summary.text = "Select %d heroes. Chosen %d/%d. Current outlook: %s. Selected heroes stay pinned at the top." % [party_size, selected_count, party_size, risk_label]
+	summary.text = "Choose %d heroes. Selected %d/%d. Current outlook: %s." % [party_size, selected_count, party_size, risk_label]
 	var selected_entries: Array = []
 	var unselected_entries: Array = []
 	for entry_variant in selection_state.get("eligible", []):
@@ -3505,6 +3513,91 @@ func _refresh_quest_party_selection_ui(quest: Dictionary, selection_state: Dicti
 			selected_entries.append(split_entry)
 		else:
 			unselected_entries.append(split_entry)
+	var selected_header := Label.new()
+	selected_header.text = "Selected Party"
+	_apply_label_role(selected_header, "section")
+	list.add_child(selected_header)
+	if selected_entries.is_empty():
+		var empty_selected := Label.new()
+		empty_selected.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		empty_selected.text = "No heroes chosen yet. Pick from the available roster below."
+		_apply_label_role(empty_selected, "meta")
+		list.add_child(empty_selected)
+	for entry_variant in selected_entries:
+		var entry: Dictionary = entry_variant
+		var hero_id: int = int(entry.get("hero_id", -1))
+		var selected_button := Button.new()
+		selected_button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		selected_button.custom_minimum_size = Vector2(0, 42)
+		selected_button.text = "Remove  %s  |  %s L%d  |  HP %d/%d" % [
+			str(entry.get("name", "?")),
+			str(entry.get("career", "")),
+			int(entry.get("level", 1)),
+			int(entry.get("health", 0)),
+			int(entry.get("max_health", 0))
+		]
+		_apply_button_theme(selected_button, "offer", true)
+		selected_button.modulate = Color(1.0, 0.98, 0.92, 1.0)
+		var local_selected_hero_id := hero_id
+		selected_button.pressed.connect(func() -> void:
+			_toggle_quest_party_member(local_selected_hero_id, party_size)
+		)
+		list.add_child(selected_button)
+	var available_header := Label.new()
+	available_header.text = "Available Heroes"
+	_apply_label_role(available_header, "section")
+	list.add_child(available_header)
+	if unselected_entries.is_empty():
+		var empty_available := Label.new()
+		empty_available.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		empty_available.text = "No other heroes are ready for this quest right now."
+		_apply_label_role(empty_available, "meta")
+		list.add_child(empty_available)
+	for entry_variant in unselected_entries:
+		var entry: Dictionary = entry_variant
+		var hero_id: int = int(entry.get("hero_id", -1))
+		var available_button := Button.new()
+		available_button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		available_button.custom_minimum_size = Vector2(0, 42)
+		available_button.text = "Add  %s  |  %s L%d  |  HP %d/%d" % [
+			str(entry.get("name", "?")),
+			str(entry.get("career", "")),
+			int(entry.get("level", 1)),
+			int(entry.get("health", 0)),
+			int(entry.get("max_health", 0))
+		]
+		_apply_button_theme(available_button, "offer", false)
+		var local_available_hero_id := hero_id
+		available_button.pressed.connect(func() -> void:
+			_toggle_quest_party_member(local_available_hero_id, party_size)
+		)
+		list.add_child(available_button)
+	var unavailable_header := Label.new()
+	unavailable_header.text = "Unavailable"
+	_apply_label_role(unavailable_header, "section")
+	list.add_child(unavailable_header)
+	if selection_state.get("ineligible", []).is_empty():
+		var empty_unavailable := Label.new()
+		empty_unavailable.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		empty_unavailable.text = "Everyone else is currently available."
+		_apply_label_role(empty_unavailable, "meta")
+		list.add_child(empty_unavailable)
+	for entry_variant in selection_state.get("ineligible", []):
+		var entry: Dictionary = entry_variant
+		var unavailable_button := Button.new()
+		unavailable_button.disabled = true
+		unavailable_button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		unavailable_button.custom_minimum_size = Vector2(0, 38)
+		unavailable_button.text = "%s  |  %s L%d  |  %s" % [
+			str(entry.get("name", "?")),
+			str(entry.get("career", "")),
+			int(entry.get("level", 1)),
+			str(entry.get("reason", "Unavailable"))
+		]
+		_apply_button_theme(unavailable_button, "offer", false)
+		unavailable_button.modulate = Color(1, 1, 1, 0.68)
+		list.add_child(unavailable_button)
+	return
 	var ordered_eligible: Array = []
 	ordered_eligible.append_array(selected_entries)
 	ordered_eligible.append_array(unselected_entries)
@@ -3554,7 +3647,8 @@ func _toggle_quest_party_member(hero_id: int, party_size: int) -> void:
 		_selected_quest_party_ids.erase(hero_id)
 	else:
 		if _selected_quest_party_ids.size() >= party_size:
-			_selected_quest_party_ids.pop_front()
+			_set_status("Party full. Remove someone before adding another hero.")
+			return
 		_selected_quest_party_ids.append(hero_id)
 	_refresh_selected_quest_detail()
 	_pulse_control(get_node_or_null("UILayer/QuestDrawer/QuestVBox/QuestContent/QuestDetailColumn/QuestPartyCard") as CanvasItem, "quest_party_focus", Vector2(1.01, 1.01))
@@ -3571,9 +3665,13 @@ func _quest_suitability_text(quest: Dictionary, preview: Dictionary, selection_s
 				names.append("Rogue")
 			_:
 				names.append(str(career_id).replace("_", " ").capitalize())
-	var preview_names: Array = preview.get("party_names", [])
-	preview_names.sort()
-	var party_line := "Selected party: %s" % ", ".join(preview_names) if not preview_names.is_empty() else "Launch status: %s" % str(preview.get("reason", "Waiting for a ready party"))
+	var selected_names: Array = []
+	for hero_id_variant in _selected_quest_party_ids:
+		var hero: Dictionary = GameState.heroes.get(int(hero_id_variant), {})
+		if not hero.is_empty():
+			selected_names.append(str(hero.get("name", "?")))
+	selected_names.sort()
+	var party_line := "Selected party: %s" % ", ".join(selected_names) if not selected_names.is_empty() else "No heroes selected yet"
 	var risk_line := "Current party outlook: %s" % str(selection_state.get("risk_label", preview.get("risk_label", "Dangerous")))
 	return "Likely interested adventurers: %s\nRecommended party size: %d\nResolution focus: %s\nMap site: %s (%s)\n%s\n%s" % [
 		", ".join(names),
@@ -3620,6 +3718,11 @@ func _accept_selected_quest() -> void:
 		return
 	var quest := _get_quest_offer(_selected_quest_id)
 	if quest.is_empty():
+		return
+	var required_party_size: int = int(quest.get("party_size", 2))
+	if _selected_quest_party_ids.size() != required_party_size:
+		_set_status("Choose exactly %d heroes before launching this quest" % required_party_size)
+		_refresh_selected_quest_detail()
 		return
 	var result: Dictionary = sim.accept_quest(int(quest.get("offer_id", -1)), _selected_quest_party_ids)
 	if result.is_empty():
@@ -3902,16 +4005,16 @@ func _fit_ui_to_viewport() -> void:
 		left_panel.offset_bottom = -118.0
 	var right_panel := get_node_or_null("UILayer/RightPanel")
 	if right_panel:
-		var desired_width: float = clamp(viewport_size.x * 0.148, 232.0, 276.0)
-		right_panel.offset_left = -desired_width - margin - 18.0
-		right_panel.offset_right = -margin - 18.0
+		var desired_width: float = clamp(viewport_size.x * 0.138, 214.0, 252.0)
+		right_panel.offset_left = -desired_width - margin - 28.0
+		right_panel.offset_right = -margin - 28.0
 		right_panel.offset_top = 94.0
 		right_panel.offset_bottom = -118.0
 		right_panel.clip_contents = true
 	var right_tab := get_node_or_null("UILayer/RightPanelTab")
 	if right_tab:
-		right_tab.offset_left = -margin - 54.0
-		right_tab.offset_right = -margin - 18.0
+		right_tab.offset_left = -margin - 64.0
+		right_tab.offset_right = -margin - 28.0
 		right_tab.offset_top = 108.0
 		right_tab.offset_bottom = 156.0
 	var left_tab := get_node_or_null("UILayer/LeftPanelTab")
