@@ -1,6 +1,6 @@
 {
   "name": "mvp_route_progression_heuristic",
-  "goal": "Drive the blocker-route-resource loop for a longer heuristic play session, building support structures, clearing blockers, installing route rewards, and surviving at least one relapse.",
+  "goal": "Drive the blocker-route-resource loop for a longer heuristic play session, building support structures, clearing blockers, and installing route rewards without relapse pressure.",
   "seed": 7,
   "heuristic_only": true,
   "max_ticks": 7200,
@@ -10,7 +10,7 @@
     {"assert": "completed_quest_count_gte", "value": 2},
     {"assert": "resource_unlocked", "value": "southmere_travellers"},
     {"assert": "building_installed_resource_count_gte", "type": "tavern", "value": 1},
-    {"assert": "event_type_seen", "value": "route_reblocked"}
+    {"assert": "event_type_not_seen", "value": "route_reblocked"}
   ],
   "analysis_targets": {
     "max_town_gold": 220,

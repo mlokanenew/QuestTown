@@ -200,6 +200,10 @@ def check_assertions(assertions: list, state: dict) -> tuple[bool, list]:
             target = assertion.get("value", "")
             if not any(event.get("type", "") == target for event in state.get("events", [])):
                 failures.append(assertion)
+        elif kind == "event_type_not_seen":
+            target = assertion.get("value", "")
+            if any(event.get("type", "") == target for event in state.get("events", [])):
+                failures.append(assertion)
         elif kind == "quest_templates_only":
             allowed = set(assertion.get("value", []))
             quests = state.get("quests", [])

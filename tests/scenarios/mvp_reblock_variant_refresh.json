@@ -1,6 +1,6 @@
 {
   "name": "mvp_reblock_variant_refresh",
-  "goal": "Verify a route can reblock into a fresh blocker variant instead of replaying the exact same menace state.",
+  "goal": "Verify blocker variants remain assigned and routes do not reblock while relapse is disabled.",
   "seed": 9,
   "max_ticks": 0,
   "commands": [
@@ -10,14 +10,12 @@
     {"cmd": "accept_quest", "offer_id": 1},
     {"cmd": "step_ticks", "n": 1800},
     {"cmd": "install_building_resource", "type": "tavern", "resource_id": "southmere_travellers"},
-    {"cmd": "step_ticks", "n": 2400},
-    {"cmd": "set_building_output_mode", "type": "tavern"},
-    {"cmd": "step_ticks", "n": 400}
+    {"cmd": "step_ticks", "n": 2400}
   ],
   "assertions": [
-    {"assert": "event_type_seen", "value": "route_reblocked"},
-    {"assert": "event_type_seen", "value": "blocker_variant_changed"},
+    {"assert": "event_type_not_seen", "value": "route_reblocked"},
+    {"assert": "event_type_not_seen", "value": "blocker_variant_changed"},
     {"assert": "blockers_have_nonempty_field", "value": "variant_id"},
-    {"assert": "quests_include_blocker_id", "value": "forest_bandits_southmere"}
+    {"assert": "resource_active", "value": "southmere_travellers", "active": true}
   ]
 }

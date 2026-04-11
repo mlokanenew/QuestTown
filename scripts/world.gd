@@ -2251,11 +2251,14 @@ func _add_quest_map_marker(root: Control, quest_offer: Dictionary, is_active: bo
 		6
 	)
 	if offer_id == _selected_quest_id:
-		marker_style.bg_color = marker_hover.bg_color
-		marker_style.border_width_left = 2
-		marker_style.border_width_top = 2
-		marker_style.border_width_right = 2
-		marker_style.border_width_bottom = 2
+		marker_style.bg_color = UI_ACCENT.lightened(0.18)
+		marker_style.border_color = Color(0.98, 0.96, 0.90, 0.96)
+		marker_style.border_width_left = 3
+		marker_style.border_width_top = 3
+		marker_style.border_width_right = 3
+		marker_style.border_width_bottom = 3
+		marker_hover.bg_color = UI_ACCENT.lightened(0.24)
+		marker_pressed.bg_color = UI_ACCENT.darkened(0.02)
 	marker.add_theme_stylebox_override("normal", marker_style)
 	marker.add_theme_stylebox_override("hover", marker_hover)
 	marker.add_theme_stylebox_override("pressed", marker_pressed)
@@ -2315,11 +2318,12 @@ func _add_active_quest_map_marker(root: Control, party_id: int, quest: Dictionar
 	var amber_hover := Color(0.92, 0.64, 0.22, 1.0)
 	var marker_style := _make_style(amber, Color(0.95, 0.93, 0.86, 0.56), 18, 1, 6)
 	if is_selected:
-		marker_style.bg_color = amber_hover
-		marker_style.border_width_left = 2
-		marker_style.border_width_top = 2
-		marker_style.border_width_right = 2
-		marker_style.border_width_bottom = 2
+		marker_style.bg_color = Color(0.90, 0.64, 0.22, 1.0)
+		marker_style.border_color = Color(0.98, 0.96, 0.90, 0.96)
+		marker_style.border_width_left = 3
+		marker_style.border_width_top = 3
+		marker_style.border_width_right = 3
+		marker_style.border_width_bottom = 3
 	marker.add_theme_stylebox_override("normal", marker_style)
 	marker.add_theme_stylebox_override("hover", _make_style(amber_hover, Color(1, 1, 1, 0.78), 18, 1, 6))
 	marker.add_theme_stylebox_override("pressed", _make_style(Color(0.68, 0.42, 0.08, 1.0), Color(1, 1, 1, 0.84), 18, 1, 6))
@@ -2344,7 +2348,7 @@ func _get_active_quest_parties() -> Array:
 	var parties: Dictionary = {}
 	for hero_id in GameState.heroes.keys():
 		var hero: Dictionary = GameState.heroes[hero_id]
-		if hero.get("state", "") not in ["departing_quest", "on_quest", "returning"]:
+		if hero.get("state", "") not in ["departing_quest", "on_quest"]:
 			continue
 		var current_quest: Dictionary = hero.get("current_quest", {})
 		if current_quest.is_empty():
@@ -2356,7 +2360,11 @@ func _get_active_quest_parties() -> Array:
 		if not parties.has(pid_str):
 			parties[pid_str] = {"party_id": party_id, "quest": current_quest.duplicate(), "members": []}
 		parties[pid_str]["members"].append(hero.duplicate())
-	return parties.values()
+	var values: Array = parties.values()
+	values.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		return int(a.get("party_id", 0)) < int(b.get("party_id", 0))
+	)
+	return values
 
 func _active_party_phase_label(quest: Dictionary, members: Array) -> String:
 	if not members.is_empty():
@@ -3488,8 +3496,19 @@ func _refresh_quest_party_selection_ui(quest: Dictionary, selection_state: Dicti
 	var party_size: int = int(quest.get("party_size", 2))
 	var selected_count: int = _selected_quest_party_ids.size()
 	var risk_label: String = str(selection_state.get("risk_label", "Dangerous"))
-	summary.text = "Select %d heroes. Chosen %d/%d. Current outlook: %s." % [party_size, selected_count, party_size, risk_label]
+	summary.text = "Select %d heroes. Chosen %d/%d. Current outlook: %s. Selected heroes stay pinned at the top." % [party_size, selected_count, party_size, risk_label]
+	var selected_entries: Array = []
+	var unselected_entries: Array = []
 	for entry_variant in selection_state.get("eligible", []):
+		var split_entry: Dictionary = entry_variant
+		if _selected_quest_party_ids.has(int(split_entry.get("hero_id", -1))):
+			selected_entries.append(split_entry)
+		else:
+			unselected_entries.append(split_entry)
+	var ordered_eligible: Array = []
+	ordered_eligible.append_array(selected_entries)
+	ordered_eligible.append_array(unselected_entries)
+	for entry_variant in ordered_eligible:
 		var entry: Dictionary = entry_variant
 		var hero_id: int = int(entry.get("hero_id", -1))
 		var selected := _selected_quest_party_ids.has(hero_id)
@@ -3505,6 +3524,9 @@ func _refresh_quest_party_selection_ui(quest: Dictionary, selection_state: Dicti
 			int(entry.get("max_health", 0))
 		]
 		_apply_button_theme(button, "offer", selected)
+		if selected:
+			button.text = "Selected  " + button.text
+			button.modulate = Color(1.0, 0.98, 0.92, 1.0)
 		_wire_button_sfx(button)
 		button.pressed.connect(func() -> void:
 			_toggle_quest_party_member(hero_id, party_size)

@@ -1,6 +1,6 @@
 {
   "name": "mvp_route_reblock",
-  "goal": "A cleared route should later reblock, disrupt its installed resource, and return to the rumour pipeline.",
+  "goal": "A cleared route should stay open while reblocking is disabled for this MVP pass.",
   "seed": 7,
   "max_ticks": 0,
   "commands": [
@@ -17,10 +17,8 @@
   "assertions": [
     {"assert": "resource_unlocked", "value": "southmere_travellers"},
     {"assert": "building_has_installed_resource", "type": "tavern", "value": "southmere_travellers"},
-    {"assert": "resource_active", "value": "southmere_travellers", "active": false},
-    {"assert": "blocker_state_count_gte", "state": "discovered", "value": 1},
-    {"assert": "event_type_seen", "value": "route_reblocked"},
-    {"assert": "event_type_seen", "value": "resource_disrupted"},
-    {"assert": "quests_include_blocker_id", "value": "forest_bandits_southmere"}
+    {"assert": "resource_active", "value": "southmere_travellers", "active": true},
+    {"assert": "event_type_not_seen", "value": "route_reblocked"},
+    {"assert": "event_type_not_seen", "value": "resource_disrupted"}
   ]
 }

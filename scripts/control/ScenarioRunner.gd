@@ -203,6 +203,11 @@ func _check(assertion: Dictionary, state: Dictionary) -> bool:
 				if event.get("type", "") == assertion.get("value", ""):
 					return true
 			return false
+		"event_type_not_seen":
+			for event in state.get("events", []):
+				if event.get("type", "") == assertion.get("value", ""):
+					return false
+			return true
 		"quest_templates_only":
 			var allowed: Array = assertion.get("value", [])
 			for quest in state.get("quests", []):

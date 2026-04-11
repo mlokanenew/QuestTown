@@ -297,9 +297,9 @@ func get_party_selection_state(offer_id: int, building_system: Object, selected_
 		else:
 			ineligible.append(entry)
 	eligible.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
-		if is_equal_approx(float(a.get("score", 0.0)), float(b.get("score", 0.0))):
+		if str(a.get("name", "")) == str(b.get("name", "")):
 			return int(a.get("hero_id", 0)) < int(b.get("hero_id", 0))
-		return float(a.get("score", 0.0)) > float(b.get("score", 0.0))
+		return str(a.get("name", "")) < str(b.get("name", ""))
 	)
 	ineligible.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
 		return int(a.get("hero_id", 0)) < int(b.get("hero_id", 0))

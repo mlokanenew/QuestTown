@@ -78,7 +78,7 @@
       "required_building": "tavern",
       "required_building_level": 1,
       "unlocks_resource_id": "southmere_travellers",
-      "reblock_after_ticks": 2700,
+      "reblock_after_ticks": 0,
       "variants": [
         {
           "variant_id": "forest_bandits",
@@ -126,7 +126,7 @@
       "required_building": "tavern",
       "required_building_level": 1,
       "unlocks_resource_id": "high_market_arms",
-      "reblock_after_ticks": 2700,
+      "reblock_after_ticks": 0,
       "variants": [
         {
           "variant_id": "north_road_wolves",
@@ -174,7 +174,7 @@
       "required_building": "weapons_shop",
       "required_building_level": 1,
       "unlocks_resource_id": "silver_ore_supply",
-      "reblock_after_ticks": 3000,
+      "reblock_after_ticks": 0,
       "variants": [
         {
           "variant_id": "silver_mine_raiders",
@@ -222,7 +222,7 @@
       "required_building": "weapons_shop",
       "required_building_level": 1,
       "unlocks_resource_id": "iron_ore_supply",
-      "reblock_after_ticks": 3000,
+      "reblock_after_ticks": 0,
       "variants": [
         {
           "variant_id": "iron_mine_beasts",
@@ -270,7 +270,7 @@
       "required_building": "temple",
       "required_building_level": 1,
       "unlocks_resource_id": "shrine_relic",
-      "reblock_after_ticks": 3300,
+      "reblock_after_ticks": 0,
       "variants": [
         {
           "variant_id": "ruined_shrine_corruption",
@@ -318,7 +318,7 @@
       "required_building": "temple",
       "required_building_level": 1,
       "unlocks_resource_id": "temple_relic",
-      "reblock_after_ticks": 3600,
+      "reblock_after_ticks": 0,
       "variants": [
         {
           "variant_id": "old_temple_cultists",
